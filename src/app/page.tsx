@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Navigation } from "@/components/navigation";
 import { Button } from "@/components/ui/button";
 import { 
@@ -22,15 +22,24 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { ContentCard } from "@/components/content-card";
+import { cn } from "@/lib/utils";
 
 const KNOWLEDGE_CATEGORIES = [
+  { id: "all", name: "सर्व", icon: GlobeAltIcon, color: "bg-slate-500", desc: "सर्व माहिती" },
   { id: "advice", name: "शेती सल्ला", icon: Sprout, color: "bg-green-500", desc: "तज्ज्ञांचे मार्गदर्शन" },
   { id: "schemes", name: "शासकीय योजना", icon: FileText, color: "bg-blue-500", desc: "अनुदान व लाभ" },
   { id: "weather", name: "हवामान अंदाज", icon: CloudSun, color: "bg-orange-500", desc: "पाऊस व तापमान" },
   { id: "news", name: "बातम्या", icon: Newspaper, color: "bg-purple-500", desc: "ताज्या घडामोडी" },
-  { id: "events", name: "कार्यक्रम", icon: CalendarDays, color: "bg-pink-500", desc: "मेळावे व प्रदर्शने" },
   { id: "market", name: "बाजारपेठ", icon: ShoppingBag, color: "bg-amber-500", desc: "खरेदी व विक्री" },
 ];
+
+function GlobeAltIcon(props: any) {
+  return (
+    <svg {...props} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M12 21a9.004 9.004 0 0 0 8.716-6.747M12 21a9.004 9.004 0 0 1-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9s2.015-9 4.5-9m0 0a9.015 9.015 0 0 1 8.716 2.253M12 3a9.015 9.015 0 0 0-8.716 2.253m0 0A9.015 9.015 0 0 1 12 3m0 0c2.485 0 4.5 4.03 4.5 9s-2.015 9-4.5 9" />
+    </svg>
+  );
+}
 
 const MOCK_FEED = [
   {
@@ -39,6 +48,7 @@ const MOCK_FEED = [
     excerpt: "या हंगामात आंब्यावर येणाऱ्या रोगांपासून संरक्षण करण्यासाठी तज्ज्ञांनी दिलेले हे महत्त्वाचे सल्ले नक्की वाचा...",
     imageUrl: "https://picsum.photos/seed/advice1/600/400",
     category: "शेती सल्ला",
+    categoryKey: "advice",
     date: "१५ मे २०२४",
     type: "article" as const
   },
@@ -48,6 +58,7 @@ const MOCK_FEED = [
     excerpt: "महाराष्ट्र शासनातर्फे शेतकऱ्यांसाठी ट्रॅक्टर खरेदीवर ५०% पर्यंत अनुदान दिले जाणार आहे. अर्ज करण्याची पद्धत पहा...",
     imageUrl: "https://picsum.photos/seed/scheme1/600/400",
     category: "शासकीय योजना",
+    categoryKey: "schemes",
     date: "१४ मे २०२४",
     type: "article" as const
   },
@@ -57,13 +68,44 @@ const MOCK_FEED = [
     excerpt: "हवामान खात्याने वर्तवलेल्या अंदाजानुसार कोकणात वादळी वाऱ्यासह पावसाची शक्यता आहे. शेतकऱ्यांनी काळजी घ्यावी...",
     imageUrl: "https://picsum.photos/seed/weather1/600/400",
     category: "हवामान अंदाज",
+    categoryKey: "weather",
     date: "१३ मे २०२४",
+    type: "article" as const
+  },
+  {
+    id: "4",
+    title: "कापूस बाजार भाव अपडेट: आजचे दर",
+    excerpt: "राज्यातील मुख्य बाजार समित्यांमध्ये कापसाचे दर स्थिर आहेत. सविस्तर माहितीसाठी क्लिक करा...",
+    imageUrl: "https://picsum.photos/seed/market1/600/400",
+    category: "बाजारपेठ",
+    categoryKey: "market",
+    date: "१२ मे २०२४",
+    type: "article" as const
+  },
+  {
+    id: "5",
+    title: "ठिबक सिंचनासाठी ५०% अनुदानासाठी अर्ज सुरू",
+    excerpt: "शेतकऱ्यांनी ठिबक सिंचन बसवण्यासाठी आता ऑनलाईन अर्ज करता येणार आहेत. अधिक माहितीसाठी पहा...",
+    imageUrl: "https://picsum.photos/seed/scheme2/600/400",
+    category: "शासकीय योजना",
+    categoryKey: "schemes",
+    date: "११ मे २०२४",
     type: "article" as const
   }
 ];
 
 export default function Home() {
   const [selectedCategory, setSelectedCategory] = useState("all");
+  const [searchTerm, setSearchTerm] = useState("");
+
+  const filteredFeed = useMemo(() => {
+    return MOCK_FEED.filter(item => {
+      const matchesCategory = selectedCategory === "all" || item.categoryKey === selectedCategory;
+      const matchesSearch = item.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                          item.excerpt.toLowerCase().includes(searchTerm.toLowerCase());
+      return matchesCategory && matchesSearch;
+    });
+  }, [selectedCategory, searchTerm]);
 
   return (
     <div className="flex flex-col min-h-screen bg-slate-50 font-body">
@@ -104,6 +146,8 @@ export default function Home() {
             <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 w-7 h-7" />
             <Input 
               placeholder="योजना, सल्ला किंवा बातम्या शोधा..." 
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
               className="h-16 pl-16 pr-8 rounded-2xl border-slate-100 bg-slate-50 text-xl focus:ring-primary shadow-inner"
             />
           </div>
@@ -113,13 +157,22 @@ export default function Home() {
               <button 
                 key={cat.id}
                 onClick={() => setSelectedCategory(cat.id)}
-                className="flex flex-col items-center gap-4 p-5 rounded-3xl hover:bg-slate-50 transition-all group border border-transparent hover:border-slate-100"
+                className={cn(
+                  "flex flex-col items-center gap-4 p-5 rounded-3xl transition-all group border border-transparent",
+                  selectedCategory === cat.id ? "bg-primary/5 border-primary/20" : "hover:bg-slate-50 hover:border-slate-100"
+                )}
               >
-                <div className={`${cat.color} w-16 h-16 rounded-2xl flex items-center justify-center text-white shadow-xl group-hover:scale-110 transition-transform duration-300`}>
+                <div className={cn(
+                  cat.color, 
+                  "w-16 h-16 rounded-2xl flex items-center justify-center text-white shadow-xl transition-transform duration-300",
+                  selectedCategory === cat.id ? "scale-110 shadow-primary/20" : "group-hover:scale-110"
+                )}>
                   <cat.icon className="w-9 h-9" />
                 </div>
                 <div className="text-center">
-                  <p className="font-bold text-base text-slate-800">{cat.name}</p>
+                  <p className={cn("font-bold text-base", selectedCategory === cat.id ? "text-primary" : "text-slate-800")}>
+                    {cat.name}
+                  </p>
                   <p className="text-[11px] text-slate-400 uppercase font-bold tracking-tight">{cat.desc}</p>
                 </div>
               </button>
@@ -131,20 +184,38 @@ export default function Home() {
       <main className="container mx-auto px-4 py-20">
         <div className="flex flex-col md:flex-row justify-between items-end mb-12 gap-6">
           <div>
-            <h2 className="text-4xl font-headline font-bold text-primary">ताज्या घडामोडी व माहिती</h2>
+            <h2 className="text-4xl font-headline font-bold text-primary">
+              {selectedCategory === "all" ? "ताज्या घडामोडी व माहिती" : KNOWLEDGE_CATEGORIES.find(c => c.id === selectedCategory)?.name}
+            </h2>
             <p className="text-lg text-slate-500 mt-2">तुमच्या शेतीसाठी उपयुक्त असलेले सर्व काही.</p>
           </div>
           <div className="flex gap-3">
-            <Badge variant="outline" className="px-5 py-2 rounded-full cursor-pointer hover:bg-primary hover:text-white transition-all font-bold">सर्व</Badge>
-            <Badge variant="outline" className="px-5 py-2 rounded-full cursor-pointer hover:bg-primary hover:text-white transition-all font-bold">बातम्या</Badge>
+            <Badge 
+              variant={selectedCategory === "all" ? "default" : "outline"} 
+              className="px-5 py-2 rounded-full cursor-pointer transition-all font-bold"
+              onClick={() => setSelectedCategory("all")}
+            >
+              सर्व
+            </Badge>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
-          {MOCK_FEED.map((item) => (
-            <ContentCard key={item.id} {...item} />
-          ))}
-        </div>
+        {filteredFeed.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
+            {filteredFeed.map((item) => (
+              <ContentCard key={item.id} {...item} />
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-20 bg-white rounded-[3rem] shadow-sm">
+            <div className="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-6">
+              <Search className="w-10 h-10 text-slate-400" />
+            </div>
+            <h3 className="text-2xl font-bold text-slate-800">माहिती सापडली नाही</h3>
+            <p className="text-slate-500 mt-2">निवडलेल्या कॅटेगरीमध्ये सध्या कोणतीही माहिती उपलब्ध नाही.</p>
+            <Button variant="ghost" className="mt-6 text-primary" onClick={() => setSelectedCategory("all")}>सर्व माहिती पहा</Button>
+          </div>
+        )}
 
         <div className="mt-20 text-center">
           <Button variant="outline" className="rounded-2xl border-primary text-primary px-12 h-16 font-bold text-xl hover:bg-primary/5 shadow-md">
