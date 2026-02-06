@@ -19,10 +19,43 @@
       },
       "required": ["id", "name", "mobile", "userType"]
     },
+    "FarmerProfile": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "FarmerProfile",
+      "type": "object",
+      "description": "Detailed agricultural and family profile of a farmer.",
+      "properties": {
+        "name": { "type": "string" },
+        "contactNumber": { "type": "string" },
+        "district": { "type": "string" },
+        "taluka": { "type": "string" },
+        "village": { "type": "string" },
+        "landArea": { "type": "number" },
+        "totalMembers": { "type": "number" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      }
+    },
+    "BuyerProfile": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "BuyerProfile",
+      "type": "object",
+      "description": "Business and license information for buyers/traders.",
+      "properties": {
+        "orgName": { "type": "string" },
+        "contactName": { "type": "string" },
+        "contactNumber": { "type": "string" },
+        "category": { "type": "string" },
+        "district": { "type": "string" },
+        "licenseNumber": { "type": "string" },
+        "purchaseTypes": { "type": "array", "items": { "type": "string" } },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      }
+    },
     "CropCycle": {
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "CropCycle",
       "type": "object",
+      "description": "Individual crop lifecycle data for farmers and marketplace visibility.",
       "properties": {
         "id": { "type": "string" },
         "farmerId": { "type": "string" },
@@ -32,13 +65,15 @@
         "expectedHarvestDate": { "type": "string", "format": "date" },
         "area": { "type": "number" },
         "estimatedYield": { "type": "number" },
-        "status": { "type": "string", "enum": ["growing", "ready", "harvested"] }
+        "status": { "type": "string", "enum": ["growing", "ready", "harvested"] },
+        "farmerDistrict": { "type": "string" }
       }
     },
     "Question": {
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "Question",
       "type": "object",
+      "description": "Farmers' queries tracked for expert insights.",
       "properties": {
         "id": { "type": "string" },
         "text": { "type": "string" },
@@ -58,7 +93,23 @@
         "definition": {
           "entityName": "UserProfile",
           "schema": { "$ref": "#/backend/entities/UserProfile" },
-          "description": "Main user profile."
+          "description": "Core authentication profile."
+        }
+      },
+      {
+        "path": "/users/{userId}/profile/farmerData",
+        "definition": {
+          "entityName": "FarmerProfile",
+          "schema": { "$ref": "#/backend/entities/FarmerProfile" },
+          "description": "Farmer-specific agricultural details."
+        }
+      },
+      {
+        "path": "/users/{userId}/profile/buyerData",
+        "definition": {
+          "entityName": "BuyerProfile",
+          "schema": { "$ref": "#/backend/entities/BuyerProfile" },
+          "description": "Buyer-specific business and license details."
         }
       },
       {
@@ -66,7 +117,7 @@
         "definition": {
           "entityName": "CropCycle",
           "schema": { "$ref": "#/backend/entities/CropCycle" },
-          "description": "Individual crop cycles for a farmer."
+          "description": "Individual crop records for a user."
         }
       },
       {
@@ -74,7 +125,7 @@
         "definition": {
           "entityName": "Question",
           "schema": { "$ref": "#/backend/entities/Question" },
-          "description": "Global questions repository for Experts."
+          "description": "Global repository of trending questions."
         }
       }
     ]
