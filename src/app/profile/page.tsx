@@ -70,7 +70,8 @@ export default function ProfilePage() {
   const [currentStep, setCurrentStep] = useState(1);
   const [isSaving, setIsSaving] = useState(false);
   const [formData, setFormData] = useState({
-    name: "", contactNumber: "", recommendation: "",
+    name: "", contactNumber: "", 
+    recommendationName: "", recommendationContact: "",
     state: "", district: "", taluka: "", village: "", pincode: "",
     landArea: "", waterSource: "", production: "",
     crops: [] as CropEntry[],
@@ -272,7 +273,13 @@ export default function ProfilePage() {
                         <Field id="pincode" label="पिनकोड" icon={MapPin} value={formData.pincode} onChange={handleInputChange} />
                       </div>
 
-                      <Field id="recommendation" label="शिफारस (कोणी सुचवले?)" icon={CheckCircle2} value={formData.recommendation} onChange={handleInputChange} />
+                      <div className="pt-4 border-t">
+                        <Label className="text-slate-500 text-xs font-bold uppercase tracking-wider mb-4 block">शिफारस (कोणी सुचवले?)</Label>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                          <Field id="recommendationName" label="शिफारस करणाऱ्याचे नाव" icon={User} value={formData.recommendationName} onChange={handleInputChange} />
+                          <Field id="recommendationContact" label="मोबाईल नंबर" icon={Phone} value={formData.recommendationContact} onChange={handleInputChange} />
+                        </div>
+                      </div>
                     </div>
                   )}
 

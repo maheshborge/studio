@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState } from "react";
@@ -23,7 +22,8 @@ import { doc, setDoc } from "firebase/firestore";
 
 export default function BuyerRegistrationPage() {
   const [formData, setFormData] = useState({
-    name: "", address: "", contactNumber: "", recommendation: "",
+    name: "", address: "", contactNumber: "", 
+    recommendationName: "", recommendationContact: "",
     category: "", purchaseType: ""
   });
   
@@ -115,8 +115,12 @@ export default function BuyerRegistrationPage() {
                   </Select>
                 </div>
 
-                <div className="md:col-span-2">
-                  <Field id="recommendation" label="शिफारस" icon={CheckCircle2} value={formData.recommendation} onChange={handleInputChange} />
+                <div className="md:col-span-2 pt-4 border-t">
+                  <Label className="text-slate-500 text-xs font-bold uppercase tracking-wider mb-4 block">शिफारस (कोणी सुचवले?)</Label>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <Field id="recommendationName" label="शिफारस करणाऱ्याचे नाव" icon={User} value={formData.recommendationName} onChange={handleInputChange} />
+                    <Field id="recommendationContact" label="मोबाईल नंबर" icon={Phone} value={formData.recommendationContact} onChange={handleInputChange} />
+                  </div>
                 </div>
               </div>
 
