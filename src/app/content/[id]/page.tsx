@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, use } from "react";
+import { useState, useEffect, use } from "react";
 import { Navigation } from "@/components/navigation";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -8,47 +8,48 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { 
   Clock, 
-  Share2, 
-  MessageSquare, 
-  Sparkles, 
   ChevronLeft,
   Calendar,
   User,
   ExternalLink,
   CheckCircle2,
-  Lightbulb
+  Lightbulb,
+  Sparkles,
+  Loader2
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { getExpertAdvice } from "@/app/actions";
+import { getExpertAdvice, getArticleById } from "@/app/actions";
 import { useToast } from "@/hooks/use-toast";
-
-const contentData = {
-  "1": {
-    title: "आंबा पिकावरील रोगांचे नियंत्रण कसे करावे?",
-    fullContent: `
-      या हंगामात आंब्यावर प्रामुख्याने करपा आणि भुरी या रोगांचा प्रादुर्भाव मोठ्या प्रमाणात दिसून येत आहे. वातावरणातील आर्द्रता आणि सतत ढगाळ हवामानामुळे हे रोग झपाट्याने पसरतात. 
-
-      भुरी रोगाच्या नियंत्रणासाठी झाडावर गंधकाची फवारणी करणे अत्यंत महत्त्वाचे आहे. तसेच करपा रोगासाठी कॉपर ऑक्सीक्लोराईडचा वापर तज्ज्ञांनी सुचवला आहे. झाडाच्या फांद्यांची योग्य छाटणी केल्यास हवा खेळती राहते आणि रोगांचा प्रादुर्भाव कमी होतो.
-
-      शेतकऱ्यांनी बागेचे नियमित निरीक्षण करावे आणि सुरुवातीच्या काळातच लक्षणे दिसल्यास उपाययोजना कराव्यात. जमिनीतील ओलावा टिकवून ठेवण्यासाठी आच्छादनाचा वापर करावा. खतांचे योग्य व्यवस्थापन केल्यास झाडाची प्रतिकारशक्ती वाढते.
-    `,
-    imageUrl: "https://picsum.photos/seed/advice1/1200/600",
-    category: "शेती सल्ला",
-    date: "१५ मे २०२४",
-    author: "डॉ. विकास पाटील",
-    sourceUrl: "https://www.mazisheti.org/mango-care"
-  }
-};
 
 export default function ContentDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
-  const data = contentData[id as keyof typeof contentData] || contentData["1"];
+  const [data, setData] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(true);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [adviceData, setAdviceData] = useState<{advice: string, keyPoints: string[]} | null>(null);
   const { toast } = useToast();
 
+  useEffect(() => {
+    async function fetchData() {
+      setIsLoading(true);
+      const result = await getArticleById(id);
+      if (result.success) {
+        setData(result.article);
+      } else {
+        toast({
+          variant: "destructive",
+          title: "त्रुटी",
+          description: "माहिती शोधताना अडचण आली.",
+        });
+      }
+      setIsLoading(false);
+    }
+    fetchData();
+  }, [id, toast]);
+
   const handleConsultAI = async () => {
+    if (!data) return;
     setIsAnalyzing(true);
     const result = await getExpertAdvice(data.fullContent);
     setIsAnalyzing(false);
@@ -68,7 +69,31 @@ export default function ContentDetailPage({ params }: { params: Promise<{ id: st
     }
   };
 
-  const isAdvice = data.category === "शेती सल्ला";
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-white">
+        <Navigation />
+        <div className="container mx-auto px-4 py-20 flex flex-col items-center">
+          <Loader2 className="w-12 h-12 text-primary animate-spin mb-4" />
+          <p className="text-slate-500">माहिती लोड होत आहे...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!data) {
+    return (
+      <div className="min-h-screen bg-white">
+        <Navigation />
+        <div className="container mx-auto px-4 py-20 text-center">
+          <h2 className="text-2xl font-bold mb-4">माहिती उपलब्ध नाही.</h2>
+          <Link href="/">
+            <Button variant="outline">मुख्य पृष्ठावर वळा</Button>
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col min-h-screen bg-white">
@@ -114,7 +139,7 @@ export default function ContentDetailPage({ params }: { params: Promise<{ id: st
             </div>
 
             <div className="prose prose-lg max-w-none prose-p:leading-relaxed prose-p:text-slate-700">
-              {data.fullContent.split('\n\n').map((para, i) => (
+              {data.fullContent.split('\n\n').map((para: string, i: number) => (
                 <p key={i} className="mb-6 whitespace-pre-line">
                   {para.trim()}
                 </p>
@@ -204,7 +229,7 @@ export default function ContentDetailPage({ params }: { params: Promise<{ id: st
             </Card>
 
             <Card className="p-8 border-none shadow-xl rounded-[2.5rem] bg-primary text-white">
-               <h3 className="text-xl font-bold mb-6">संबंधित माहिती</h3>
+               <h3 className="text-xl font-bold mb-6">इतर ताज्या बातम्या</h3>
                <div className="space-y-8">
                   {[1, 2].map((i) => (
                     <div key={i} className="flex gap-5 group cursor-pointer">
