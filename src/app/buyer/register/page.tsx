@@ -1,9 +1,10 @@
+
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
 import { Navigation } from "@/components/navigation";
 import { Button } from "@/components/ui/button";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -139,7 +140,12 @@ export default function BuyerRegistrationPage() {
   };
 
   if (isUserLoading || isProfileLoading) {
-    return <div className="min-h-screen flex items-center justify-center"><Loader2 className="animate-spin text-primary w-12 h-12" /></div>;
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50">
+        <Loader2 className="animate-spin text-primary w-12 h-12 mb-4" />
+        <p className="text-slate-500 font-bold">माहिती लोड होत आहे...</p>
+      </div>
+    );
   }
 
   return (
@@ -155,32 +161,43 @@ export default function BuyerRegistrationPage() {
                 </h2>
                 <p className="text-blue-100 mt-2">व्यापारी, हॉटेल किंवा संस्थांसाठी तपशील भरा.</p>
               </div>
+              <div className="hidden md:block opacity-20">
+                <Building2 className="w-16 h-16" />
+              </div>
             </div>
             
             <CardContent className="p-8 md:p-12 space-y-10">
-              {/* संस्था व संपर्क माहिती */}
+              {/* संस्था माहिती */}
               <div className="space-y-6">
                 <h3 className="text-xl font-bold text-primary flex items-center gap-2 border-b pb-2">
-                  <Building2 className="w-5 h-5" /> संस्था व संपर्क माहिती
+                  <Building2 className="w-5 h-5" /> संस्था / आस्थापना माहिती
+                </h3>
+                <div className="grid grid-cols-1 gap-6">
+                  <Field 
+                    id="orgName" 
+                    label="संस्था / आस्थापना / कंपनीचे नाव" 
+                    icon={Building2} 
+                    value={formData.orgName} 
+                    onChange={handleInputChange} 
+                    placeholder="उदा. श्री गणेश ट्रेडर्स किंवा स्वतःचे नाव"
+                  />
+                </div>
+              </div>
+
+              {/* संपर्क व्यक्ती माहिती - Variable based on Login */}
+              <div className="space-y-6">
+                <h3 className="text-xl font-bold text-primary flex items-center gap-2 border-b pb-2">
+                  <User className="w-5 h-5" /> संपर्क व्यक्ती माहिती
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="md:col-span-2">
-                    <Field 
-                      id="orgName" 
-                      label="संस्था / आस्थापना / कंपनीचे नाव" 
-                      icon={Building2} 
-                      value={formData.orgName} 
-                      onChange={handleInputChange} 
-                      placeholder="उदा. श्री गणेश ट्रेडर्स"
-                    />
-                  </div>
                   <Field 
                     id="contactName" 
-                    label="संपर्क व्यक्तीचे नाव" 
+                    label="लॉगिन केलेल्या व्यक्तीचे नाव" 
                     icon={User} 
                     value={formData.contactName} 
                     onChange={handleInputChange}
                     readOnly
+                    helperText="खात्यातून घेतलेले नाव"
                   />
                   <Field 
                     id="contactNumber" 
@@ -189,6 +206,7 @@ export default function BuyerRegistrationPage() {
                     value={formData.contactNumber} 
                     onChange={handleInputChange}
                     readOnly
+                    helperText="खात्यातून घेतलेला नंबर"
                   />
                   <div className="md:col-span-2">
                     <Field 
@@ -197,6 +215,7 @@ export default function BuyerRegistrationPage() {
                       icon={MapPin} 
                       value={formData.address} 
                       onChange={handleInputChange} 
+                      placeholder="उदा. मु. पो. ..., जिल्हा ..."
                     />
                   </div>
                 </div>
@@ -224,7 +243,7 @@ export default function BuyerRegistrationPage() {
                   <Label className="font-bold">खरेदी प्रकार (एक किंवा अधिक निवडा)</Label>
                   <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
                     {PURCHASE_TYPES.map((type) => (
-                      <div key={type.id} className="flex items-center space-x-2 bg-slate-50 p-3 rounded-xl border border-slate-100">
+                      <div key={type.id} className="flex items-center space-x-2 bg-slate-50 p-3 rounded-xl border border-slate-100 hover:border-primary/30 transition-colors">
                         <Checkbox 
                           id={type.id} 
                           checked={formData.purchaseTypes.includes(type.id)}
@@ -275,14 +294,14 @@ export default function BuyerRegistrationPage() {
               <div className="pt-6 border-t">
                 <Label className="text-slate-500 text-xs font-bold uppercase tracking-wider mb-6 block">शिफारस (कोणी सुचवले?)</Label>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <Field id="recommendationName" label="शिफारस करणाऱ्याचे नाव" icon={User} value={formData.recommendationName} onChange={handleInputChange} />
-                  <Field id="recommendationContact" label="मोबाईल नंबर" icon={Phone} type="number" value={formData.recommendationContact} onChange={handleInputChange} />
+                  <Field id="recommendationName" label="शिफारस करणाऱ्याचे नाव" icon={User} value={formData.recommendationName} onChange={handleInputChange} placeholder="उदा. अमोल पाटील" />
+                  <Field id="recommendationContact" label="मोबाईल नंबर" icon={Phone} type="number" value={formData.recommendationContact} onChange={handleInputChange} placeholder="उदा. 9876543210" />
                 </div>
               </div>
 
               <Button 
                 onClick={handleSubmit}
-                className="w-full bg-primary hover:bg-primary/90 rounded-2xl h-16 font-bold text-xl shadow-lg shadow-primary/20 gap-2"
+                className="w-full bg-primary hover:bg-primary/90 rounded-2xl h-16 font-bold text-xl shadow-lg shadow-primary/20 gap-2 mt-8 transition-all hover:scale-[1.01]"
               >
                 माहिती साठवा <ArrowRight className="w-6 h-6" />
               </Button>
@@ -294,10 +313,13 @@ export default function BuyerRegistrationPage() {
   );
 }
 
-function Field({ id, label, icon: Icon, value, onChange, type = "text", placeholder = "", readOnly = false }: any) {
+function Field({ id, label, icon: Icon, value, onChange, type = "text", placeholder = "", readOnly = false, helperText = "" }: any) {
   return (
     <div className="space-y-2">
-      <Label htmlFor={id} className="text-slate-700 font-bold">{label}</Label>
+      <div className="flex justify-between items-center">
+        <Label htmlFor={id} className="text-slate-700 font-bold">{label}</Label>
+        {helperText && <span className="text-[10px] text-slate-400 font-medium italic">{helperText}</span>}
+      </div>
       <div className="relative">
         <Icon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
         <Input 
@@ -307,7 +329,7 @@ function Field({ id, label, icon: Icon, value, onChange, type = "text", placehol
           onChange={onChange}
           placeholder={placeholder}
           readOnly={readOnly}
-          className={`pl-12 h-12 rounded-xl border-slate-200 focus:ring-primary ${readOnly ? 'bg-slate-100 cursor-not-allowed' : 'bg-slate-50'}`}
+          className={`pl-12 h-12 rounded-xl border-slate-200 focus:ring-primary transition-all ${readOnly ? 'bg-slate-100 cursor-not-allowed border-dashed' : 'bg-slate-50 hover:bg-white focus:bg-white'}`}
         />
       </div>
     </div>
