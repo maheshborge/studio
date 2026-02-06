@@ -70,7 +70,7 @@
         "packingType": { "type": "string", "enum": ["bag", "sack", "crate", "carton", "loose", "other"] },
         "packingCount": { "type": "number" },
         "packingWeight": { "type": "number" },
-        "transporterMobile": { "type": "string" },
+        "driverMobile": { "type": "string" },
         "vehicleNumber": { "type": "string" },
         "timestamp": { "type": "string", "format": "date-time" }
       }

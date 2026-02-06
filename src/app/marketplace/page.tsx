@@ -27,10 +27,11 @@ import {
   Loader2,
   ArrowRight,
   Package,
-  Phone
+  Phone,
+  User
 } from "lucide-react";
-import { useFirestore, useCollection, useMemoFirebase, useUser, useDoc } from "@/firebase";
-import { collectionGroup, doc, addDoc, collection, query, where, getDocs, updateDoc } from "firebase/firestore";
+import { useFirestore, useCollection, useMemoFirebase, useUser } from "@/firebase";
+import { collectionGroup, doc, addDoc, collection, query, where, updateDoc } from "firebase/firestore";
 import Image from "next/image";
 import { useToast } from "@/hooks/use-toast";
 
@@ -58,13 +59,9 @@ export default function MarketplacePage() {
     packingType: "bag",
     packingCount: "",
     packingWeight: "",
-    transporterMobile: "",
     vehicleNumber: "",
     driverMobile: ""
   });
-
-  const [transporterVehicles, setTransporterVehicles] = useState<any[]>([]);
-  const [isTransporterLoading, setIsTransporterLoading] = useState(false);
 
   const cropsQuery = useMemoFirebase(() => {
     if (!db) return null;
@@ -82,39 +79,14 @@ export default function MarketplacePage() {
     );
   }, [allCrops, searchTerm]);
 
-  const handleTransporterLookup = async () => {
-    if (!db || !purchaseData.transporterMobile) return;
-    setIsTransporterLoading(true);
-    
-    try {
-      const q = query(collectionGroup(db, "profile"), where("mobile", "==", purchaseData.transporterMobile), where("id", "==", "main"));
-      const snapshot = await getDocs(q);
-      
-      if (snapshot.empty) {
-        toast({ title: "नोंदणी नाही", description: "हा ट्रान्सपोर्टर नोंदणीकृत नाही. कृपया त्याला नोंदणी करण्यास सांगा.", variant: "destructive" });
-        setTransporterVehicles([]);
-      } else {
-        const userId = snapshot.docs[0].ref.parent.parent?.id;
-        if (userId) {
-          const tDoc = await getDocs(collection(db, "users", userId, "profile"));
-          const tData = tDoc.docs.find(d => d.id === "transporterData")?.data();
-          if (tData?.vehicles) {
-            setTransporterVehicles(tData.vehicles);
-            toast({ title: "ट्रान्सपोर्टर सापडला!", description: "गाडी निवडा." });
-          } else {
-            toast({ title: "वाहन माहिती नाही", description: "या ट्रान्सपोर्टरने वाहनांची नोंद केलेली नाही." });
-          }
-        }
-      }
-    } catch (e) {
-      console.error(e);
-    } finally {
-      setIsTransporterLoading(false);
-    }
-  };
-
   const handleFinalPurchase = async () => {
     if (!db || !user || !selectedCrop) return;
+
+    if (!purchaseData.vehicleNumber || !purchaseData.driverMobile) {
+      toast({ variant: "destructive", title: "त्रुटी", description: "गाडी नंबर आणि ड्रायव्हर नंबर आवश्यक आहे." });
+      return;
+    }
+
     setIsBuying(true);
 
     try {
@@ -132,7 +104,7 @@ export default function MarketplacePage() {
         variety: selectedCrop.variety,
         buyerId: user.uid,
         buyerName: user.displayName || "Buyer",
-        totalAmount: qty * parseFloat(purchaseData.rate),
+        totalAmount: qty * (parseFloat(purchaseData.rate) || 0),
         timestamp: new Date().toISOString()
       });
 
@@ -215,7 +187,7 @@ export default function MarketplacePage() {
                       खरेदी करा <ArrowRight className="w-4 h-4" />
                     </Button>
                   </DialogTrigger>
-                  <DialogContent className="max-w-2xl rounded-[2.5rem] p-8">
+                  <DialogContent className="max-w-2xl rounded-[2.5rem] p-8 overflow-y-auto max-h-[90vh]">
                     <DialogHeader>
                       <DialogTitle className="text-2xl font-bold flex items-center gap-2">
                         <Package className="text-primary" /> खरेदी प्रक्रिया
@@ -253,47 +225,44 @@ export default function MarketplacePage() {
                       </div>
 
                       <div className="md:col-span-2 border-t pt-4">
-                        <h4 className="font-bold text-primary mb-4 flex items-center gap-2"><Truck className="w-5 h-5" /> ट्रान्सपोर्टर व पॅकिंग</h4>
+                        <h4 className="font-bold text-primary mb-4 flex items-center gap-2"><Truck className="w-5 h-5" /> ट्रान्सपोर्टर व गाडी माहिती</h4>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                           <div className="space-y-2">
-                            <Label className="font-bold">ट्रान्सपोर्टर मोबाईल नंबर</Label>
-                            <div className="flex gap-2">
-                              <Input 
-                                placeholder="९८७६५४३२१०"
-                                value={purchaseData.transporterMobile}
-                                onChange={(e) => setPurchaseData(prev => ({...prev, transporterMobile: e.target.value}))}
-                                className="rounded-xl"
-                              />
-                              <Button variant="outline" size="icon" onClick={handleTransporterLookup} disabled={isTransporterLoading}>
-                                {isTransporterLoading ? <Loader2 className="animate-spin" /> : <Phone className="w-4 h-4" />}
-                              </Button>
-                            </div>
-                          </div>
-                          <div className="space-y-2">
-                            <Label className="font-bold">गाडी निवडा / नंबर</Label>
-                            {transporterVehicles.length > 0 ? (
-                              <Select onValueChange={(val) => setPurchaseData(prev => ({...prev, vehicleNumber: val}))}>
-                                <SelectTrigger className="rounded-xl"><SelectValue placeholder="गाडी निवडा" /></SelectTrigger>
-                                <SelectContent>
-                                  {transporterVehicles.map(v => <SelectItem key={v.number} value={v.number}>{v.number}</SelectItem>)}
-                                </SelectContent>
-                              </Select>
-                            ) : (
+                            <Label className="font-bold">गाडी नंबर</Label>
+                            <div className="relative">
+                              <Truck className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                               <Input 
                                 placeholder="उदा. MH-12-AB-1234"
                                 value={purchaseData.vehicleNumber}
                                 onChange={(e) => setPurchaseData(prev => ({...prev, vehicleNumber: e.target.value}))}
-                                className="rounded-xl"
+                                className="rounded-xl pl-10"
                               />
-                            )}
+                            </div>
+                          </div>
+                          <div className="space-y-2">
+                            <Label className="font-bold">ड्रायव्हर मोबाईल नंबर</Label>
+                            <div className="relative">
+                              <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                              <Input 
+                                type="number"
+                                placeholder="९८७६५४३२१०"
+                                value={purchaseData.driverMobile}
+                                onChange={(e) => {
+                                  if (e.target.value.length <= 10) {
+                                    setPurchaseData(prev => ({...prev, driverMobile: e.target.value}));
+                                  }
+                                }}
+                                className="rounded-xl pl-10"
+                              />
+                            </div>
                           </div>
                         </div>
                       </div>
 
-                      <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-3 gap-6">
+                      <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-3 gap-6 border-t pt-4">
                         <div className="space-y-2">
                           <Label className="font-bold text-xs">पॅकिंग प्रकार</Label>
-                          <Select onValueChange={(val) => setPurchaseData(prev => ({...prev, packingType: val}))}>
+                          <Select value={purchaseData.packingType} onValueChange={(val) => setPurchaseData(prev => ({...prev, packingType: val}))}>
                             <SelectTrigger className="rounded-xl"><SelectValue /></SelectTrigger>
                             <SelectContent>
                               {PACKING_TYPES.map(p => <SelectItem key={p.id} value={p.id}>{p.label}</SelectItem>)}
@@ -312,7 +281,7 @@ export default function MarketplacePage() {
                     </div>
 
                     <Button 
-                      className="w-full h-14 bg-green-600 hover:bg-green-700 rounded-2xl mt-8 font-bold text-lg"
+                      className="w-full h-14 bg-green-600 hover:bg-green-700 rounded-2xl mt-8 font-bold text-lg shadow-lg"
                       onClick={handleFinalPurchase}
                       disabled={isBuying}
                     >
