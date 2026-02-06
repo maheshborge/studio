@@ -53,8 +53,7 @@ export default function ProfilePage() {
 
   const { data: mainProfile } = useDoc(mainProfileRef);
   const { data: farmerData, isLoading: isFarmerLoading } = useDoc(farmerRef);
-  // Note: We'll assume buyers also store deep profile in a similar way or we use the buyer collection
-  // For the prototype, we check the 'userType' from main profile
+  const { data: buyerData, isLoading: isBuyerLoading } = useDoc(buyerRef);
   const { data: cropCycles, isLoading: isCropsLoading } = useCollection(cropsQuery);
 
   if (isUserLoading) return <div className="min-h-screen flex items-center justify-center"><Loader2 className="animate-spin text-primary w-12 h-12" /></div>;
@@ -63,6 +62,9 @@ export default function ProfilePage() {
   const userType = mainProfile?.userType || "farmer";
   const isFarmer = userType === "farmer";
   const isBuyer = userType === "buyer";
+
+  // Determine the display district from whichever profile is filled
+  const displayDistrict = farmerData?.district || buyerData?.district || null;
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -175,7 +177,7 @@ export default function ProfilePage() {
                   <div className="w-10 h-10 bg-slate-100 rounded-xl flex items-center justify-center text-slate-500"><MapPin className="w-5 h-5" /></div>
                   <div>
                     <p className="text-[10px] uppercase font-bold text-slate-400">स्थान</p>
-                    <p className="font-bold">{farmerData?.district || "नोंदणी नाही"}</p>
+                    <p className="font-bold">{displayDistrict || "नोंदणी नाही"}</p>
                   </div>
                 </div>
               </CardContent>
