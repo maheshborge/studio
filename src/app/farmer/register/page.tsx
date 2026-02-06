@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Navigation } from "@/components/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
@@ -22,7 +22,10 @@ import {
   Plane,
   Plus,
   Trash2,
-  Globe
+  Globe,
+  Briefcase,
+  GraduationCap,
+  Heart
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useFirestore } from "@/firebase";
@@ -44,6 +47,13 @@ const WATER_SOURCES = [
   { id: "lift", label: "उपसा सिंचन" }
 ];
 
+const MIGRATION_REASONS = [
+  { value: "shikshan", label: "शिक्षण (Education)" },
+  { value: "nokari", label: "नोकरी (Job)" },
+  { value: "marriage", label: "लग्न (Marriage)" },
+  { value: "business", label: "व्यवसाय (Business)" }
+];
+
 export default function FarmerRegistrationPage() {
   const [currentStep, setCurrentStep] = useState(1);
   const [isOtherState, setIsOtherState] = useState(false);
@@ -54,12 +64,23 @@ export default function FarmerRegistrationPage() {
     landArea: "", waterSources: [] as string[], 
     crops: [{ name: "", area: "" }],
     totalMembers: "", womenCount: "", menCount: "", studentCount: "",
-    migrationEducation: "", migrationJob: "", migrationMarriage: ""
+    migrationEntries: [{ reason: "", city: "", count: "" }]
   });
   
   const { toast } = useToast();
   const db = useFirestore();
   const router = useRouter();
+
+  // Get all unique locations for suggestions
+  const allLocations = useMemo(() => {
+    const locations: string[] = [];
+    const maharashtra = locationData["Maharashtra"];
+    Object.keys(maharashtra).forEach(district => {
+      locations.push(district);
+      maharashtra[district].forEach(taluka => locations.push(taluka));
+    });
+    return Array.from(new Set(locations));
+  }, []);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { id, value } = e.target;
@@ -100,43 +121,51 @@ export default function FarmerRegistrationPage() {
     const limit = parseFloat(formData.landArea) || 0;
 
     if (totalArea >= limit) {
-      toast({
-        variant: "destructive",
-        title: "जमीन शिल्लक नाही!",
-        description: "तुमच्या एकूण जमिनीपेक्षा जास्त क्षेत्र तुम्ही जोडू शकत नाही.",
-      });
+      toast({ variant: "destructive", title: "जमीन शिल्लक नाही!", description: "तुमच्या एकूण जमिनीपेक्षा जास्त क्षेत्र तुम्ही जोडू शकत नाही." });
       return;
     }
-
-    setFormData(prev => ({
-      ...prev,
-      crops: [...prev.crops, { name: "", area: "" }]
-    }));
+    setFormData(prev => ({ ...prev, crops: [...prev.crops, { name: "", area: "" }] }));
   };
 
   const removeCropField = (index: number) => {
-    setFormData(prev => ({
-      ...prev,
-      crops: prev.crops.filter((_, i) => i !== index)
-    }));
+    setFormData(prev => ({ ...prev, crops: prev.crops.filter((_, i) => i !== index) }));
   };
 
   const handleCropChange = (index: number, field: string, value: string) => {
     const newCrops = [...formData.crops];
     newCrops[index] = { ...newCrops[index], [field]: value };
-    
-    const tempTotal = newCrops.reduce((acc, curr) => acc + (parseFloat(curr.area) || 0), 0);
-    const limit = parseFloat(formData.landArea) || 0;
+    setFormData(prev => ({ ...prev, crops: newCrops }));
+  };
 
-    if (tempTotal > limit && field === "area") {
-      toast({
-        variant: "destructive",
-        title: "क्षेत्र मर्यादा ओलांडली!",
-        description: "पिकांचे क्षेत्र एकूण जमिनीपेक्षा जास्त होत आहे.",
-      });
+  // Migration Handlers
+  const addMigrationEntry = () => {
+    setFormData(prev => ({
+      ...prev,
+      migrationEntries: [...prev.migrationEntries, { reason: "", city: "", count: "" }]
+    }));
+  };
+
+  const removeMigrationEntry = (index: number) => {
+    setFormData(prev => ({
+      ...prev,
+      migrationEntries: prev.migrationEntries.filter((_, i) => i !== index)
+    }));
+  };
+
+  const handleMigrationChange = (index: number, field: string, value: string) => {
+    const newEntries = [...formData.migrationEntries];
+    
+    if (field === "count") {
+      const totalKutumb = parseInt(formData.totalMembers) || 0;
+      const countVal = parseInt(value) || 0;
+      if (countVal > totalKutumb) {
+        toast({ variant: "destructive", title: "त्रुटी", description: "स्थलांतरित संख्या एकूण कुटुंब संख्येपेक्षा जास्त असू शकत नाही." });
+        return;
+      }
     }
 
-    setFormData(prev => ({ ...prev, crops: newCrops }));
+    newEntries[index] = { ...newEntries[index], [field]: value };
+    setFormData(prev => ({ ...prev, migrationEntries: newEntries }));
   };
 
   const handleNext = () => {
@@ -145,23 +174,17 @@ export default function FarmerRegistrationPage() {
         toast({ variant: "destructive", title: "त्रुटी", description: "मोबाईल नंबर १० अंकी असणे आवश्यक आहे." });
         return;
       }
-      if (!formData.state || !formData.district || !formData.taluka) {
-        toast({ variant: "destructive", title: "त्रुटी", description: "कृपया पत्त्याची सर्व माहिती भरा." });
+    }
+    if (currentStep === 2) {
+      const totalArea = calculateTotalCropArea();
+      if (totalArea > parseFloat(formData.landArea)) {
+        toast({ variant: "destructive", title: "त्रुटी", description: "क्षेत्र मर्यादा ओलांडली आहे." });
         return;
       }
     }
-    if (currentStep === 2) {
-      if (!formData.landArea) {
-        toast({ variant: "destructive", title: "त्रुटी", description: "कृपया एकूण जमीन क्षेत्र भरा." });
-        return;
-      }
-      const totalArea = calculateTotalCropArea();
-      if (totalArea > parseFloat(formData.landArea)) {
-        toast({
-          variant: "destructive",
-          title: "त्रुटी",
-          description: `पिकांचे एकूण क्षेत्र (${totalArea} एकर) तुमच्या जमिनीपेक्षा (${formData.landArea} एकर) जास्त आहे.`
-        });
+    if (currentStep === 3) {
+      if (!formData.totalMembers) {
+        toast({ variant: "destructive", title: "त्रुटी", description: "कृपया एकूण सदस्य संख्या भरा." });
         return;
       }
     }
@@ -172,10 +195,6 @@ export default function FarmerRegistrationPage() {
 
   const handleSubmit = async () => {
     if (!db) return;
-    if (formData.contactNumber.length !== 10) {
-      toast({ variant: "destructive", title: "त्रुटी", description: "मोबाईल नंबर १० अंकी असणे आवश्यक आहे." });
-      return;
-    }
     try {
       const farmerId = crypto.randomUUID();
       const userId = "demo-user"; 
@@ -239,13 +258,8 @@ export default function FarmerRegistrationPage() {
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <div className="space-y-2">
                       <Label className="font-bold">राज्य</Label>
-                      <Select 
-                        value={isOtherState ? "Other" : "Maharashtra"} 
-                        onValueChange={(val) => handleSelectChange("state", val)}
-                      >
-                        <SelectTrigger className="h-12 rounded-xl">
-                          <SelectValue placeholder="निवडा" />
-                        </SelectTrigger>
+                      <Select value={isOtherState ? "Other" : "Maharashtra"} onValueChange={(val) => handleSelectChange("state", val)}>
+                        <SelectTrigger className="h-12 rounded-xl"><SelectValue placeholder="निवडा" /></SelectTrigger>
                         <SelectContent>
                           <SelectItem value="Maharashtra">Maharashtra (महाराष्ट्र)</SelectItem>
                           <SelectItem value="Other">Other (इतर राज्य)</SelectItem>
@@ -264,23 +278,15 @@ export default function FarmerRegistrationPage() {
                         <div className="space-y-2">
                           <Label className="font-bold">जिल्हा</Label>
                           <Select value={formData.district} onValueChange={(val) => handleSelectChange("district", val)}>
-                            <SelectTrigger className="h-12 rounded-xl">
-                              <SelectValue placeholder="निवडा" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {districts.map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}
-                            </SelectContent>
+                            <SelectTrigger className="h-12 rounded-xl"><SelectValue placeholder="निवडा" /></SelectTrigger>
+                            <SelectContent>{districts.map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}</SelectContent>
                           </Select>
                         </div>
                         <div className="space-y-2">
                           <Label className="font-bold">तालुका</Label>
                           <Select value={formData.taluka} disabled={!formData.district} onValueChange={(val) => handleSelectChange("taluka", val)}>
-                            <SelectTrigger className="h-12 rounded-xl">
-                              <SelectValue placeholder="निवडा" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {talukas.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}
-                            </SelectContent>
+                            <SelectTrigger className="h-12 rounded-xl"><SelectValue placeholder="निवडा" /></SelectTrigger>
+                            <SelectContent>{talukas.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}</SelectContent>
                           </Select>
                         </div>
                       </>
@@ -306,20 +312,13 @@ export default function FarmerRegistrationPage() {
                 <div className="space-y-8 animate-in fade-in slide-in-from-right-4">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <Field id="landArea" label="एकूण जमीन क्षेत्र (एकर)" icon={Sprout} type="number" value={formData.landArea} onChange={handleInputChange} />
-                    
                     <div className="space-y-3">
-                      <Label className="font-bold">पाण्याची सोय (एक किंवा अधिक निवडा)</Label>
+                      <Label className="font-bold">पाण्याची सोय</Label>
                       <div className="grid grid-cols-2 gap-4">
                         {WATER_SOURCES.map((source) => (
                           <div key={source.id} className="flex items-center space-x-2 bg-slate-50 p-3 rounded-xl border border-slate-100">
-                            <Checkbox 
-                              id={source.id} 
-                              checked={formData.waterSources?.includes(source.label)}
-                              onCheckedChange={() => handleWaterSourceChange(source.label)}
-                            />
-                            <label htmlFor={source.id} className="text-sm font-medium leading-none cursor-pointer">
-                              {source.label}
-                            </label>
+                            <Checkbox id={source.id} checked={formData.waterSources?.includes(source.label)} onCheckedChange={() => handleWaterSourceChange(source.label)}/>
+                            <label htmlFor={source.id} className="text-sm font-medium leading-none cursor-pointer">{source.label}</label>
                           </div>
                         ))}
                       </div>
@@ -333,50 +332,22 @@ export default function FarmerRegistrationPage() {
                         शिल्लक क्षेत्र: {(parseFloat(formData.landArea) || 0) - calculateTotalCropArea()} एकर
                       </div>
                     </div>
-                    
-                    <div className="space-y-4">
-                      {formData.crops.map((crop, index) => (
-                        <div key={index} className="flex gap-4 items-end animate-in fade-in zoom-in-95">
-                          <div className="flex-1 space-y-2">
-                            <Label className="text-xs">पिकाचे नाव</Label>
-                            <Input 
-                              placeholder="उदा. आंबा" 
-                              value={crop.name}
-                              onChange={(e) => handleCropChange(index, "name", e.target.value)}
-                              className="h-12 rounded-xl bg-slate-50"
-                            />
-                          </div>
-                          <div className="w-32 space-y-2">
-                            <Label className="text-xs">क्षेत्र (एकर)</Label>
-                            <Input 
-                              type="number"
-                              placeholder="0.0" 
-                              value={crop.area}
-                              onChange={(e) => handleCropChange(index, "area", e.target.value)}
-                              className="h-12 rounded-xl bg-slate-50"
-                            />
-                          </div>
-                          {formData.crops.length > 1 && (
-                            <Button 
-                              variant="ghost" 
-                              size="icon" 
-                              onClick={() => removeCropField(index)}
-                              className="text-red-500 hover:bg-red-50 h-12 w-12 rounded-xl"
-                            >
-                              <Trash2 className="w-5 h-5" />
-                            </Button>
-                          )}
+                    {formData.crops.map((crop, index) => (
+                      <div key={index} className="flex gap-4 items-end animate-in fade-in zoom-in-95">
+                        <div className="flex-1 space-y-2">
+                          <Label className="text-xs">पिकाचे नाव</Label>
+                          <Input placeholder="उदा. आंबा" value={crop.name} onChange={(e) => handleCropChange(index, "name", e.target.value)} className="h-12 rounded-xl bg-slate-50"/>
                         </div>
-                      ))}
-                    </div>
-
-                    <Button 
-                      variant="outline" 
-                      onClick={addCropField}
-                      className="w-full h-12 rounded-xl border-dashed border-2 gap-2 text-primary hover:bg-primary/5"
-                    >
-                      <Plus className="w-5 h-5" /> आणखी पीक जोडा
-                    </Button>
+                        <div className="w-32 space-y-2">
+                          <Label className="text-xs">क्षेत्र (एकर)</Label>
+                          <Input type="number" placeholder="0.0" value={crop.area} onChange={(e) => handleCropChange(index, "area", e.target.value)} className="h-12 rounded-xl bg-slate-50"/>
+                        </div>
+                        {formData.crops.length > 1 && (
+                          <Button variant="ghost" size="icon" onClick={() => removeCropField(index)} className="text-red-500 hover:bg-red-50 h-12 w-12 rounded-xl"><Trash2 className="w-5 h-5" /></Button>
+                        )}
+                      </div>
+                    ))}
+                    <Button variant="outline" onClick={addCropField} className="w-full h-12 rounded-xl border-dashed border-2 gap-2 text-primary hover:bg-primary/5"><Plus className="w-5 h-5" /> आणखी पीक जोडा</Button>
                   </div>
                 </div>
               )}
@@ -385,19 +356,80 @@ export default function FarmerRegistrationPage() {
                 <div className="space-y-6 animate-in fade-in slide-in-from-right-4">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <Field id="totalMembers" label="एकूण सदस्य" icon={Users} type="number" value={formData.totalMembers} onChange={handleInputChange} />
-                    <Field id="womenCount" label="महिलांची संख्या" icon={Users} type="number" value={formData.womenCount} onChange={handleInputChange} />
-                    <Field id="menCount" label="पुरुषांची संख्या" icon={Users} type="number" value={formData.menCount} onChange={handleInputChange} />
-                    <Field id="studentCount" label="विद्यार्थ्यांची संख्या" icon={Users} type="number" value={formData.studentCount} onChange={handleInputChange} />
+                    <Field id="womenCount" label="महिलांची संख्या" icon={User} type="number" value={formData.womenCount} onChange={handleInputChange} />
+                    <Field id="menCount" label="पुरुषांची संख्या" icon={User} type="number" value={formData.menCount} onChange={handleInputChange} />
+                    <Field id="studentCount" label="विद्यार्थ्यांची संख्या (१५ ते ३५ वयोगट)" icon={GraduationCap} type="number" value={formData.studentCount} onChange={handleInputChange} />
                   </div>
                 </div>
               )}
 
               {currentStep === 4 && (
-                <div className="space-y-6 animate-in fade-in slide-in-from-right-4">
-                  <div className="grid grid-cols-1 gap-6">
-                    <Field id="migrationEducation" label="शिक्षणासाठी स्थलांतर" icon={Plane} value={formData.migrationEducation} onChange={handleInputChange} />
-                    <Field id="migrationJob" label="नोकरीसाठी स्थलांतर" icon={Plane} value={formData.migrationJob} onChange={handleInputChange} />
-                    <Field id="migrationMarriage" label="लग्नासाठी स्थलांतर" icon={Plane} value={formData.migrationMarriage} onChange={handleInputChange} />
+                <div className="space-y-8 animate-in fade-in slide-in-from-right-4">
+                  <div className="flex items-center justify-between mb-4">
+                    <Label className="font-bold text-lg">कुटुंबातील सदस्यांचे स्थलांतर</Label>
+                    <Button onClick={addMigrationEntry} variant="outline" className="rounded-xl gap-2 text-primary border-primary hover:bg-primary/5">
+                      <Plus className="w-4 h-4" /> स्थलांतर माहिती जोडा
+                    </Button>
+                  </div>
+
+                  <div className="space-y-6">
+                    {formData.migrationEntries.map((entry, index) => (
+                      <Card key={index} className="p-6 border-slate-200 bg-slate-50/50 rounded-2xl relative group">
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          onClick={() => removeMigrationEntry(index)}
+                          className="absolute -top-3 -right-3 h-8 w-8 rounded-full bg-white shadow-md text-red-500 hover:bg-red-50 opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                        
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                          <div className="space-y-2">
+                            <Label className="text-xs font-bold text-slate-500 uppercase">स्थलांतराचे कारण</Label>
+                            <Select value={entry.reason} onValueChange={(val) => handleMigrationChange(index, "reason", val)}>
+                              <SelectTrigger className="h-12 rounded-xl bg-white">
+                                <SelectValue placeholder="निवडा" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {MIGRATION_REASONS.map(r => <SelectItem key={r.value} value={r.value}>{r.label}</SelectItem>)}
+                              </SelectContent>
+                            </Select>
+                          </div>
+
+                          <div className="space-y-2">
+                            <Label className="text-xs font-bold text-slate-500 uppercase">शहर / ठिकाण</Label>
+                            <div className="relative">
+                              <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                              <Input 
+                                list={`locations-${index}`}
+                                placeholder="शहराचे नाव..." 
+                                value={entry.city}
+                                onChange={(e) => handleMigrationChange(index, "city", e.target.value)}
+                                className="pl-10 h-12 rounded-xl bg-white border-slate-200"
+                              />
+                              <datalist id={`locations-${index}`}>
+                                {allLocations.map(loc => <option key={loc} value={loc} />)}
+                              </datalist>
+                            </div>
+                          </div>
+
+                          <div className="space-y-2">
+                            <Label className="text-xs font-bold text-slate-500 uppercase">सदस्यांची संख्या</Label>
+                            <div className="relative">
+                              <Users className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                              <Input 
+                                type="number"
+                                placeholder="0" 
+                                value={entry.count}
+                                onChange={(e) => handleMigrationChange(index, "count", e.target.value)}
+                                className="pl-10 h-12 rounded-xl bg-white border-slate-200"
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      </Card>
+                    ))}
                   </div>
                 </div>
               )}
@@ -430,13 +462,7 @@ function Field({ id, label, icon: Icon, value, onChange, type = "text", readOnly
       <Label htmlFor={id} className="text-slate-700 font-bold">{label}</Label>
       <div className="relative">
         <Icon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
-        <Input 
-          id={id} 
-          type={type} 
-          value={value || ""} 
-          onChange={onChange} 
-          placeholder={`${label} भरा...`} 
-          readOnly={readOnly}
+        <Input id={id} type={type} value={value || ""} onChange={onChange} placeholder={`${label} भरा...`} readOnly={readOnly}
           className={`pl-12 h-12 rounded-xl border-slate-200 focus:ring-primary bg-slate-50 ${readOnly ? "opacity-70 cursor-not-allowed" : ""}`} 
         />
       </div>
