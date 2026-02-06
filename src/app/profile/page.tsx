@@ -24,7 +24,8 @@ import {
   LogOut,
   CalendarDays,
   CreditCard,
-  Target
+  Target,
+  Mail
 } from "lucide-react";
 import { useFirestore, useUser, useDoc, useMemoFirebase, useCollection, useAuth } from "@/firebase";
 import { doc, collection, updateDoc } from "firebase/firestore";

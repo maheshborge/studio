@@ -92,14 +92,18 @@ export default function LoginPage() {
     setIsLoading(true);
     
     try {
-      // Use generated email if optional email is missing (for login/signup)
-      const finalEmail = email || `${mobile}@mazisheti.local`;
-
       if (isLogin) {
-        await signInWithEmailAndPassword(auth, finalEmail, password);
+        // Smart Identification: Check if input is a 10-digit mobile number
+        const loginIdentifier = (email.length === 10 && /^\d+$/.test(email)) 
+          ? `${email}@mazisheti.local` 
+          : email;
+          
+        await signInWithEmailAndPassword(auth, loginIdentifier, password);
         toast({ title: "लॉगिन यशस्वी!" });
         router.push("/profile");
       } else {
+        // Create user with either real email or generated mobile email
+        const finalEmail = email || `${mobile}@mazisheti.local`;
         const userCredential = await createUserWithEmailAndPassword(auth, finalEmail, password);
         const user = userCredential.user;
         
