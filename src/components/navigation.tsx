@@ -15,7 +15,8 @@ import {
   LogIn,
   ShoppingBag,
   Sprout,
-  BookOpen
+  BookOpen,
+  Database
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
@@ -27,6 +28,7 @@ const navItems = [
   { name: "बाजारपेठ", href: "/marketplace", icon: ShoppingBag },
   { name: "माझी शेती", href: "/profile", icon: Sprout },
   { name: "डॅशबोर्ड", href: "/dashboard", icon: BarChart3 },
+  { name: "डेटा व्ह्यू", href: "/admin/database", icon: Database },
 ];
 
 export function Navigation() {
@@ -35,7 +37,7 @@ export function Navigation() {
   const { user } = useUser();
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60 shadow-sm">
+    <header className="sticky top-0 z-50 w-full border-b bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60 shadow-sm font-body">
       <div className="container mx-auto px-4 flex h-16 items-center justify-between">
         <div className="flex items-center gap-2">
           <Link href="/" className="flex items-center space-x-2">
@@ -43,7 +45,7 @@ export function Navigation() {
               <Sprout className="w-6 h-6" />
             </div>
             <span className="font-headline font-bold text-xl text-primary hidden sm:inline-block">
-              MaziSheti
+              Midas
             </span>
           </Link>
         </div>
