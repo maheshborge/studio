@@ -140,7 +140,7 @@ export default function Home() {
           <div>
             <h2 className="text-4xl font-headline font-bold text-primary flex items-center gap-3">
               <Newspaper className="w-8 h-8" />
-              {selectedCategory === "all" ? "ताज्या घडामोडी (Google News Feed)" : KNOWLEDGE_CATEGORIES.find(c => c.id === selectedCategory)?.name}
+              {selectedCategory === "all" ? "शेती विश्वातील घडामोडी" : KNOWLEDGE_CATEGORIES.find(c => c.id === selectedCategory)?.name}
             </h2>
             <p className="text-lg text-slate-500 mt-2">तुमच्या शेतीसाठी आजच्या महत्त्वाच्या बातम्या.</p>
           </div>
@@ -191,7 +191,7 @@ export default function Home() {
             <span className="text-3xl font-bold text-white tracking-tight">Midas</span>
           </div>
           <p className="max-w-lg mx-auto mb-10 text-lg leading-relaxed">
-            शेतकऱ्यांच्या उन्नतीसाठी आणि समृद्धीसाठी बनवलेले एक प्रगत डिजिटल माध्यम.
+            शेतकऱ्यांच्या उन्नतीसाठी और समृद्धीसाठी बनवलेले एक प्रगत डिजिटल माध्यम.
           </p>
           <div className="flex flex-wrap justify-center gap-8 mb-16 font-medium">
             <Link href="#" className="hover:text-white transition-colors">आमच्याबद्दल</Link>
