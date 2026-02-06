@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from "react";
@@ -14,7 +15,8 @@ import {
   ArrowRight,
   ChevronRight,
   UserPlus,
-  TrendingUp
+  TrendingUp,
+  LogIn
 } from "lucide-react";
 import Link from "next/link";
 import { Card, CardContent } from "@/components/ui/card";
@@ -81,18 +83,13 @@ export default function Home() {
             </p>
             
             <div className="flex flex-col sm:flex-row gap-4">
-              <Link href="/farmer/register">
+              <Link href="/login">
                 <Button size="lg" className="bg-white text-primary hover:bg-blue-50 font-bold rounded-2xl h-14 px-8 text-lg w-full sm:w-auto">
-                  शेतकरी नोंदणी <UserPlus className="ml-2 w-5 h-5" />
-                </Button>
-              </Link>
-              <Link href="/buyer/register">
-                <Button size="lg" variant="outline" className="border-white text-white hover:bg-white/10 font-bold rounded-2xl h-14 px-8 text-lg w-full sm:w-auto">
-                  खरेदीदार नोंदणी <ShoppingBag className="ml-2 w-5 h-5" />
+                  सुरू करा / नोंदणी <LogIn className="ml-2 w-5 h-5" />
                 </Button>
               </Link>
               <Link href="/marketplace" className="hidden md:block">
-                <Button size="lg" variant="ghost" className="text-white hover:bg-white/10 font-bold rounded-2xl h-14 px-8 text-lg">
+                <Button size="lg" variant="outline" className="border-white text-white hover:bg-white/10 font-bold rounded-2xl h-14 px-8 text-lg">
                   बाजारपेठ पहा <TrendingUp className="ml-2 w-5 h-5" />
                 </Button>
               </Link>
@@ -173,11 +170,6 @@ export default function Home() {
               <Link href="/login">
                 <Button className="bg-primary px-8 h-14 rounded-2xl font-bold text-lg shadow-lg shadow-primary/20">
                   लॉगिन / नवीन नोंदणी <ArrowRight className="ml-2" />
-                </Button>
-              </Link>
-              <Link href="/buyer/register">
-                <Button variant="outline" className="border-primary text-primary px-8 h-14 rounded-2xl font-bold text-lg">
-                  खरेदीदार नोंदणी
                 </Button>
               </Link>
             </div>
