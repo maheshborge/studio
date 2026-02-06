@@ -21,7 +21,10 @@ import {
   Plus,
   TrendingUp,
   Truck,
-  LogOut
+  LogOut,
+  CalendarDays,
+  CreditCard,
+  Target
 } from "lucide-react";
 import { useFirestore, useUser, useDoc, useMemoFirebase, useCollection, useAuth } from "@/firebase";
 import { doc, collection, updateDoc } from "firebase/firestore";
@@ -85,6 +88,7 @@ export default function ProfilePage() {
   const isFarmer = userType === "farmer";
   const isBuyer = userType === "buyer";
   const isTransporter = userType === "transporter";
+  const isSuvidhaKendra = userType === "suvidha_kendra";
 
   const displayDistrict = farmerData?.district || buyerData?.district || null;
 
@@ -115,6 +119,42 @@ export default function ProfilePage() {
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
           <div className="lg:col-span-8 space-y-8">
+            {isSuvidhaKendra && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <Card className="p-8 rounded-[2.5rem] bg-white shadow-xl hover:shadow-2xl transition-all border-none group cursor-pointer" onClick={() => router.push("/farmer/register")}>
+                  <div className="w-14 h-14 bg-green-100 rounded-2xl flex items-center justify-center text-green-600 mb-6 group-hover:scale-110 transition-transform">
+                    <User className="w-8 h-8" />
+                  </div>
+                  <h3 className="text-xl font-bold mb-2">शेतकरी नोंदणी</h3>
+                  <p className="text-sm text-slate-500">नवीन शेतकऱ्यांची माहिती भरून त्यांना सिस्टिममध्ये सामील करा.</p>
+                </Card>
+
+                <Card className="p-8 rounded-[2.5rem] bg-white shadow-xl hover:shadow-2xl transition-all border-none group cursor-pointer">
+                  <div className="w-14 h-14 bg-blue-100 rounded-2xl flex items-center justify-center text-blue-600 mb-6 group-hover:scale-110 transition-transform">
+                    <CalendarDays className="w-8 h-8" />
+                  </div>
+                  <h3 className="text-xl font-bold mb-2">कार्यक्रम नियोजन</h3>
+                  <p className="text-sm text-slate-500">शेतकऱ्यांसाठी मेळावे, प्रशिक्षण आणि कार्यक्रमांचे नियोजन करा.</p>
+                </Card>
+
+                <Card className="p-8 rounded-[2.5rem] bg-white shadow-xl hover:shadow-2xl transition-all border-none group cursor-pointer" onClick={() => router.push("/marketplace")}>
+                  <div className="w-14 h-14 bg-amber-100 rounded-2xl flex items-center justify-center text-amber-600 mb-6 group-hover:scale-110 transition-transform">
+                    <Target className="w-8 h-8" />
+                  </div>
+                  <h3 className="text-xl font-bold mb-2">माल संकलन</h3>
+                  <p className="text-sm text-slate-500">शेतकऱ्यांचा माल एकत्र गोळा करून मार्केटमध्ये विक्रीसाठी पाठवा.</p>
+                </Card>
+
+                <Card className="p-8 rounded-[2.5rem] bg-white shadow-xl hover:shadow-2xl transition-all border-none group cursor-pointer">
+                  <div className="w-14 h-14 bg-purple-100 rounded-2xl flex items-center justify-center text-purple-600 mb-6 group-hover:scale-110 transition-transform">
+                    <CreditCard className="w-8 h-8" />
+                  </div>
+                  <h3 className="text-xl font-bold mb-2">पेमेंट व्यवस्थापन</h3>
+                  <p className="text-sm text-slate-500">शेतकऱ्यांच्या विक्रीचे पैसे आणि हिशोब ट्रॅक करा.</p>
+                </Card>
+              </div>
+            )}
+
             {isFarmer && (
               <>
                 <div className="flex items-center justify-between">
@@ -206,6 +246,13 @@ export default function ProfilePage() {
                   <div>
                     <p className="text-[10px] uppercase font-bold text-slate-400">स्थान</p>
                     <p className="font-bold">{displayDistrict || "नोंदणी नाही"}</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-slate-100 rounded-xl flex items-center justify-center text-slate-500"><Mail className="w-5 h-5" /></div>
+                  <div>
+                    <p className="text-[10px] uppercase font-bold text-slate-400">ईमेल</p>
+                    <p className="font-bold text-xs truncate max-w-[150px]">{mainProfile?.email || "नोंदणी नाही"}</p>
                   </div>
                 </div>
               </div>

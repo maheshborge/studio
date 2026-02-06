@@ -3,7 +3,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Globe, ChevronRight, Mail, Lock, User as UserIcon, Loader2, Phone, ShieldCheck, ArrowLeft } from "lucide-react";
+import { Globe, ChevronRight, Mail, Lock, User as UserIcon, Loader2, Phone, ShieldCheck, ArrowLeft, Info } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -18,10 +18,12 @@ import {
 import { doc, setDoc } from "firebase/firestore";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 const USER_TYPES = [
   { value: "farmer", label: "शेतकरी (Farmer)" },
   { value: "buyer", label: "खरेदीदार (Buyer)" },
+  { value: "suvidha_kendra", label: "सुविधा केंद्र (Suvidha Kendra)" },
   { value: "supplier", label: "सप्लायर (Supplier)" },
   { value: "transporter", label: "ट्रान्सपोर्टर (Transporter)" },
   { value: "consultant", label: "सल्लागार (Consultant)" },
@@ -68,7 +70,7 @@ export default function LoginPage() {
         toast({
           variant: "destructive",
           title: "त्रुटी",
-          description: "ईमेल पाठवताना अडचण आली. कृपया पुन्हा तपासा.",
+          description: "ईमेल पाठवताना अडचण आली. कृपया तुमचा ईमेल सिस्टिममध्ये नोंदणीकृत आहे का ते तपासा.",
         });
       } finally {
         setIsLoading(false);
@@ -152,6 +154,15 @@ export default function LoginPage() {
                 ? "तुमच्या खात्यात प्रवेश करण्यासाठी लॉगिन करा." 
                 : "MaziSheti समुदायात सामील होण्यासाठी माहिती भरा."}
           </p>
+
+          {!isLogin && !isForgot && (
+            <Alert className="mb-6 bg-blue-50 border-blue-100 rounded-2xl">
+              <Info className="h-4 w-4 text-blue-600" />
+              <AlertDescription className="text-[11px] text-blue-700 leading-tight">
+                <strong>सूचना:</strong> पासवर्ड विसरल्यास तो रिकव्हर करण्यासाठी खरा ईमेल देणे आवश्यक आहे. ईमेल न दिल्यास पासवर्ड बदलता येणार नाही.
+              </AlertDescription>
+            </Alert>
+          )}
 
           <div className="space-y-5">
             {isForgot && (
