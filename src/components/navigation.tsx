@@ -1,3 +1,4 @@
+
 "use client";
 
 import Link from "next/link";
@@ -7,10 +8,10 @@ import {
   Globe, 
   Search, 
   User, 
-  Bell, 
-  Home, 
-  Video, 
-  Newspaper,
+  LayoutDashboard, 
+  UserPlus, 
+  MessageSquare,
+  BarChart3,
   Menu,
   X
 } from "lucide-react";
@@ -18,10 +19,11 @@ import { Button } from "@/components/ui/button";
 import { useState } from "react";
 
 const navItems = [
-  { name: "Home", href: "/", icon: Home },
-  { name: "Feed", href: "/feed", icon: Newspaper },
-  { name: "Videos", href: "/videos", icon: Video },
-  { name: "Profile", href: "/profile", icon: User },
+  { name: "मुख्य पृष्ठ", href: "/", icon: Globe },
+  { name: "शेतकरी नोंदणी", href: "/farmer/register", icon: UserPlus },
+  { name: "खरेदीदार नोंदणी", href: "/buyer/register", icon: UserPlus },
+  { name: "डॅशबोर्ड", href: "/dashboard", icon: BarChart3 },
+  { name: "शेतकरी प्रश्न", href: "/questions", icon: MessageSquare },
 ];
 
 export function Navigation() {
@@ -43,7 +45,7 @@ export function Navigation() {
         </div>
 
         {/* Desktop Nav */}
-        <nav className="hidden md:flex items-center space-x-6">
+        <nav className="hidden xl:flex items-center space-x-6">
           {navItems.map((item) => (
             <Link
               key={item.href}
@@ -60,21 +62,10 @@ export function Navigation() {
         </nav>
 
         <div className="flex items-center gap-2">
-          <div className="relative hidden sm:block">
-            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-            <input
-              type="search"
-              placeholder="Search mazisheti..."
-              className="pl-8 h-9 w-64 rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary"
-            />
-          </div>
-          <Button variant="ghost" size="icon" className="text-muted-foreground">
-            <Bell className="w-5 h-5" />
-          </Button>
-          <Button variant="ghost" size="icon" className="md:hidden" onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}>
+          <Button variant="ghost" size="icon" className="xl:hidden" onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}>
             {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
           </Button>
-          <Link href="/profile" className="hidden sm:block">
+          <Link href="/profile">
             <div className="w-9 h-9 rounded-full bg-accent text-white flex items-center justify-center font-bold">
               JD
             </div>
@@ -84,7 +75,7 @@ export function Navigation() {
 
       {/* Mobile Nav */}
       {isMobileMenuOpen && (
-        <div className="md:hidden border-b bg-background p-4 space-y-4 animate-in slide-in-from-top-4">
+        <div className="xl:hidden border-b bg-background p-4 space-y-4 animate-in slide-in-from-top-4">
           {navItems.map((item) => (
             <Link
               key={item.href}

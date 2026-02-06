@@ -1,225 +1,147 @@
-import { Navigation } from "@/components/navigation";
-import { ContentCard } from "@/components/content-card";
-import { Button } from "@/components/ui/button";
-import { ArrowRight, Sparkles, Globe } from "lucide-react";
-import Image from "next/image";
-import Link from "next/link";
-import { PlaceHolderImages } from "@/lib/placeholder-images";
-import { cn } from "@/lib/utils";
 
-const featuredContent = [
-  {
-    id: "1",
-    title: "The Resilience of Giriama Traditions in Modern Kenya",
-    excerpt: "Exploring the vibrant cultural heritage of the Giriama people and how traditional practices are adapting to the 21st century.",
-    imageUrl: PlaceHolderImages.find(img => img.id === 'culture-1')?.imageUrl || "https://picsum.photos/seed/culture1/600/400",
-    category: "Culture",
-    date: "May 12, 2024",
-    type: "article" as const
-  },
-  {
-    id: "2",
-    title: "Community Town Hall: Infrastructure Development in Mazisheti",
-    excerpt: "Highlights from the recent community meeting discussing new water sanitation projects and road improvements.",
-    imageUrl: PlaceHolderImages.find(img => img.id === 'news-1')?.imageUrl || "https://picsum.photos/seed/news1/600/400",
-    category: "News",
-    date: "May 10, 2024",
-    type: "article" as const
-  },
-  {
-    id: "3",
-    title: "MaziSheti Exclusive: Interview with Elder Kalume",
-    excerpt: "A deep dive into the oral history of the region through the lens of one of our most respected community elders.",
-    imageUrl: PlaceHolderImages.find(img => img.id === 'video-1')?.imageUrl || "https://picsum.photos/seed/video1/600/400",
-    category: "Interview",
-    date: "May 08, 2024",
-    type: "video" as const
-  }
-];
+import { Navigation } from "@/components/navigation";
+import { Button } from "@/components/ui/button";
+import { 
+  UserPlus, 
+  BarChart3, 
+  MessageSquare, 
+  ShoppingBag,
+  ArrowRight,
+  ClipboardList
+} from "lucide-react";
+import Link from "next/link";
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 
 export default function Home() {
-  const heroImage = PlaceHolderImages.find(img => img.id === 'hero-bg')?.imageUrl || "https://picsum.photos/seed/hero/1200/600";
-
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className="flex flex-col min-h-screen bg-slate-50">
       <Navigation />
       
-      <main className="flex-grow">
-        {/* Hero Section */}
-        <section className="relative h-[500px] flex items-center justify-center text-white overflow-hidden">
-          <Image
-            src={heroImage}
-            alt="Hero background"
-            fill
-            className="object-cover"
-            priority
-            data-ai-hint="African landscape"
+      <main className="flex-grow container mx-auto px-4 py-12">
+        <div className="text-center mb-16">
+          <h1 className="text-4xl md:text-5xl font-headline font-bold text-primary mb-4">
+            MaziSheti मॅनेजमेंट सिस्टम
+          </h1>
+          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+            शेतकरी नोंदणी, खरेदीदार व्यवस्थापन आणि माहितीचे विश्लेषण करण्यासाठी एक डिजिटल व्यासपीठ.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
+          <QuickActionCard 
+            title="शेतकरी नोंदणी" 
+            desc="नवीन शेतकऱ्याची माहिती भरा" 
+            icon={UserPlus} 
+            href="/farmer/register" 
+            color="bg-green-500"
           />
-          <div className="absolute inset-0 bg-primary/60 backdrop-blur-[2px]" />
-          <div className="container relative z-10 px-4 text-center max-w-3xl">
-            <Badge className="mb-6 bg-accent border-none text-white px-4 py-1.5 text-sm font-bold uppercase tracking-widest">
-              Community Hub
-            </Badge>
-            <h1 className="text-4xl md:text-6xl font-headline font-bold mb-6 leading-tight">
-              Connecting Mazisheti to the World
-            </h1>
-            <p className="text-lg md:text-xl text-blue-50 mb-8 max-w-2xl mx-auto leading-relaxed">
-              Stay updated with aggregated news, culture, and community insights directly from mazisheti.org, enhanced with AI insights.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button size="lg" className="bg-white text-primary hover:bg-blue-50 font-bold px-8 rounded-xl h-14">
-                Explore Feed
-              </Button>
-              <Button size="lg" variant="outline" className="border-2 border-white text-white hover:bg-white/10 font-bold px-8 rounded-xl h-14">
-                Join Community
-              </Button>
-            </div>
-          </div>
-        </section>
+          <QuickActionCard 
+            title="खरेदीदार नोंदणी" 
+            desc="नवीन खरेदीदाराची नोंदणी करा" 
+            icon={ShoppingBag} 
+            href="/buyer/register" 
+            color="bg-blue-500"
+          />
+          <QuickActionCard 
+            title="शेतकरी प्रश्न" 
+            desc="शेती आणि जनावरांचे प्रश्न" 
+            icon={MessageSquare} 
+            href="/questions" 
+            color="bg-orange-500"
+          />
+          <QuickActionCard 
+            title="रिपोर्ट्स / अहवाल" 
+            desc="सर्व माहितीचे विश्लेषण" 
+            icon={BarChart3} 
+            href="/dashboard" 
+            color="bg-purple-500"
+          />
+        </div>
 
-        {/* Feature Highlights */}
-        <section className="py-20 bg-white">
-          <div className="container mx-auto px-4">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-12 text-center">
-              <div className="flex flex-col items-center">
-                <div className="w-16 h-16 bg-blue-50 rounded-2xl flex items-center justify-center text-primary mb-6">
-                  <Globe className="w-8 h-8" />
-                </div>
-                <h3 className="text-xl font-bold mb-3">Aggregated Content</h3>
-                <p className="text-muted-foreground">Real-time updates and media parsed directly from our primary community source.</p>
-              </div>
-              <div className="flex flex-col items-center">
-                <div className="w-16 h-16 bg-purple-50 rounded-2xl flex items-center justify-center text-accent mb-6">
-                  <Sparkles className="w-8 h-8" />
-                </div>
-                <h3 className="text-xl font-bold mb-3">AI Summarization</h3>
-                <p className="text-muted-foreground">Save time with instant AI-powered summaries of articles and video transcripts.</p>
-              </div>
-              <div className="flex flex-col items-center">
-                <div className="w-16 h-16 bg-blue-50 rounded-2xl flex items-center justify-center text-primary mb-6">
-                  <ArrowRight className="w-8 h-8" />
-                </div>
-                <h3 className="text-xl font-bold mb-3">Global Reach</h3>
-                <p className="text-muted-foreground">Built for the local community, optimized for the global diaspora.</p>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* Featured Feed */}
-        <section className="py-20 bg-background">
-          <div className="container mx-auto px-4">
-            <div className="flex items-center justify-between mb-12">
-              <div>
-                <h2 className="text-3xl font-headline font-bold text-primary">Latest from Mazisheti</h2>
-                <p className="text-muted-foreground mt-2">Discover what's happening in our vibrant community.</p>
-              </div>
-              <Link href="/feed">
-                <Button variant="ghost" className="text-primary font-bold hover:bg-primary/5">
-                  View All Feed <ArrowRight className="ml-2 w-4 h-4" />
-                </Button>
-              </Link>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {featuredContent.map((item) => (
-                <ContentCard key={item.id} {...item} />
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* CTA Section */}
-        <section className="py-20">
-          <div className="container mx-auto px-4">
-            <div className="bg-primary rounded-[2.5rem] p-8 md:p-16 flex flex-col md:flex-row items-center gap-12 overflow-hidden relative">
-              <div className="absolute top-0 right-0 w-64 h-64 bg-accent/20 rounded-full blur-3xl -mr-32 -mt-32" />
-              <div className="absolute bottom-0 left-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -ml-32 -mb-32" />
-              
-              <div className="relative z-10 flex-1 text-white text-center md:text-left">
-                <h2 className="text-3xl md:text-5xl font-headline font-bold mb-6">Join our growing community today</h2>
-                <p className="text-blue-100 text-lg mb-8 max-w-xl">
-                  Create your profile to save articles, participate in discussions, and get personalized content summaries.
-                </p>
-                <div className="flex flex-wrap gap-4 justify-center md:justify-start">
-                  <Link href="/login">
-                    <Button size="lg" className="bg-accent hover:bg-accent/90 text-white border-none px-8 font-bold rounded-xl h-14">
-                      Get Started Free
-                    </Button>
-                  </Link>
-                </div>
-              </div>
-              <div className="relative z-10 flex-1 flex justify-center md:justify-end">
-                 <div className="relative w-full max-w-sm aspect-square bg-white/10 rounded-3xl backdrop-blur-md border border-white/20 p-6 flex flex-col justify-center gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <Card className="rounded-[2rem] border-none shadow-xl">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <ClipboardList className="text-primary" />
+                अलीकडील नोंदणी
+              </CardTitle>
+              <CardDescription>सिस्टममध्ये नुकत्याच झालेल्या हालचाली</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {[1, 2, 3].map((i) => (
+                  <div key={i} className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl">
                     <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 rounded-full bg-accent" />
-                      <div className="flex-1">
-                        <div className="h-3 w-24 bg-white/30 rounded-full mb-2" />
-                        <div className="h-2 w-16 bg-white/20 rounded-full" />
+                      <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+                        <UserPlus className="w-5 h-5" />
+                      </div>
+                      <div>
+                        <p className="font-bold">शेतकरी नोंदणी - राहुल पाटील</p>
+                        <p className="text-xs text-muted-foreground">पुणे, महाराष्ट्र • २ तास पूर्वी</p>
                       </div>
                     </div>
-                    <div className="space-y-3">
-                      <div className="h-2 w-full bg-white/10 rounded-full" />
-                      <div className="h-2 w-full bg-white/10 rounded-full" />
-                      <div className="h-2 w-3/4 bg-white/10 rounded-full" />
-                    </div>
-                    <div className="flex gap-2">
-                       <div className="h-8 w-20 bg-white/20 rounded-lg" />
-                       <div className="h-8 w-20 bg-white/20 rounded-lg" />
-                    </div>
-                 </div>
+                    <Button variant="ghost" size="sm">पहा</Button>
+                  </div>
+                ))}
               </div>
-            </div>
-          </div>
-        </section>
+            </CardContent>
+          </Card>
+
+          <Card className="rounded-[2rem] border-none shadow-xl bg-primary text-white">
+            <CardHeader>
+              <CardTitle>माहिती संकलन</CardTitle>
+              <CardDescription className="text-blue-100">तुमच्या विभागातील आकडेवारी</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-2 gap-4">
+                <StatBox label="एकूण शेतकरी" value="१,२४५" />
+                <StatBox label="एकूण खरेदीदार" value="८४" />
+                <StatBox label="सोडवलेले प्रश्न" value="४५२" />
+                <StatBox label="नवीन प्रश्न" value="१२" />
+              </div>
+              <Link href="/dashboard" className="block mt-8">
+                <Button className="w-full bg-white text-primary hover:bg-blue-50 font-bold">
+                  विस्तृत अहवाल पहा <ArrowRight className="ml-2 w-4 h-4" />
+                </Button>
+              </Link>
+            </CardContent>
+          </Card>
+        </div>
       </main>
 
-      <footer className="bg-white border-t py-12">
-        <div className="container mx-auto px-4">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
-            <div className="md:col-span-2">
-              <Link href="/" className="flex items-center space-x-2 mb-6">
-                <Globe className="w-8 h-8 text-primary" />
-                <span className="font-headline font-bold text-2xl text-primary">MaziSheti</span>
-              </Link>
-              <p className="text-muted-foreground max-w-sm leading-relaxed">
-                Empowering the Mazisheti community through information technology, AI, and connectivity. Aggregating culture and news for the next generation.
-              </p>
-            </div>
-            <div>
-              <h4 className="font-bold mb-6">Platform</h4>
-              <ul className="space-y-4 text-muted-foreground">
-                <li><Link href="/feed" className="hover:text-primary transition-colors">Latest Feed</Link></li>
-                <li><Link href="/videos" className="hover:text-primary transition-colors">Video Gallery</Link></li>
-                <li><Link href="/about" className="hover:text-primary transition-colors">About Us</Link></li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="font-bold mb-6">Connect</h4>
-              <ul className="space-y-4 text-muted-foreground">
-                <li><Link href="/profile" className="hover:text-primary transition-colors">Your Profile</Link></li>
-                <li><Link href="/contact" className="hover:text-primary transition-colors">Contact Support</Link></li>
-                <li><Link href="https://www.mazisheti.org" target="_blank" className="hover:text-primary transition-colors">mazisheti.org</Link></li>
-              </ul>
-            </div>
-          </div>
-          <div className="pt-8 border-t flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-muted-foreground">
-            <p>© 2024 MaziSheti App. All rights reserved.</p>
-            <div className="flex gap-8">
-              <Link href="/privacy" className="hover:text-primary">Privacy Policy</Link>
-              <Link href="/terms" className="hover:text-primary">Terms of Service</Link>
-            </div>
-          </div>
-        </div>
+      <footer className="bg-white border-t py-8 text-center text-sm text-muted-foreground">
+        © २०२४ MaziSheti App. सर्व हक्क राखीव.
       </footer>
     </div>
   );
 }
 
-function Badge({ children, className }: { children: React.ReactNode; className?: string }) {
+function QuickActionCard({ title, desc, icon: Icon, href, color }: any) {
   return (
-    <span className={cn("inline-block px-3 py-1 rounded-full text-xs font-semibold", className)}>
-      {children}
-    </span>
+    <Link href={href}>
+      <Card className="h-full hover:shadow-2xl transition-all cursor-pointer border-none shadow-lg rounded-[2rem] group overflow-hidden">
+        <div className={cn("h-2 w-full", color)} />
+        <CardContent className="pt-8">
+          <div className={cn("w-14 h-14 rounded-2xl flex items-center justify-center text-white mb-6 group-hover:scale-110 transition-transform", color)}>
+            <Icon className="w-8 h-8" />
+          </div>
+          <h3 className="text-xl font-bold mb-2">{title}</h3>
+          <p className="text-muted-foreground text-sm">{desc}</p>
+        </CardContent>
+      </Card>
+    </Link>
   );
+}
+
+function StatBox({ label, value }: { label: string, value: string }) {
+  return (
+    <div className="bg-white/10 p-4 rounded-2xl backdrop-blur-sm border border-white/10">
+      <p className="text-xs text-blue-100 mb-1">{label}</p>
+      <p className="text-2xl font-bold">{value}</p>
+    </div>
+  );
+}
+
+function cn(...inputs: any[]) {
+  return inputs.filter(Boolean).join(" ");
 }
