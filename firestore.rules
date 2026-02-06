@@ -2,31 +2,25 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Helper functions
+    // मदतनीस कार्य (Helper function)
     function isSignedIn() {
       return request.auth != null;
     }
 
-    // Global rule for authenticated users
-    // This allows all authenticated users to read and list documents across the database.
-    // This is necessary for collectionGroup queries used in marketplace, dashboard, and admin views.
+    // लॉगिन केलेल्या सर्व युजर्सना सर्व डेटा वाचण्याची आणि लिस्ट करण्याची परवानगी
+    // हे मार्केटप्लेस आणि डॅशबोर्डमधील कलेक्शन ग्रुप क्वेरीसाठी आवश्यक आहे
     match /{allPaths=**} {
       allow read, list: if isSignedIn();
       allow write: if isSignedIn();
     }
 
-    // Specific public access for community content (if needed without login)
+    // सार्वजनिक माहितीसाठी (उदा. बातम्या किंवा प्रश्न)
     match /questions/{questionId} {
       allow read, list: if true;
     }
     
     match /communityContent/{contentId} {
       allow read, list: if true;
-    }
-
-    // Transactions should be secure but readable by participants
-    match /transactions/{txnId} {
-      allow read, write: if isSignedIn();
     }
   }
 }
