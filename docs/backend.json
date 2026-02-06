@@ -1,0 +1,488 @@
+{
+  "entities": {
+    "Farmer": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Farmer",
+      "type": "object",
+      "description": "Represents a farmer and their associated information.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Farmer entity."
+        },
+        "personalInfoId": {
+          "type": "string",
+          "description": "Reference to PersonalInfo. (Relationship: Farmer 1:1 PersonalInfo)"
+        },
+        "farmingInfoId": {
+          "type": "string",
+          "description": "Reference to FarmingInfo. (Relationship: Farmer 1:1 FarmingInfo)"
+        },
+        "familyInfoId": {
+          "type": "string",
+          "description": "Reference to FamilyInfo. (Relationship: Farmer 1:1 FamilyInfo)"
+        },
+        "migrationInfoId": {
+          "type": "string",
+          "description": "Reference to MigrationInfo. (Relationship: Farmer 1:1 MigrationInfo)"
+        }
+      },
+      "required": [
+        "id",
+        "personalInfoId",
+        "farmingInfoId",
+        "familyInfoId",
+        "migrationInfoId"
+      ]
+    },
+    "PersonalInfo": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "PersonalInfo",
+      "type": "object",
+      "description": "Stores personal information about an individual.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the PersonalInfo entity."
+        },
+        "name": {
+          "type": "string",
+          "description": "Full name of the individual."
+        },
+        "address": {
+          "type": "string",
+          "description": "Address of the individual."
+        },
+        "contactNumber": {
+          "type": "string",
+          "description": "Contact number of the individual."
+        },
+        "recommendation": {
+          "type": "string",
+          "description": "Recommendation for the individual."
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "address",
+        "contactNumber"
+      ]
+    },
+    "FarmingInfo": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "FarmingInfo",
+      "type": "object",
+      "description": "Stores information about a farmer's agricultural activities.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the FarmingInfo entity."
+        },
+        "landArea": {
+          "type": "string",
+          "description": "Area of land owned by the farmer."
+        },
+        "waterSource": {
+          "type": "string",
+          "description": "Source of water for irrigation."
+        },
+        "cropArea": {
+          "type": "string",
+          "description": "Area under different crops."
+        },
+        "production": {
+          "type": "string",
+          "description": "Total agricultural production."
+        }
+      },
+      "required": [
+        "id",
+        "landArea",
+        "waterSource",
+        "cropArea",
+        "production"
+      ]
+    },
+    "FamilyInfo": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "FamilyInfo",
+      "type": "object",
+      "description": "Stores information about a farmer's family.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the FamilyInfo entity."
+        },
+        "totalMembers": {
+          "type": "number",
+          "description": "Total number of family members."
+        },
+        "womenCount": {
+          "type": "number",
+          "description": "Number of female family members."
+        },
+        "menCount": {
+          "type": "number",
+          "description": "Number of male family members."
+        },
+        "studentCount": {
+          "type": "number",
+          "description": "Number of student family members."
+        }
+      },
+      "required": [
+        "id",
+        "totalMembers",
+        "womenCount",
+        "menCount",
+        "studentCount"
+      ]
+    },
+    "MigrationInfo": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "MigrationInfo",
+      "type": "object",
+      "description": "Stores information about a farmer's migration history.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the MigrationInfo entity."
+        },
+        "education": {
+          "type": "string",
+          "description": "Purpose of migration for education."
+        },
+        "job": {
+          "type": "string",
+          "description": "Purpose of migration for job."
+        },
+        "marriage": {
+          "type": "string",
+          "description": "Purpose of migration for marriage."
+        }
+      },
+      "required": [
+        "id"
+      ]
+    },
+    "FarmerQuestion": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "FarmerQuestion",
+      "type": "object",
+      "description": "Represents a question asked by a farmer related to farming, animals, disputes, or other topics.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the FarmerQuestion entity."
+        },
+        "farmerId": {
+          "type": "string",
+          "description": "Reference to Farmer. (Relationship: Farmer 1:N FarmerQuestion)"
+        },
+        "category": {
+          "type": "string",
+          "description": "Category of the question (e.g., farming, animals, disputes)."
+        },
+        "questionText": {
+          "type": "string",
+          "description": "The actual question asked by the farmer."
+        },
+        "subcategory": {
+          "type": "string",
+          "description": "subcategory of question"
+        }
+      },
+      "required": [
+        "id",
+        "farmerId",
+        "category",
+        "questionText"
+      ]
+    },
+    "Buyer": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Buyer",
+      "type": "object",
+      "description": "Represents a buyer and their associated information.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Buyer entity."
+        },
+        "personalInfoId": {
+          "type": "string",
+          "description": "Reference to PersonalInfo. (Relationship: Buyer 1:1 PersonalInfo)"
+        },
+        "buyerCategoryId": {
+          "type": "string",
+          "description": "Reference to BuyerCategory. (Relationship: Buyer 1:1 BuyerCategory)"
+        },
+        "purchaseTypeId": {
+          "type": "string",
+          "description": "Reference to PurchaseType. (Relationship: Buyer 1:1 PurchaseType)"
+        }
+      },
+      "required": [
+        "id",
+        "personalInfoId",
+        "buyerCategoryId",
+        "purchaseTypeId"
+      ]
+    },
+    "BuyerCategory": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "BuyerCategory",
+      "type": "object",
+      "description": "Represents the category of a buyer (e.g., trader, hotel, society).",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the BuyerCategory entity."
+        },
+        "categoryName": {
+          "type": "string",
+          "description": "Name of the buyer category."
+        }
+      },
+      "required": [
+        "id",
+        "categoryName"
+      ]
+    },
+    "PurchaseType": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "PurchaseType",
+      "type": "object",
+      "description": "Represents the type of product purchased (e.g., fruits, vegetables, flowers).",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the PurchaseType entity."
+        },
+        "typeName": {
+          "type": "string",
+          "description": "Name of the purchase type."
+        }
+      },
+      "required": [
+        "id",
+        "typeName"
+      ]
+    },
+    "Report": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Report",
+      "type": "object",
+      "description": "Represents a generated report based on collected data.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Report entity."
+        },
+        "reportName": {
+          "type": "string",
+          "description": "Name or title of the report."
+        },
+        "reportData": {
+          "type": "string",
+          "description": "Data contained within the report (e.g., JSON, CSV)."
+        },
+        "generationDate": {
+          "type": "string",
+          "description": "Date and time when the report was generated.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "reportName",
+        "reportData",
+        "generationDate"
+      ]
+    }
+  },
+  "auth": {
+    "providers": [
+      "password",
+      "anonymous"
+    ]
+  },
+  "firestore": {
+    "structure": [
+      {
+        "path": "/users/{userId}/farmers/{farmerId}",
+        "definition": {
+          "entityName": "Farmer",
+          "schema": {
+            "$ref": "#/backend/entities/Farmer"
+          },
+          "description": "Stores farmer profiles, owned by the user with ID {userId}.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier of the user."
+            },
+            {
+              "name": "farmerId",
+              "description": "The unique identifier of the farmer."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/personalInfos/{personalInfoId}",
+        "definition": {
+          "entityName": "PersonalInfo",
+          "schema": {
+            "$ref": "#/backend/entities/PersonalInfo"
+          },
+          "description": "Stores personal information. This collection does not directly enforce security, but the document ID is referenced in other entities for data retrieval and association. Security must be enforced at the referencing document (Farmer or Buyer).",
+          "params": [
+            {
+              "name": "personalInfoId",
+              "description": "The unique identifier for personal information."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/farmingInfos/{farmingInfoId}",
+        "definition": {
+          "entityName": "FarmingInfo",
+          "schema": {
+            "$ref": "#/backend/entities/FarmingInfo"
+          },
+          "description": "Stores farming information. This collection does not directly enforce security, but the document ID is referenced in other entities for data retrieval and association. Security must be enforced at the referencing document (Farmer).",
+          "params": [
+            {
+              "name": "farmingInfoId",
+              "description": "The unique identifier for farming information."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/familyInfos/{familyInfoId}",
+        "definition": {
+          "entityName": "FamilyInfo",
+          "schema": {
+            "$ref": "#/backend/entities/FamilyInfo"
+          },
+          "description": "Stores family information. This collection does not directly enforce security, but the document ID is referenced in other entities for data retrieval and association. Security must be enforced at the referencing document (Farmer).",
+          "params": [
+            {
+              "name": "familyInfoId",
+              "description": "The unique identifier for family information."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/migrationInfos/{migrationInfoId}",
+        "definition": {
+          "entityName": "MigrationInfo",
+          "schema": {
+            "$ref": "#/backend/entities/MigrationInfo"
+          },
+          "description": "Stores migration information. This collection does not directly enforce security, but the document ID is referenced in other entities for data retrieval and association. Security must be enforced at the referencing document (Farmer).",
+          "params": [
+            {
+              "name": "migrationInfoId",
+              "description": "The unique identifier for migration information."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/users/{userId}/farmerQuestions/{farmerQuestionId}",
+        "definition": {
+          "entityName": "FarmerQuestion",
+          "schema": {
+            "$ref": "#/backend/entities/FarmerQuestion"
+          },
+          "description": "Stores questions asked by farmers, owned by the user with ID {userId}.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier of the user."
+            },
+            {
+              "name": "farmerQuestionId",
+              "description": "The unique identifier of the farmer question."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/users/{userId}/buyers/{buyerId}",
+        "definition": {
+          "entityName": "Buyer",
+          "schema": {
+            "$ref": "#/backend/entities/Buyer"
+          },
+          "description": "Stores buyer profiles, owned by the user with ID {userId}.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier of the user."
+            },
+            {
+              "name": "buyerId",
+              "description": "The unique identifier of the buyer."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/buyerCategories/{buyerCategoryId}",
+        "definition": {
+          "entityName": "BuyerCategory",
+          "schema": {
+            "$ref": "#/backend/entities/BuyerCategory"
+          },
+          "description": "Stores buyer categories. This collection does not directly enforce security, but the document ID is referenced in other entities for data retrieval and association. Security must be enforced at the referencing document (Buyer).",
+          "params": [
+            {
+              "name": "buyerCategoryId",
+              "description": "The unique identifier for the buyer category."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/purchaseTypes/{purchaseTypeId}",
+        "definition": {
+          "entityName": "PurchaseType",
+          "schema": {
+            "$ref": "#/backend/entities/PurchaseType"
+          },
+          "description": "Stores purchase types. This collection does not directly enforce security, but the document ID is referenced in other entities for data retrieval and association. Security must be enforced at the referencing document (Buyer).",
+          "params": [
+            {
+              "name": "purchaseTypeId",
+              "description": "The unique identifier for the purchase type."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/reports/{reportId}",
+        "definition": {
+          "entityName": "Report",
+          "schema": {
+            "$ref": "#/backend/entities/Report"
+          },
+          "description": "Stores generated reports accessible to authorized users.",
+          "params": [
+            {
+              "name": "reportId",
+              "description": "The unique identifier for the report."
+            }
+          ]
+        }
+      }
+    ],
+    "reasoning": "The Firestore data structure is designed to store information about farmers, buyers, their related data, and generated reports. It prioritizes authorization independence and supports secure list operations.\n\n*   **Authorization Independence:** Achieved through path-based ownership for private user data and denormalization. For instance, FarmerQuestions are stored under `/users/{userId}/farmerQuestions/{farmerQuestionId}`, granting the user (identified by `userId`) implicit ownership and control. Reports are accessible to all authenticated users and are stored under a flat `/reports` collection.\n\n*   **QAPs (Rules are not Filters):** The structure supports secure `list` operations by segregating data with different access requirements. Private user data (farmer profiles, questions) resides under user-specific paths, while reports (if meant to be globally accessible) are in a separate collection with distinct security rules.\n\nThe design incorporates structural segregation based on the type of data and access requirements, which improves security and scalability."
+  }
+}
