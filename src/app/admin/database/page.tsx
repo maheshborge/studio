@@ -92,16 +92,20 @@ export default function DatabaseViewPage() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {userProfiles.map((profile) => (
-                      <TableRow key={profile.id + profile.mobile}>
-                        <TableCell className="font-medium">{profile.name}</TableCell>
-                        <TableCell>{profile.mobile}</TableCell>
-                        <TableCell className="capitalize">{profile.userType}</TableCell>
+                    {userProfiles.length > 0 ? userProfiles.map((profile) => (
+                      <TableRow key={profile.id}>
+                        <TableCell className="font-medium">{profile.name || 'Unknown'}</TableCell>
+                        <TableCell>{profile.mobile || '-'}</TableCell>
+                        <TableCell className="capitalize">{profile.userType || '-'}</TableCell>
                         <TableCell className="text-slate-500 text-xs">
                           {profile.createdAt ? new Date(profile.createdAt).toLocaleDateString('mr-IN') : '-'}
                         </TableCell>
                       </TableRow>
-                    ))}
+                    )) : (
+                      <TableRow>
+                        <TableCell colSpan={4} className="text-center py-8 text-slate-500 italic">नोंदणीकृत युजर्स नाहीत.</TableCell>
+                      </TableRow>
+                    )}
                   </TableBody>
                 </Table>
               </CardContent>
@@ -127,7 +131,7 @@ export default function DatabaseViewPage() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {crops?.map((crop) => (
+                    {crops && crops.length > 0 ? crops.map((crop) => (
                       <TableRow key={crop.id}>
                         <TableCell className="font-bold text-primary">{crop.name}</TableCell>
                         <TableCell>{crop.variety || '-'}</TableCell>
@@ -143,7 +147,11 @@ export default function DatabaseViewPage() {
                           </span>
                         </TableCell>
                       </TableRow>
-                    ))}
+                    )) : (
+                      <TableRow>
+                        <TableCell colSpan={7} className="text-center py-8 text-slate-500 italic">पिकांची माहिती उपलब्ध नाही.</TableCell>
+                      </TableRow>
+                    )}
                   </TableBody>
                 </Table>
               </CardContent>
@@ -167,15 +175,19 @@ export default function DatabaseViewPage() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {buyerDetails.map((buyer) => (
-                      <TableRow key={buyer.id + buyer.orgName}>
+                    {buyerDetails.length > 0 ? buyerDetails.map((buyer) => (
+                      <TableRow key={buyer.id}>
                         <TableCell className="font-bold">{buyer.orgName}</TableCell>
                         <TableCell>{buyer.contactName}</TableCell>
                         <TableCell className="capitalize">{buyer.category}</TableCell>
                         <TableCell className="font-mono text-xs">{buyer.licenseNumber || '-'}</TableCell>
                         <TableCell>{buyer.district}</TableCell>
                       </TableRow>
-                    ))}
+                    )) : (
+                      <TableRow>
+                        <TableCell colSpan={5} className="text-center py-8 text-slate-500 italic">नोंदणीकृत खरेदीदार नाहीत.</TableCell>
+                      </TableRow>
+                    )}
                   </TableBody>
                 </Table>
               </CardContent>

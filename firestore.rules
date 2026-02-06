@@ -11,18 +11,19 @@ service cloud.firestore {
       return isSignedIn() && request.auth.uid == userId;
     }
 
-    // Rules for User Profiles (Main, Farmer Data, Buyer Data, etc.)
+    // Rules for User Profiles (Direct Path)
     match /users/{userId}/profile/{profileDoc} {
       allow read: if isSignedIn();
       allow write: if isOwner(userId);
     }
     
     // Explicit rule for Collection Group queries on 'profile'
+    // Required for marketplace lookups and admin dashboard
     match /{path=**}/profile/{profileDoc} {
-      allow read: if isSignedIn();
+      allow read, list: if isSignedIn();
     }
 
-    // Rules for Crop Cycles
+    // Rules for Crop Cycles (Direct Path)
     match /users/{userId}/cropCycles/{cropId} {
       allow read: if isSignedIn();
       // Allow owner to write, and allow others to update (for partial buying quantity updates)
@@ -30,8 +31,9 @@ service cloud.firestore {
     }
     
     // Explicit rule for Collection Group queries on 'cropCycles'
+    // Required for marketplace and dashboard analytics
     match /{path=**}/cropCycles/{cropId} {
-      allow read: if isSignedIn();
+      allow read, list: if isSignedIn();
     }
 
     // Rules for Transactions
@@ -42,7 +44,7 @@ service cloud.firestore {
 
     // Rules for Community Questions
     match /questions/{questionId} {
-      allow read: if true;
+      allow read, list: if true;
       allow write: if isSignedIn();
     }
 
