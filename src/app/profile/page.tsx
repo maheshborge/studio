@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { 
@@ -25,12 +25,14 @@ import {
   Phone,
   Hammer,
   Bug,
-  PackageCheck
+  PackageCheck,
+  Globe
 } from "lucide-react";
 import { useAuth, useFirestore, useUser, useDoc, useMemoFirebase, useCollection } from "@/firebase";
 import { doc, setDoc, collection, addDoc, serverTimestamp, updateDoc, deleteDoc, query, where } from "firebase/firestore";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
+import { locationData } from "@/lib/locations";
 
 const STAGES = [
   { id: "preparation", label: "मशागत / जमीन तयार करणे", icon: Hammer },
@@ -74,12 +76,18 @@ export default function ProfilePage() {
     totalLandArea: "", waterSources: [] as string[], crops: [{ name: "", area: "" }]
   });
 
+  const [isOtherState, setIsOtherState] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [showAddCrop, setShowAddCrop] = useState(false);
   const [newCrop, setNewCrop] = useState({ name: "", area: "", season: "Kharif", type: "Fruits" });
 
   useEffect(() => {
-    if (farmerData) setFormData(prev => ({ ...prev, ...farmerData }));
+    if (farmerData) {
+      setFormData(prev => ({ ...prev, ...farmerData }));
+      if (farmerData.state !== "Maharashtra") {
+        setIsOtherState(true);
+      }
+    }
   }, [farmerData]);
 
   if (isUserLoading) return <div className="min-h-screen flex items-center justify-center"><Loader2 className="animate-spin text-primary w-12 h-12" /></div>;
@@ -87,6 +95,24 @@ export default function ProfilePage() {
 
   const calculateTotalCropArea = () => {
     return formData.crops.reduce((acc, curr) => acc + (parseFloat(curr.area) || 0), 0);
+  };
+
+  const handleInputChange = (id: string, value: string) => {
+    setFormData(prev => ({ ...prev, [id]: value }));
+  };
+
+  const handleSelectChange = (id: string, value: string) => {
+    if (id === "state") {
+      if (value === "Other") {
+        setIsOtherState(true);
+        setFormData(prev => ({ ...prev, state: "", district: "", taluka: "" }));
+      } else {
+        setIsOtherState(false);
+        setFormData(prev => ({ ...prev, state: value, district: "", taluka: "" }));
+      }
+      return;
+    }
+    setFormData(prev => ({ ...prev, [id]: value }));
   };
 
   const handleWaterSourceChange = (label: string) => {
@@ -178,7 +204,6 @@ export default function ProfilePage() {
   const handleAddCropCycle = async () => {
     if (!db || !user || !newCrop.name) return;
     
-    // Check if adding this crop cycle exceeds total land
     const existingCropsTotal = cropCycles?.reduce((acc, curr) => acc + (parseFloat(curr.area) || 0), 0) || 0;
     const newArea = parseFloat(newCrop.area) || 0;
     const limit = parseFloat(formData.totalLandArea) || 0;
@@ -224,6 +249,9 @@ export default function ProfilePage() {
     });
   };
 
+  const districts = Object.keys(locationData["Maharashtra"]);
+  const talukas = (!isOtherState && formData.district) ? locationData["Maharashtra"][formData.district] : [];
+
   return (
     <div className="min-h-screen bg-slate-50">
       <Navigation />
@@ -254,7 +282,58 @@ export default function ProfilePage() {
                     className="rounded-xl" 
                   />
                 </div>
-                <div className="space-y-2">
+
+                <div className="space-y-4 pt-4 border-t">
+                  <div className="space-y-2">
+                    <Label className="font-bold">राज्य</Label>
+                    <Select 
+                      value={isOtherState ? "Other" : "Maharashtra"} 
+                      onValueChange={(val) => handleSelectChange("state", val)}
+                    >
+                      <SelectTrigger className="h-10 rounded-xl">
+                        <SelectValue placeholder="निवडा" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Maharashtra">Maharashtra (महाराष्ट्र)</SelectItem>
+                        <SelectItem value="Other">Other (इतर राज्य)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {isOtherState ? (
+                    <div className="space-y-3">
+                      <Input placeholder="राज्याचे नाव" value={formData.state} onChange={e => handleInputChange("state", e.target.value)} className="rounded-xl" />
+                      <Input placeholder="जिल्ह्याचे नाव" value={formData.district} onChange={e => handleInputChange("district", e.target.value)} className="rounded-xl" />
+                      <Input placeholder="तालुक्याचे नाव" value={formData.taluka} onChange={e => handleInputChange("taluka", e.target.value)} className="rounded-xl" />
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      <Select value={formData.district} onValueChange={(val) => handleSelectChange("district", val)}>
+                        <SelectTrigger className="h-10 rounded-xl">
+                          <SelectValue placeholder="जिल्हा निवडा" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {districts.map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}
+                        </SelectContent>
+                      </Select>
+                      <Select value={formData.taluka} disabled={!formData.district} onValueChange={(val) => handleSelectChange("taluka", val)}>
+                        <SelectTrigger className="h-10 rounded-xl">
+                          <SelectValue placeholder="तालुका निवडा" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {talukas.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )}
+                  
+                  <div className="grid grid-cols-2 gap-2">
+                    <Input placeholder="गाव" value={formData.village} onChange={e => handleInputChange("village", e.target.value)} className="rounded-xl" />
+                    <Input type="number" placeholder="पिनकोड" value={formData.pincode} onChange={e => handleInputChange("pincode", e.target.value)} className="rounded-xl" />
+                  </div>
+                </div>
+
+                <div className="space-y-2 pt-4 border-t">
                   <Label>एकूण जमीन क्षेत्र (एकर)</Label>
                   <Input 
                     type="number" 

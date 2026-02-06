@@ -21,7 +21,8 @@ import {
   TrendingUp,
   Plane,
   Plus,
-  Trash2
+  Trash2,
+  Globe
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useFirestore } from "@/firebase";
@@ -45,6 +46,7 @@ const WATER_SOURCES = [
 
 export default function FarmerRegistrationPage() {
   const [currentStep, setCurrentStep] = useState(1);
+  const [isOtherState, setIsOtherState] = useState(false);
   const [formData, setFormData] = useState({
     name: "", contactNumber: "", 
     recommendationName: "", recommendationContact: "",
@@ -66,12 +68,17 @@ export default function FarmerRegistrationPage() {
   };
 
   const handleSelectChange = (id: string, value: string) => {
-    setFormData(prev => {
-      const updates: any = { [id]: value };
-      if (id === "state") { updates.district = ""; updates.taluka = ""; }
-      if (id === "district") { updates.taluka = ""; }
-      return { ...prev, ...updates };
-    });
+    if (id === "state") {
+      if (value === "Other") {
+        setIsOtherState(true);
+        setFormData(prev => ({ ...prev, state: "", district: "", taluka: "" }));
+      } else {
+        setIsOtherState(false);
+        setFormData(prev => ({ ...prev, state: value, district: "", taluka: "" }));
+      }
+      return;
+    }
+    setFormData(prev => ({ ...prev, [id]: value }));
   };
 
   const handleWaterSourceChange = (label: string) => {
@@ -118,7 +125,6 @@ export default function FarmerRegistrationPage() {
     const newCrops = [...formData.crops];
     newCrops[index] = { ...newCrops[index], [field]: value };
     
-    // Check if new total exceeds land area
     const tempTotal = newCrops.reduce((acc, curr) => acc + (parseFloat(curr.area) || 0), 0);
     const limit = parseFloat(formData.landArea) || 0;
 
@@ -137,6 +143,10 @@ export default function FarmerRegistrationPage() {
     if (currentStep === 1) {
       if (formData.contactNumber.length !== 10) {
         toast({ variant: "destructive", title: "त्रुटी", description: "मोबाईल नंबर १० अंकी असणे आवश्यक आहे." });
+        return;
+      }
+      if (!formData.state || !formData.district || !formData.taluka) {
+        toast({ variant: "destructive", title: "त्रुटी", description: "कृपया पत्त्याची सर्व माहिती भरा." });
         return;
       }
     }
@@ -181,9 +191,9 @@ export default function FarmerRegistrationPage() {
     }
   };
 
-  const selectedStateData = (locationData as any)[formData.state];
+  const selectedStateData = (locationData as any)["Maharashtra"];
   const districts = selectedStateData ? Object.keys(selectedStateData) : [];
-  const talukas = (formData.district && selectedStateData) ? selectedStateData[formData.district] : [];
+  const talukas = (!isOtherState && formData.district) ? selectedStateData[formData.district] : [];
 
   const activeStep = steps[currentStep - 1];
   const StepIcon = activeStep.icon;
@@ -229,42 +239,57 @@ export default function FarmerRegistrationPage() {
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <div className="space-y-2">
                       <Label className="font-bold">राज्य</Label>
-                      <Select value={formData.state} onValueChange={(val) => handleSelectChange("state", val)}>
+                      <Select 
+                        value={isOtherState ? "Other" : "Maharashtra"} 
+                        onValueChange={(val) => handleSelectChange("state", val)}
+                      >
                         <SelectTrigger className="h-12 rounded-xl">
                           <SelectValue placeholder="निवडा" />
                         </SelectTrigger>
                         <SelectContent>
-                          {Object.keys(locationData).map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                          <SelectItem value="Maharashtra">Maharashtra (महाराष्ट्र)</SelectItem>
+                          <SelectItem value="Other">Other (इतर राज्य)</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
-                    <div className="space-y-2">
-                      <Label className="font-bold">जिल्हा</Label>
-                      <Select value={formData.district} disabled={!formData.state} onValueChange={(val) => handleSelectChange("district", val)}>
-                        <SelectTrigger className="h-12 rounded-xl">
-                          <SelectValue placeholder="निवडा" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {districts.map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="space-y-2">
-                      <Label className="font-bold">तालुका</Label>
-                      <Select value={formData.taluka} disabled={!formData.district} onValueChange={(val) => handleSelectChange("taluka", val)}>
-                        <SelectTrigger className="h-12 rounded-xl">
-                          <SelectValue placeholder="निवडा" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {talukas.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}
-                        </SelectContent>
-                      </Select>
-                    </div>
+
+                    {isOtherState ? (
+                      <>
+                        <Field id="state" label="राज्याचे नाव" icon={Globe} value={formData.state} onChange={handleInputChange} />
+                        <Field id="district" label="जिल्ह्याचे नाव" icon={MapPin} value={formData.district} onChange={handleInputChange} />
+                        <Field id="taluka" label="तालुक्याचे नाव" icon={MapPin} value={formData.taluka} onChange={handleInputChange} />
+                      </>
+                    ) : (
+                      <>
+                        <div className="space-y-2">
+                          <Label className="font-bold">जिल्हा</Label>
+                          <Select value={formData.district} onValueChange={(val) => handleSelectChange("district", val)}>
+                            <SelectTrigger className="h-12 rounded-xl">
+                              <SelectValue placeholder="निवडा" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {districts.map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div className="space-y-2">
+                          <Label className="font-bold">तालुका</Label>
+                          <Select value={formData.taluka} disabled={!formData.district} onValueChange={(val) => handleSelectChange("taluka", val)}>
+                            <SelectTrigger className="h-12 rounded-xl">
+                              <SelectValue placeholder="निवडा" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {talukas.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </>
+                    )}
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <Field id="village" label="गाव" icon={MapPin} value={formData.village} onChange={handleInputChange} />
-                    <Field id="pincode" label="पिनकोड" icon={MapPin} value={formData.pincode} onChange={handleInputChange} />
+                    <Field id="pincode" label="पिनकोड" icon={MapPin} type="number" value={formData.pincode} onChange={handleInputChange} />
                   </div>
 
                   <div className="pt-4 border-t">
