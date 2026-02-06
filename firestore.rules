@@ -7,40 +7,23 @@ service cloud.firestore {
       return request.auth != null;
     }
 
-    // १. कलेक्शन ग्रुप नियम (Collection Group Rules)
-    // हे नियम मार्केटप्लेस, डॅशबोर्ड आणि मास्टर डेटा व्ह्यूसाठी अत्यंत आवश्यक आहेत
-    
-    // सर्व 'profile' सब-कलेक्शन्ससाठी परवानग्या
-    match /{path=**}/profile/{profileId} {
-      allow read, list: if isSignedIn();
-    }
-    
-    // सर्व 'cropCycles' सब-कलेक्शन्ससाठी परवानग्या
-    match /{path=**}/cropCycles/{cropId} {
+    // १. सर्वसाधारण नियम: लॉगिन केलेल्या युजर्सना सर्व डेटा वाचण्याची परवानगी
+    // यामुळे डॅशबोर्ड, मार्केटप्लेस आणि डेटा व्ह्यूमधील 'Permissions' एरर दूर होईल
+    match /{document=**} {
       allow read, list: if isSignedIn();
     }
 
-    // २. डॉक्युमेंट स्तरावरील नियम (Document Level Rules)
-    
-    // युजर्सचे फोल्डर
-    match /users/{userId} {
-      allow read, list: if isSignedIn();
+    // २. युजर प्रोफाईल आणि पिके: फक्त स्वतःचा डेटा बदलण्याची परवानगी
+    match /users/{userId}/{allSubPaths=**} {
       allow write: if isSignedIn() && request.auth.uid == userId;
-
-      // युजरच्या अंतर्गत असलेली सर्व कलेक्शन्स (profile, cropCycles)
-      match /{allSubPaths=**} {
-        allow read, list: if isSignedIn();
-        allow write: if isSignedIn() && request.auth.uid == userId;
-      }
     }
 
-    // खरेदी (Transactions) - सर्व लॉगिन युजर्सना खरेदी करण्याची परवानगी
+    // ३. खरेदी (Transactions): सर्व लॉगिन युजर्सना खरेदी करण्याची परवानगी
     match /transactions/{txnId} {
-      allow read, list: if isSignedIn();
       allow write: if isSignedIn();
     }
 
-    // सार्वजनिक माहिती (उदा. बातम्या किंवा प्रश्न)
+    // ४. सार्वजनिक माहिती (उदा. बातम्या किंवा प्रश्न)
     match /questions/{questionId} {
       allow read, list: if true;
       allow write: if isSignedIn();

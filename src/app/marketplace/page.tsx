@@ -65,6 +65,7 @@ export default function MarketplacePage() {
 
   const cropsQuery = useMemoFirebase(() => {
     if (!db) return null;
+    // Collection group query to see all crops marked for sale
     return query(collectionGroup(db, "cropCycles"), where("isReadyForSale", "==", true));
   }, [db]);
 
@@ -76,14 +77,14 @@ export default function MarketplacePage() {
       c.remainingQuantity > 0 &&
       (c.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
       (c.variety && c.variety.toLowerCase().includes(searchTerm.toLowerCase())))
-    );
+    ).sort((a, b) => a.name.localeCompare(b.name)); // Alphabetical sorting
   }, [allCrops, searchTerm]);
 
   const handleFinalPurchase = async () => {
     if (!db || !user || !selectedCrop) return;
 
     if (!purchaseData.vehicleNumber || !purchaseData.driverMobile) {
-      toast({ variant: "destructive", title: "त्रुटी", description: "गाडी नंबर आणि ड्रायव्हर नंबर आवश्यक आहे." });
+      toast({ variant: "destructive", title: "त्रुटी", description: "गाडी नंबर आणि ड्रायव्हर नंबर मॅन्युअली भरणे आवश्यक आहे." });
       return;
     }
 
@@ -108,7 +109,7 @@ export default function MarketplacePage() {
         timestamp: new Date().toISOString()
       });
 
-      // 2. Update crop remaining quantity
+      // 2. Update crop remaining quantity (Partial Buying Support)
       const farmerId = selectedCrop.farmerId;
       const cropRef = doc(db, "users", farmerId, "cropCycles", selectedCrop.id);
       const newRemaining = selectedCrop.remainingQuantity - qty;
@@ -228,7 +229,7 @@ export default function MarketplacePage() {
                         <h4 className="font-bold text-primary mb-4 flex items-center gap-2"><Truck className="w-5 h-5" /> ट्रान्सपोर्टर व गाडी माहिती</h4>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                           <div className="space-y-2">
-                            <Label className="font-bold">गाडी नंबर</Label>
+                            <Label className="font-bold">गाडी नंबर (एंट्री करा)</Label>
                             <div className="relative">
                               <Truck className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                               <Input 
