@@ -1,4 +1,3 @@
-
 "use client";
 
 import Link from "next/link";
@@ -13,7 +12,8 @@ import {
   BarChart3,
   Menu,
   X,
-  LogIn
+  LogIn,
+  ShoppingBag
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
@@ -21,6 +21,7 @@ import { useUser } from "@/firebase";
 
 const navItems = [
   { name: "मुख्य पृष्ठ", href: "/", icon: Globe },
+  { name: "बाजारपेठ", href: "/marketplace", icon: ShoppingBag },
   { name: "डॅशबोर्ड", href: "/dashboard", icon: BarChart3 },
   { name: "शेतकरी प्रश्न", href: "/questions", icon: MessageSquare },
 ];

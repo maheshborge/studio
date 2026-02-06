@@ -20,7 +20,9 @@ import {
   Droplets,
   TrendingUp,
   ArrowRight,
-  ArrowLeft
+  ArrowLeft,
+  Plus,
+  Trash2
 } from "lucide-react";
 import { useAuth, useFirestore, useUser, useDoc, useMemoFirebase } from "@/firebase";
 import { doc, setDoc } from "firebase/firestore";
@@ -34,6 +36,11 @@ const steps = [
   { id: 3, name: "कुटुंबाची माहिती", icon: Users },
   { id: 4, name: "स्थलांतर माहिती", icon: Plane },
 ];
+
+interface CropEntry {
+  name: string;
+  area: string;
+}
 
 export default function ProfilePage() {
   const { user, isUserLoading } = useUser();
@@ -53,7 +60,8 @@ export default function ProfilePage() {
   const [isSaving, setIsSaving] = useState(false);
   const [formData, setFormData] = useState({
     name: "", address: "", contactNumber: "", recommendation: "",
-    landArea: "", waterSource: "", cropArea: "", production: "",
+    landArea: "", waterSource: "", production: "",
+    crops: [] as CropEntry[],
     totalMembers: "", womenCount: "", menCount: "", studentCount: "",
     migrationEducation: "", migrationJob: "", migrationMarriage: ""
   });
@@ -76,6 +84,26 @@ export default function ProfilePage() {
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { id, value } = e.target;
     setFormData(prev => ({ ...prev, [id]: value }));
+  };
+
+  const handleAddCrop = () => {
+    setFormData(prev => ({
+      ...prev,
+      crops: [...prev.crops, { name: "", area: "" }]
+    }));
+  };
+
+  const handleRemoveCrop = (index: number) => {
+    setFormData(prev => ({
+      ...prev,
+      crops: prev.crops.filter((_, i) => i !== index)
+    }));
+  };
+
+  const handleCropChange = (index: number, field: keyof CropEntry, value: string) => {
+    const updatedCrops = [...formData.crops];
+    updatedCrops[index][field] = value;
+    setFormData(prev => ({ ...prev, crops: updatedCrops }));
   };
 
   const handleSave = async () => {
@@ -127,7 +155,6 @@ export default function ProfilePage() {
             </Button>
           </div>
 
-          {/* Progress Bar */}
           <div className="flex items-center justify-between mb-12 relative px-4">
             <div className="absolute top-1/2 left-0 w-full h-1 bg-slate-200 -z-10 -translate-y-1/2" />
             {steps.map((step) => (
@@ -176,11 +203,57 @@ export default function ProfilePage() {
                   )}
 
                   {currentStep === 2 && (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-in fade-in slide-in-from-right-4">
-                      <Field id="landArea" label="एकूण जमीन क्षेत्र (एकर)" icon={Sprout} value={formData.landArea} onChange={handleInputChange} />
-                      <Field id="waterSource" label="पाण्याची सोय" icon={Droplets} value={formData.waterSource} onChange={handleInputChange} />
-                      <Field id="cropArea" label="पीकनिहाय क्षेत्र" icon={TrendingUp} value={formData.cropArea} onChange={handleInputChange} />
-                      <Field id="production" label="अंदाजित वार्षिक उत्पादन" icon={TrendingUp} value={formData.production} onChange={handleInputChange} />
+                    <div className="space-y-8 animate-in fade-in slide-in-from-right-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <Field id="landArea" label="एकूण जमीन क्षेत्र (एकर)" icon={Sprout} value={formData.landArea} onChange={handleInputChange} />
+                        <Field id="waterSource" label="पाण्याची सोय" icon={Droplets} value={formData.waterSource} onChange={handleInputChange} />
+                        <Field id="production" label="अंदाजित वार्षिक उत्पादन" icon={TrendingUp} value={formData.production} onChange={handleInputChange} />
+                      </div>
+
+                      <div className="space-y-4">
+                        <div className="flex items-center justify-between">
+                          <h3 className="text-lg font-bold text-slate-700">पिकनिहाय माहिती (Unique Entries)</h3>
+                          <Button onClick={handleAddCrop} variant="outline" size="sm" className="gap-2 rounded-xl">
+                            <Plus className="w-4 h-4" /> पीक जोडा
+                          </Button>
+                        </div>
+                        
+                        <div className="space-y-4">
+                          {formData.crops.map((crop, index) => (
+                            <div key={index} className="flex gap-4 items-end bg-slate-50 p-4 rounded-2xl border border-slate-100">
+                              <div className="flex-1">
+                                <Label className="text-xs font-bold mb-1 block">पिकाचे नाव</Label>
+                                <Input 
+                                  value={crop.name} 
+                                  onChange={(e) => handleCropChange(index, "name", e.target.value)}
+                                  placeholder="उदा. आंबा"
+                                  className="h-10 rounded-lg bg-white"
+                                />
+                              </div>
+                              <div className="flex-1">
+                                <Label className="text-xs font-bold mb-1 block">क्षेत्र (एकर)</Label>
+                                <Input 
+                                  value={crop.area} 
+                                  onChange={(e) => handleCropChange(index, "area", e.target.value)}
+                                  placeholder="उदा. २.५"
+                                  className="h-10 rounded-lg bg-white"
+                                />
+                              </div>
+                              <Button 
+                                variant="ghost" 
+                                size="icon" 
+                                onClick={() => handleRemoveCrop(index)}
+                                className="text-destructive hover:bg-destructive/10 h-10 w-10"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
+                            </div>
+                          ))}
+                          {formData.crops.length === 0 && (
+                            <p className="text-sm text-muted-foreground text-center py-4 bg-slate-50 rounded-2xl border border-dashed">अद्याप कोणतीही पिके जोडलेली नाहीत.</p>
+                          )}
+                        </div>
+                      </div>
                     </div>
                   )}
 
