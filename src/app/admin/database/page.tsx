@@ -118,6 +118,7 @@ export default function DatabaseViewPage() {
                   <TableHeader className="bg-slate-50">
                     <TableRow>
                       <TableHead className="font-bold">पिकाचे नाव</TableHead>
+                      <TableHead className="font-bold">व्हारायटी (जात)</TableHead>
                       <TableHead className="font-bold">शेतकरी</TableHead>
                       <TableHead className="font-bold">क्षेत्र (एकर)</TableHead>
                       <TableHead className="font-bold">अंदाजित उत्पादन (टन)</TableHead>
@@ -129,6 +130,7 @@ export default function DatabaseViewPage() {
                     {crops?.map((crop) => (
                       <TableRow key={crop.id}>
                         <TableCell className="font-bold text-primary">{crop.name}</TableCell>
+                        <TableCell>{crop.variety || '-'}</TableCell>
                         <TableCell>{crop.farmerName || 'Unknown'}</TableCell>
                         <TableCell>{crop.area}</TableCell>
                         <TableCell>{crop.estimatedYield}</TableCell>

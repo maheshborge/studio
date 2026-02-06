@@ -20,7 +20,8 @@ import {
   Trash2,
   Globe,
   GraduationCap,
-  Calendar
+  Calendar,
+  Tag
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useFirestore, useUser } from "@/firebase";
@@ -56,7 +57,7 @@ export default function FarmerRegistrationPage() {
     recommendationName: "", recommendationContact: "",
     state: "Maharashtra", district: "", taluka: "", village: "", pincode: "",
     landArea: "", waterSources: [] as string[], 
-    crops: [{ name: "", category: "grains", area: "", startDate: format(new Date(), "yyyy-MM-dd") }],
+    crops: [{ name: "", variety: "", category: "grains", area: "", startDate: format(new Date(), "yyyy-MM-dd") }],
     totalMembers: "", womenCount: "", menCount: "", studentCount: "",
     migrationEntries: [{ reason: "", city: "", count: "" }]
   });
@@ -94,6 +95,7 @@ export default function FarmerRegistrationPage() {
 
         await addDoc(collection(db, "users", user.uid, "cropCycles"), {
           name: crop.name,
+          variety: crop.variety,
           category: crop.category,
           area: parseFloat(crop.area) || 0,
           startDate: crop.startDate,
@@ -166,50 +168,73 @@ export default function FarmerRegistrationPage() {
                     <Label className="font-bold text-lg">पीक तपशील व लागवड तारीख</Label>
                     {formData.crops.map((crop, index) => (
                       <Card key={index} className="p-6 bg-slate-50 border-none rounded-2xl">
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                           <div className="space-y-2">
-                            <Label className="text-xs">पिकाचा प्रकार</Label>
+                            <Label className="text-xs font-bold">पिकाचा प्रकार</Label>
                             <Select value={crop.category} onValueChange={(val) => handleCropChange(index, "category", val)}>
-                              <SelectTrigger className="bg-white"><SelectValue /></SelectTrigger>
+                              <SelectTrigger className="bg-white h-12 rounded-xl"><SelectValue /></SelectTrigger>
                               <SelectContent>
                                 {CROP_CATEGORIES.map(cat => <SelectItem key={cat.id} value={cat.id}>{cat.label}</SelectItem>)}
                               </SelectContent>
                             </Select>
                           </div>
                           <div className="space-y-2">
-                            <Label className="text-xs">पिकाचे नाव</Label>
-                            <Input placeholder="उदा. आंबा" value={crop.name} onChange={(e) => handleCropChange(index, "name", e.target.value)} className="bg-white"/>
+                            <Label className="text-xs font-bold">पिकाचे नाव</Label>
+                            <Input placeholder="उदा. आंबा" value={crop.name} onChange={(e) => handleCropChange(index, "name", e.target.value)} className="bg-white h-12 rounded-xl"/>
                           </div>
                           <div className="space-y-2">
-                            <Label className="text-xs">तारीख (लागण/छाटणी)</Label>
-                            <Input type="date" value={crop.startDate} onChange={(e) => handleCropChange(index, "startDate", e.target.value)} className="bg-white"/>
+                            <Label className="text-xs font-bold">व्हारायटी (जात)</Label>
+                            <div className="relative">
+                                <Tag className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                                <Input placeholder="उदा. केसर" value={crop.variety} onChange={(e) => handleCropChange(index, "variety", e.target.value)} className="bg-white h-12 rounded-xl pl-10"/>
+                            </div>
                           </div>
                           <div className="space-y-2">
-                            <Label className="text-xs">क्षेत्र (एकर)</Label>
+                            <Label className="text-xs font-bold">तारीख (लागण/छाटणी)</Label>
+                            <Input type="date" value={crop.startDate} onChange={(e) => handleCropChange(index, "startDate", e.target.value)} className="bg-white h-12 rounded-xl"/>
+                          </div>
+                          <div className="space-y-2">
+                            <Label className="text-xs font-bold">क्षेत्र (एकर)</Label>
                             <div className="flex gap-2">
-                              <Input type="number" placeholder="0.0" value={crop.area} onChange={(e) => handleCropChange(index, "area", e.target.value)} className="bg-white"/>
-                              <Button variant="ghost" onClick={() => setFormData(prev => ({...prev, crops: prev.crops.filter((_,i) => i !== index)}))} className="text-red-500"><Trash2/></Button>
+                              <Input type="number" placeholder="0.0" value={crop.area} onChange={(e) => handleCropChange(index, "area", e.target.value)} className="bg-white h-12 rounded-xl"/>
+                              <Button variant="ghost" onClick={() => setFormData(prev => ({...prev, crops: prev.crops.filter((_,i) => i !== index)}))} className="text-red-500 h-12 w-12"><Trash2/></Button>
                             </div>
                           </div>
                         </div>
                       </Card>
                     ))}
-                    <Button variant="outline" onClick={() => setFormData(prev => ({...prev, crops: [...prev.crops, {name:"", category:"grains", area:"", startDate: format(new Date(), "yyyy-MM-dd")}]}))} className="w-full h-12 rounded-xl border-dashed gap-2"><Plus/> नवीन पीक जोडा</Button>
+                    <Button variant="outline" onClick={() => setFormData(prev => ({...prev, crops: [...prev.crops, {name:"", variety: "", category:"grains", area:"", startDate: format(new Date(), "yyyy-MM-dd")}]}))} className="w-full h-14 rounded-2xl border-dashed border-primary/30 text-primary gap-2 hover:bg-primary/5"><Plus/> नवीन पीक जोडा</Button>
                   </div>
                 </div>
               )}
 
-              {/* Steps 3 and 4 abbreviated for brevity but functional */}
-              {currentStep > 2 && (
-                <div className="p-10 text-center text-slate-400 font-bold">कुटुंब आणि स्थलांतर तपशील (माहिती भरा)</div>
+              {currentStep === 3 && (
+                <div className="space-y-8">
+                  <h3 className="text-xl font-bold text-primary border-b pb-2">कुटुंबाची माहिती</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <Field id="totalMembers" label="एकूण कुटुंब सदस्य संख्या" icon={Users} type="number" value={formData.totalMembers} onChange={handleInputChange} />
+                    <Field id="womenCount" label="महिलांची संख्या" icon={Users} type="number" value={formData.womenCount} onChange={handleInputChange} />
+                    <Field id="menCount" label="पुरुषांची संख्या" icon={Users} type="number" value={formData.menCount} onChange={handleInputChange} />
+                    <Field id="studentCount" label="विद्यार्थ्यांची संख्या" icon={GraduationCap} type="number" value={formData.studentCount} onChange={handleInputChange} />
+                  </div>
+                </div>
+              )}
+
+              {currentStep === 4 && (
+                <div className="space-y-8">
+                  <h3 className="text-xl font-bold text-primary border-b pb-2">स्थलांतर माहिती</h3>
+                  <div className="p-8 bg-slate-50 rounded-3xl text-center border-dashed border-2">
+                    <p className="text-slate-500">तुमच्या कुटुंबातील सदस्य कामासाठी किंवा शिक्षणासाठी बाहेर गावी जात असल्यास त्याची माहिती भरा.</p>
+                  </div>
+                </div>
               )}
 
               <div className="mt-12 flex justify-between gap-4">
                 <Button variant="outline" onClick={() => setCurrentStep(prev => Math.max(prev - 1, 1))} disabled={currentStep === 1} className="rounded-xl px-8 h-12">मागे</Button>
                 {currentStep < steps.length ? (
-                  <Button onClick={() => setCurrentStep(prev => Math.min(prev + 1, steps.length))} className="bg-primary px-8 h-12">पुढे जा <ArrowRight/></Button>
+                  <Button onClick={() => setCurrentStep(prev => Math.min(prev + 1, steps.length))} className="bg-primary px-8 h-12 rounded-xl">पुढे जा <ArrowRight className="ml-2 w-4 h-4"/></Button>
                 ) : (
-                  <Button onClick={handleSubmit} className="bg-green-600 px-12 h-12 text-white font-bold">नोंदणी पूर्ण करा</Button>
+                  <Button onClick={handleSubmit} className="bg-green-600 hover:bg-green-700 px-12 h-12 text-white font-bold rounded-xl shadow-lg shadow-green-200">नोंदणी पूर्ण करा</Button>
                 )}
               </div>
             </CardContent>
@@ -223,10 +248,10 @@ export default function FarmerRegistrationPage() {
 function Field({ id, label, icon: Icon, value, onChange, type = "text" }: any) {
   return (
     <div className="space-y-2">
-      <Label htmlFor={id} className="font-bold">{label}</Label>
+      <Label htmlFor={id} className="font-bold text-slate-700">{label}</Label>
       <div className="relative">
         <Icon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
-        <Input id={id} type={type} value={value} onChange={onChange} className="pl-12 h-12 rounded-xl bg-slate-50" />
+        <Input id={id} type={type} value={value} onChange={onChange} className="pl-12 h-12 rounded-xl bg-slate-50 border-slate-200 focus:bg-white transition-colors" />
       </div>
     </div>
   );

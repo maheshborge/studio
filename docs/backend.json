@@ -60,6 +60,7 @@
         "id": { "type": "string" },
         "farmerId": { "type": "string" },
         "name": { "type": "string" },
+        "variety": { "type": "string", "description": "The specific variety of the crop (e.g., Kesar, Hapus)." },
         "category": { "type": "string", "enum": ["fruits", "vegetables", "grains", "spices", "flowers"] },
         "startDate": { "type": "string", "format": "date" },
         "expectedHarvestDate": { "type": "string", "format": "date" },

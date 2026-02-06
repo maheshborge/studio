@@ -16,7 +16,8 @@ import {
   TrendingUp,
   Filter,
   ArrowUpDown,
-  Truck
+  Truck,
+  Tag
 } from "lucide-react";
 import { useFirestore, useCollection, useMemoFirebase, useUser, useDoc } from "@/firebase";
 import { collectionGroup, doc } from "firebase/firestore";
@@ -25,7 +26,7 @@ export default function MarketplacePage() {
   const db = useFirestore();
   const { user } = useUser();
   const [searchTerm, setSearchSearchTerm] = useState("");
-  const [sortBy, setSortBy] = useState<"name" | "yield">("name");
+  const [sortBy, setSortBy] = useState<"name" | "yield" | "variety">("name");
 
   // Get current user profile to prioritize their category
   const profileRef = useMemoFirebase(() => {
@@ -48,14 +49,16 @@ export default function MarketplacePage() {
   const processedCrops = useMemo(() => {
     if (!allCrops) return [];
     
-    // 1. Filter by search
+    // 1. Filter by search (checks name and variety)
     let filtered = allCrops.filter(crop => 
-      crop.name.toLowerCase().includes(searchTerm.toLowerCase())
+      crop.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+      (crop.variety && crop.variety.toLowerCase().includes(searchTerm.toLowerCase()))
     );
 
-    // 2. Sort by Name or Yield
+    // 2. Sort
     filtered.sort((a, b) => {
       if (sortBy === "name") return a.name.localeCompare(b.name);
+      if (sortBy === "variety") return (a.variety || "").localeCompare(b.variety || "");
       return (b.estimatedYield || 0) - (a.estimatedYield || 0);
     });
 
@@ -103,14 +106,14 @@ export default function MarketplacePage() {
             <div className="relative flex-1 md:w-80">
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
               <Input 
-                placeholder="पीक शोधा..." 
+                placeholder="पीक किंवा व्हारायटी शोधा..." 
                 value={searchTerm}
                 onChange={(e) => setSearchSearchTerm(e.target.value)}
                 className="pl-12 h-14 rounded-2xl border-none shadow-lg bg-white"
               />
             </div>
-            <Button variant="outline" onClick={() => setSortBy(prev => prev === "name" ? "yield" : "name")} className="h-14 rounded-2xl gap-2 bg-white">
-              <ArrowUpDown className="w-4 h-4" /> {sortBy === "name" ? "A-Z" : "उत्पादन"}
+            <Button variant="outline" onClick={() => setSortBy(prev => prev === "name" ? "yield" : prev === "yield" ? "variety" : "name")} className="h-14 rounded-2xl gap-2 bg-white">
+              <ArrowUpDown className="w-4 h-4" /> {sortBy === "name" ? "A-Z" : sortBy === "yield" ? "उत्पादन" : "व्हारायटी"}
             </Button>
           </div>
         </div>
@@ -131,7 +134,11 @@ export default function MarketplacePage() {
                       <span className="text-2xl font-bold text-primary">{crop.area} एकर</span>
                     </div>
                     <h3 className="text-2xl font-bold text-slate-800">{crop.name}</h3>
-                    <p className="text-xs text-slate-400 font-bold uppercase">{crop.category}</p>
+                    <div className="flex items-center gap-2 mt-1">
+                        <Tag className="w-3 h-3 text-slate-400" />
+                        <span className="text-sm font-medium text-slate-500">{crop.variety || "जात उपलब्ध नाही"}</span>
+                    </div>
+                    <p className="text-[10px] text-slate-400 font-bold uppercase mt-3 tracking-widest">{crop.category}</p>
                   </div>
                   <CardContent className="p-8 space-y-4">
                     <div className="flex items-center gap-3 text-slate-600">
