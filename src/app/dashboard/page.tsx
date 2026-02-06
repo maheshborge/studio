@@ -1,3 +1,4 @@
+
 "use client";
 
 import { Navigation } from "@/components/navigation";
@@ -17,13 +18,13 @@ import {
 import { 
   Users, 
   Sprout, 
-  ShoppingBag, 
   MapPin,
   TrendingUp,
-  FileText
+  FileText,
+  MessageSquare
 } from "lucide-react";
-import { useFirestore, useCollection, useMemoFirebase } from "@/firebase";
-import { collectionGroup } from "firebase/firestore";
+import { useFirestore, useCollection, useMemoFirebase, useUser, useDoc } from "@/firebase";
+import { collectionGroup, doc } from "firebase/firestore";
 import { useMemo } from "react";
 import { cn } from "@/lib/utils";
 
@@ -31,159 +32,117 @@ const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'
 
 export default function DashboardPage() {
   const db = useFirestore();
-  
-  const profilesQuery = useMemoFirebase(() => {
+  const { user } = useUser();
+
+  const profileRef = useMemoFirebase(() => {
+    if (!db || !user) return null;
+    return doc(db, "users", user.uid, "profile", "main");
+  }, [db, user]);
+  const { data: profile } = useDoc(profileRef);
+
+  const cropsQuery = useMemoFirebase(() => {
     if (!db) return null;
-    return collectionGroup(db, "profile");
+    return collectionGroup(db, "cropCycles");
   }, [db]);
+  const { data: allCrops, isLoading: isCropsLoading } = useCollection(cropsQuery);
 
-  const { data: profiles, isLoading } = useCollection(profilesQuery);
+  const questionsQuery = useMemoFirebase(() => {
+    if (!db) return null;
+    return collectionGroup(db, "questions"); // Mocked global questions
+  }, [db]);
+  const { data: questions } = useCollection(questionsQuery);
 
-  const cropStats = useMemo(() => {
-    if (!profiles) return [];
-    const stats: Record<string, number> = {};
-    profiles.forEach(p => {
-      (p.crops || []).forEach((c: any) => {
-        if (c.name) {
-          const area = parseFloat(c.area) || 0;
-          stats[c.name] = (stats[c.name] || 0) + area;
-        }
-      });
+  const stats = useMemo(() => {
+    if (!allCrops) return { area: 0, count: 0, byCrop: [] };
+    const summary: Record<string, number> = {};
+    let totalArea = 0;
+    allCrops.forEach(c => {
+      totalArea += c.area || 0;
+      summary[c.name] = (summary[c.name] || 0) + (c.area || 0);
     });
-    return Object.entries(stats).map(([name, value]) => ({ name, value }));
-  }, [profiles]);
+    return {
+      area: totalArea,
+      count: allCrops.length,
+      byCrop: Object.entries(summary).map(([name, value]) => ({ name, value }))
+    };
+  }, [allCrops]);
 
-  const districtStats = useMemo(() => {
-    if (!profiles) return [];
-    const stats: Record<string, { farmers: number, area: number }> = {};
-    profiles.forEach(p => {
-      // Use district field if it exists, otherwise fallback to parsing address or "इतर"
-      const district = p.district || p.address?.split(',').pop()?.trim() || "इतर";
-      
-      if (!stats[district]) stats[district] = { farmers: 0, area: 0 };
-      stats[district].farmers += 1;
-      
-      // Handle different field names for land area
-      const areaVal = parseFloat(p.landArea) || parseFloat(p.totalLandArea) || 0;
-      stats[district].area += areaVal;
-    });
-    return Object.entries(stats).map(([district, data]) => ({ district, ...data }));
-  }, [profiles]);
+  const sortedQuestions = useMemo(() => {
+    if (!questions) return [];
+    return [...questions].sort((a, b) => (b.askCount || 0) - (a.askCount || 0));
+  }, [questions]);
 
-  const totalArea = useMemo(() => {
-    return districtStats.reduce((acc, curr) => acc + curr.area, 0);
-  }, [districtStats]);
+  const isExpert = profile?.userType === "expert";
 
   return (
     <div className="min-h-screen bg-slate-50">
       <Navigation />
       <main className="container mx-auto px-4 py-12">
-        <h1 className="text-3xl font-headline font-bold text-primary mb-10">माहिती अहवाल (Reports)</h1>
+        <h1 className="text-3xl font-headline font-bold text-primary mb-10">मिडास डॅशबोर्ड व विश्लेषण</h1>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
-          <StatCard title="एकूण शेतकरी" value={profiles?.length || 0} icon={Users} color="bg-blue-500" />
-          <StatCard title="पिकांचे प्रकार" value={cropStats.length} icon={Sprout} color="bg-green-500" />
-          <StatCard title="एकूण क्षेत्र (एकर)" value={totalArea.toFixed(1)} icon={TrendingUp} color="bg-orange-500" />
-          <StatCard title="सक्रिय विभाग" value={districtStats.length} icon={MapPin} color="bg-purple-500" />
+          <StatCard title="एकूण पीक नोंदणी" value={stats.count} icon={Sprout} color="bg-green-500" />
+          <StatCard title="एकूण क्षेत्र (एकर)" value={stats.area.toFixed(1)} icon={TrendingUp} color="bg-blue-500" />
+          {isExpert && <StatCard title="प्रलंबित प्रश्न" value={sortedQuestions.length} icon={MessageSquare} color="bg-orange-500" />}
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-10">
-          <Card className="rounded-[2rem] border-none shadow-xl bg-white">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <FileText className="text-primary w-5 h-5" /> स्वतंत्र पिकनिहाय अहवाल
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="h-[400px]">
-              {isLoading ? (
-                <div className="h-full flex items-center justify-center">विश्लेषण चालू आहे...</div>
-              ) : cropStats.length > 0 ? (
+        {isExpert ? (
+          <div className="space-y-8">
+            <h2 className="text-2xl font-bold text-slate-800">शेतकऱ्यांचे सर्वाधिक प्रश्न (Trending Topics)</h2>
+            <div className="grid grid-cols-1 gap-4">
+              {sortedQuestions.map((q, i) => (
+                <Card key={i} className="p-6 rounded-2xl border-none shadow-md flex justify-between items-center bg-white">
+                  <div>
+                    <Badge className="mb-2 bg-primary/10 text-primary border-none">{q.category}</Badge>
+                    <h4 className="text-lg font-bold">{q.text}</h4>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-2xl font-bold text-orange-500">{q.askCount}</p>
+                    <p className="text-[10px] uppercase font-bold text-slate-400">वेळा विचारले</p>
+                  </div>
+                </Card>
+              ))}
+              {sortedQuestions.length === 0 && <p className="text-slate-500">अद्याप कोणताही प्रश्न नाही.</p>}
+            </div>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-10">
+            <Card className="rounded-[2rem] border-none shadow-xl bg-white">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <FileText className="text-primary w-5 h-5" /> स्वतंत्र पिकनिहाय अहवाल
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="h-[400px]">
                 <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={cropStats}>
+                  <BarChart data={stats.byCrop}>
                     <CartesianGrid strokeDasharray="3 3" vertical={false} />
                     <XAxis dataKey="name" />
                     <YAxis label={{ value: 'क्षेत्र (एकर)', angle: -90, position: 'insideLeft' }} />
-                    <Tooltip 
-                      contentStyle={{ borderRadius: '1rem', border: 'none', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)' }}
-                    />
+                    <Tooltip contentStyle={{ borderRadius: '1rem', border: 'none', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)' }} />
                     <Bar dataKey="value" fill="#3b82f6" radius={[8, 8, 0, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
-              ) : (
-                <div className="h-full flex items-center justify-center text-muted-foreground">अद्याप पिकांची माहिती उपलब्ध नाही.</div>
-              )}
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
 
-          <Card className="rounded-[2rem] border-none shadow-xl bg-white">
-            <CardHeader>
-              <CardTitle>पिकनिहाय टक्केवारी</CardTitle>
-            </CardHeader>
-            <CardContent className="h-[400px] flex items-center justify-center relative">
-              {cropStats.length > 0 ? (
+            <Card className="rounded-[2rem] border-none shadow-xl bg-white">
+              <CardHeader>
+                <CardTitle>पिकनिहाय टक्केवारी</CardTitle>
+              </CardHeader>
+              <CardContent className="h-[400px] flex items-center justify-center relative">
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
-                    <Pie
-                      data={cropStats}
-                      cx="50%"
-                      cy="50%"
-                      innerRadius={80}
-                      outerRadius={120}
-                      paddingAngle={5}
-                      dataKey="value"
-                    >
-                      {cropStats.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                      ))}
+                    <Pie data={stats.byCrop} cx="50%" cy="50%" innerRadius={80} outerRadius={120} paddingAngle={5} dataKey="value">
+                      {stats.byCrop.map((entry, index) => <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />)}
                     </Pie>
                     <Tooltip />
                   </PieChart>
                 </ResponsiveContainer>
-              ) : (
-                <div className="text-muted-foreground">माहिती उपलब्ध नाही.</div>
-              )}
-              <div className="absolute flex flex-col items-center">
-                <p className="text-xs text-muted-foreground uppercase tracking-widest font-bold">एकूण क्षेत्र</p>
-                <p className="text-2xl font-bold">{totalArea.toFixed(1)}</p>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        <Card className="rounded-[2rem] border-none shadow-xl overflow-hidden bg-white">
-           <CardHeader className="bg-slate-50/50">
-              <CardTitle>जिल्हानिहाय विश्लेषण</CardTitle>
-           </CardHeader>
-           <CardContent className="p-0">
-              <table className="w-full text-left">
-                <thead className="bg-slate-100 text-xs font-bold uppercase tracking-wider text-slate-500">
-                  <tr>
-                    <th className="p-6">जिल्हा/विभाग</th>
-                    <th className="p-6">शेतकरी संख्या</th>
-                    <th className="p-6">एकूण क्षेत्र</th>
-                    <th className="p-6">प्रगती</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y">
-                  {districtStats.map((row, i) => (
-                    <tr key={i} className="hover:bg-slate-50 transition-colors">
-                      <td className="p-6 font-bold">{row.district}</td>
-                      <td className="p-6">{row.farmers}</td>
-                      <td className="p-6">{row.area.toFixed(1)} एकर</td>
-                      <td className="p-6">
-                        <div className="w-full bg-slate-200 h-2 rounded-full overflow-hidden">
-                          <div className="bg-primary h-full" style={{ width: `${Math.min(row.area * 5, 100)}%` }} />
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                  {districtStats.length === 0 && !isLoading && (
-                    <tr><td colSpan={4} className="p-10 text-center text-muted-foreground">अद्याप कोणतीही माहिती उपलब्ध नाही.</td></tr>
-                  )}
-                </tbody>
-              </table>
-           </CardContent>
-        </Card>
+              </CardContent>
+            </Card>
+          </div>
+        )}
       </main>
     </div>
   );

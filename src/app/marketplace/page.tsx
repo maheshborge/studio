@@ -1,53 +1,90 @@
 
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Navigation } from "@/components/navigation";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { 
   ShoppingBag, 
   Search, 
   MapPin, 
-  User, 
-  Phone,
-  ArrowRight,
+  Scale,
   TrendingUp,
-  Scale
+  Filter,
+  ArrowUpDown,
+  Truck
 } from "lucide-react";
-import { useFirestore, useCollection, useMemoFirebase, useUser } from "@/firebase";
-import { collectionGroup, doc, updateDoc, arrayUnion } from "firebase/firestore";
+import { useFirestore, useCollection, useMemoFirebase, useUser, useDoc } from "@/firebase";
+import { collectionGroup, doc } from "firebase/firestore";
 
 export default function MarketplacePage() {
   const db = useFirestore();
   const { user } = useUser();
   const [searchTerm, setSearchSearchTerm] = useState("");
-  const [quoteRate, setQuoteRate] = useState("");
+  const [sortBy, setSortBy] = useState<"name" | "yield">("name");
+
+  // Get current user profile to prioritize their category
+  const profileRef = useMemoFirebase(() => {
+    if (!db || !user) return null;
+    return doc(db, "users", user.uid, "profile", "main");
+  }, [db, user]);
+  const { data: profile } = useDoc(profileRef);
+  const { data: buyerData } = useDoc(useMemoFirebase(() => {
+    if (!db || !user) return null;
+    return doc(db, "users", user.uid, "profile", "buyerData");
+  }, [db, user]));
 
   const cropsQuery = useMemoFirebase(() => {
     if (!db) return null;
-    // Get all crop cycles across all farmers
     return collectionGroup(db, "cropCycles");
   }, [db]);
 
   const { data: allCrops, isLoading } = useCollection(cropsQuery);
 
-  // Filter crops that are harvested and ready for sale
-  const availableCrops = allCrops?.filter(crop => 
-    (crop.status === "Harvested" || crop.status === "Listed") &&
-    (crop.name.toLowerCase().includes(searchTerm.toLowerCase()))
-  );
+  const processedCrops = useMemo(() => {
+    if (!allCrops) return [];
+    
+    // 1. Filter by search
+    let filtered = allCrops.filter(crop => 
+      crop.name.toLowerCase().includes(searchTerm.toLowerCase())
+    );
 
-  const handleMakeOffer = async (cropId: string, farmerId: string) => {
-    if (!db || !user || !quoteRate) return;
-    // In a real app, we need the farmer's UID from the crop document path
-    // For this prototype, we'll assume the farmer ID is available or use a workaround
-    toast({ title: "ऑफर पाठवली!", description: "तुमची बोली शेतकऱ्याकडे पाठवण्यात आली आहे." });
-    setQuoteRate("");
-  };
+    // 2. Sort by Name or Yield
+    filtered.sort((a, b) => {
+      if (sortBy === "name") return a.name.localeCompare(b.name);
+      return (b.estimatedYield || 0) - (a.estimatedYield || 0);
+    });
+
+    // 3. Prioritize by Buyer's preferred categories
+    const preferredTypes = buyerData?.purchaseTypes || [];
+    if (preferredTypes.length > 0) {
+      filtered.sort((a, b) => {
+        const aPref = preferredTypes.includes(a.category) ? 1 : 0;
+        const bPref = preferredTypes.includes(b.category) ? 1 : 0;
+        return bPref - aPref;
+      });
+    }
+
+    return filtered;
+  }, [allCrops, searchTerm, sortBy, buyerData]);
+
+  // Aggregate by Category - Crop
+  const aggregates = useMemo(() => {
+    const summary: Record<string, { area: number, yield: number }> = {};
+    processedCrops.forEach(crop => {
+      const key = `${crop.category?.toUpperCase()} - ${crop.name}`;
+      if (!summary[key]) summary[key] = { area: 0, yield: 0 };
+      summary[key].area += crop.area || 0;
+      summary[key].yield += crop.estimatedYield || 0;
+    });
+    return Object.entries(summary).map(([label, data]) => ({ label, ...data }));
+  }, [processedCrops]);
+
+  const isTransporter = profile?.userType === "transporter";
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -58,90 +95,85 @@ export default function MarketplacePage() {
             <h1 className="text-4xl font-headline font-bold text-primary flex items-center gap-3">
               <ShoppingBag className="w-10 h-10" /> पीक बाजारपेठ (Marketplace)
             </h1>
-            <p className="text-muted-foreground mt-2">थेट शेतकऱ्यांकडून ताजी पिके खरेदी करा.</p>
+            <p className="text-muted-foreground mt-2">
+              {isTransporter ? "भाड्यासाठी उपलब्ध पिके व व्यापारी" : "थेट शेतकऱ्यांकडून ताजी पिके खरेदी करा."}
+            </p>
           </div>
-          <div className="relative w-full md:w-96">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
-            <Input 
-              placeholder="पीक शोधा (उदा. आंबा, गहू)..." 
-              value={searchTerm}
-              onChange={(e) => setSearchSearchTerm(e.target.value)}
-              className="pl-12 h-14 rounded-2xl border-none shadow-lg bg-white"
-            />
+          <div className="flex gap-4 w-full md:w-auto">
+            <div className="relative flex-1 md:w-80">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
+              <Input 
+                placeholder="पीक शोधा..." 
+                value={searchTerm}
+                onChange={(e) => setSearchSearchTerm(e.target.value)}
+                className="pl-12 h-14 rounded-2xl border-none shadow-lg bg-white"
+              />
+            </div>
+            <Button variant="outline" onClick={() => setSortBy(prev => prev === "name" ? "yield" : "name")} className="h-14 rounded-2xl gap-2 bg-white">
+              <ArrowUpDown className="w-4 h-4" /> {sortBy === "name" ? "A-Z" : "उत्पादन"}
+            </Button>
           </div>
         </div>
 
-        {isLoading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {[1, 2, 3].map(i => <div key={i} className="h-64 bg-white rounded-[2rem] animate-pulse shadow-xl" />)}
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {availableCrops?.map((crop) => (
-              <Card key={crop.id} className="rounded-[2.5rem] border-none shadow-xl hover:shadow-2xl transition-all group overflow-hidden bg-white">
-                <div className="bg-primary/5 p-6 border-b border-primary/10">
-                  <div className="flex justify-between items-start mb-4">
-                    <Badge className="bg-green-600 text-white px-3 py-1 rounded-full">विक्रीसाठी उपलब्ध</Badge>
-                    <span className="text-2xl font-bold text-primary">{crop.area} एकर</span>
+        <Tabs defaultValue="list" className="w-full">
+          <TabsList className="bg-white border p-1 rounded-2xl h-14 mb-8">
+            <TabsTrigger value="list" className="rounded-xl px-8 h-full data-[state=active]:bg-primary data-[state=active]:text-white">पिकांची यादी</TabsTrigger>
+            <TabsTrigger value="summary" className="rounded-xl px-8 h-full data-[state=active]:bg-primary data-[state=active]:text-white">गटनिहाय सारांश</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="list">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {processedCrops.map((crop) => (
+                <Card key={crop.id} className="rounded-[2.5rem] border-none shadow-xl hover:shadow-2xl transition-all overflow-hidden bg-white">
+                  <div className="bg-primary/5 p-6 border-b">
+                    <div className="flex justify-between items-start mb-4">
+                      <Badge className="bg-green-600 text-white">{crop.status === "ready" ? "काढणीसाठी तयार" : "वाढ होत आहे"}</Badge>
+                      <span className="text-2xl font-bold text-primary">{crop.area} एकर</span>
+                    </div>
+                    <h3 className="text-2xl font-bold text-slate-800">{crop.name}</h3>
+                    <p className="text-xs text-slate-400 font-bold uppercase">{crop.category}</p>
                   </div>
-                  <h3 className="text-3xl font-bold text-slate-800">{crop.name}</h3>
-                  <p className="text-sm text-slate-500 mt-1 uppercase tracking-widest font-bold">{crop.season} हंगाम</p>
-                </div>
-                
-                <CardContent className="p-8 space-y-6">
-                  <div className="space-y-3">
+                  <CardContent className="p-8 space-y-4">
                     <div className="flex items-center gap-3 text-slate-600">
                       <Scale className="w-5 h-5 text-primary" />
-                      <span className="font-bold">अंदाजित उत्पादन: ५० क्विंटल</span>
+                      <span className="font-bold">अंदाजित उत्पादन: {crop.estimatedYield} टन</span>
                     </div>
                     <div className="flex items-center gap-3 text-slate-500">
-                      <MapPin className="w-5 h-5 text-slate-400" />
-                      <span className="text-sm">पुणे, महाराष्ट्र</span>
+                      <MapPin className="w-5 h-5" />
+                      <span>{crop.farmerDistrict || "महाराष्ट्र"}</span>
                     </div>
-                  </div>
+                    <div className="pt-4 flex items-center justify-between border-t">
+                      <div className="text-xs">
+                        <p className="text-slate-400 font-bold">काढणी तारीख (अंदाजे)</p>
+                        <p className="text-sm font-bold text-slate-700">{crop.expectedHarvestDate}</p>
+                      </div>
+                      <Button className="rounded-xl bg-primary gap-2">
+                        {isTransporter ? "ट्रान्सपोर्ट द्या" : "खरेदी करा"} <TrendingUp className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </TabsContent>
 
-                  <div className="pt-4 border-t border-slate-100 flex items-center justify-between">
-                    <div className="text-sm">
-                      <p className="text-slate-400 font-bold uppercase text-[10px]">सध्याची सर्वोच्च बोली</p>
-                      <p className="text-xl font-bold text-green-600">₹ २,४००</p>
-                    </div>
-                    
-                    <Dialog>
-                      <DialogTrigger asChild>
-                        <Button className="rounded-xl bg-primary hover:bg-primary/90 gap-2">
-                          बोली लावा <TrendingUp className="w-4 h-4" />
-                        </Button>
-                      </DialogTrigger>
-                      <DialogContent className="rounded-3xl">
-                        <DialogHeader>
-                          <DialogTitle>तुमची बोली (Offer) नोंदवा</DialogTitle>
-                        </DialogHeader>
-                        <div className="space-y-4 py-4">
-                          <div className="space-y-2">
-                            <Label>दर (प्रति क्विंटल ₹)</Label>
-                            <Input 
-                              type="number" 
-                              placeholder="उदा. २५००" 
-                              value={quoteRate}
-                              onChange={e => setQuoteRate(e.target.value)}
-                              className="h-12 rounded-xl"
-                            />
-                          </div>
-                          <Button onClick={() => handleMakeOffer(crop.id, "")} className="w-full h-12 rounded-xl bg-green-600">ऑफर पाठवा</Button>
-                        </div>
-                      </DialogContent>
-                    </Dialog>
+          <TabsContent value="summary">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {aggregates.map((row, i) => (
+                <Card key={i} className="p-8 rounded-[2rem] border-none shadow-lg bg-white flex justify-between items-center">
+                  <div>
+                    <h4 className="text-xl font-bold text-primary">{row.label}</h4>
+                    <p className="text-sm text-slate-500 mt-1">{row.area.toFixed(1)} एकर क्षेत्र</p>
                   </div>
-                </CardContent>
-              </Card>
-            ))}
-            {availableCrops?.length === 0 && (
-              <div className="col-span-full py-20 text-center">
-                <p className="text-xl text-muted-foreground font-headline">सध्या विक्रीसाठी कोणतीही पिके उपलब्ध नाहीत.</p>
-              </div>
-            )}
-          </div>
-        )}
+                  <div className="text-right">
+                    <p className="text-3xl font-black text-slate-800">{row.yield.toFixed(1)} <span className="text-sm">टन</span></p>
+                    <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">एकूण उत्पादन</p>
+                  </div>
+                </Card>
+              ))}
+            </div>
+          </TabsContent>
+        </Tabs>
       </main>
     </div>
   );

@@ -7,66 +7,49 @@
       "type": "object",
       "description": "Stores core user profile information including their role in the system.",
       "properties": {
-        "id": {
-          "type": "string",
-          "description": "The unique Firebase UID."
-        },
-        "name": {
-          "type": "string",
-          "description": "Full name of the user."
-        },
-        "mobile": {
-          "type": "string",
-          "description": "10-digit mobile number."
-        },
-        "email": {
-          "type": "string",
-          "format": "email",
-          "description": "Optional email address."
-        },
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "mobile": { "type": "string" },
+        "email": { "type": "string", "format": "email" },
         "userType": {
           "type": "string",
-          "enum": [
-            "farmer",
-            "buyer",
-            "supplier",
-            "transporter",
-            "consultant",
-            "expert"
-          ],
-          "description": "The primary role of the user in the system."
+          "enum": ["farmer", "buyer", "supplier", "transporter", "consultant", "expert"]
         },
-        "createdAt": {
-          "type": "string",
-          "format": "date-time"
-        }
+        "createdAt": { "type": "string", "format": "date-time" }
       },
-      "required": [
-        "id",
-        "name",
-        "mobile",
-        "userType"
-      ]
+      "required": ["id", "name", "mobile", "userType"]
     },
-    "Farmer": {
+    "CropCycle": {
       "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "Farmer",
+      "title": "CropCycle",
       "type": "object",
-      "description": "Represents a farmer and their associated information.",
       "properties": {
-        "id": {
-          "type": "string"
-        },
-        "personalInfoId": {
-          "type": "string"
-        }
+        "id": { "type": "string" },
+        "farmerId": { "type": "string" },
+        "name": { "type": "string" },
+        "category": { "type": "string", "enum": ["fruits", "vegetables", "grains", "spices", "flowers"] },
+        "startDate": { "type": "string", "format": "date" },
+        "expectedHarvestDate": { "type": "string", "format": "date" },
+        "area": { "type": "number" },
+        "estimatedYield": { "type": "number" },
+        "status": { "type": "string", "enum": ["growing", "ready", "harvested"] }
+      }
+    },
+    "Question": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Question",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "text": { "type": "string" },
+        "category": { "type": "string" },
+        "askCount": { "type": "number" },
+        "lastAskedAt": { "type": "string", "format": "date-time" }
       }
     }
   },
   "auth": {
-    "providers": [
-      "password"
-    ]
+    "providers": ["password"]
   },
   "firestore": {
     "structure": [
@@ -74,20 +57,24 @@
         "path": "/users/{userId}/profile/main",
         "definition": {
           "entityName": "UserProfile",
-          "schema": {
-            "$ref": "#/backend/entities/UserProfile"
-          },
-          "description": "Main user profile and role definition."
+          "schema": { "$ref": "#/backend/entities/UserProfile" },
+          "description": "Main user profile."
         }
       },
       {
-        "path": "/users/{userId}/farmers/{farmerId}",
+        "path": "/users/{userId}/cropCycles/{cropId}",
         "definition": {
-          "entityName": "Farmer",
-          "schema": {
-            "$ref": "#/backend/entities/Farmer"
-          },
-          "description": "Stores farmer profiles, owned by the user."
+          "entityName": "CropCycle",
+          "schema": { "$ref": "#/backend/entities/CropCycle" },
+          "description": "Individual crop cycles for a farmer."
+        }
+      },
+      {
+        "path": "/questions/{questionId}",
+        "definition": {
+          "entityName": "Question",
+          "schema": { "$ref": "#/backend/entities/Question" },
+          "description": "Global questions repository for Experts."
         }
       }
     ]
