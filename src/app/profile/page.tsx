@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
@@ -29,7 +30,8 @@ import {
   Globe,
   Plane,
   Users,
-  GraduationCap
+  GraduationCap,
+  ShieldCheck
 } from "lucide-react";
 import { useAuth, useFirestore, useUser, useDoc, useMemoFirebase, useCollection } from "@/firebase";
 import { doc, setDoc, collection, addDoc, serverTimestamp, updateDoc, deleteDoc } from "firebase/firestore";
@@ -68,6 +70,11 @@ export default function ProfilePage() {
   const router = useRouter();
   const { toast } = useToast();
 
+  const mainProfileRef = useMemoFirebase(() => {
+    if (!db || !user) return null;
+    return doc(db, "users", user.uid, "profile", "main");
+  }, [db, user]);
+
   const farmerRef = useMemoFirebase(() => {
     if (!db || !user) return null;
     return doc(db, "users", user.uid, "profile", "farmerData");
@@ -78,6 +85,7 @@ export default function ProfilePage() {
     return collection(db, "users", user.uid, "cropCycles");
   }, [db, user]);
 
+  const { data: mainProfile } = useDoc(mainProfileRef);
   const { data: farmerData, isLoading: isProfileLoading } = useDoc(farmerRef);
   const { data: cropCycles, isLoading: isCropsLoading } = useCollection(cropsQuery);
 
@@ -91,7 +99,6 @@ export default function ProfilePage() {
   const [isOtherState, setIsOtherState] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [showAddCrop, setShowAddCrop] = useState(false);
-  const [newCrop, setNewCrop] = useState({ name: "", area: "", season: "Kharif", type: "Fruits" });
 
   const allLocations = useMemo(() => {
     const locations: string[] = [];
@@ -106,20 +113,20 @@ export default function ProfilePage() {
   useEffect(() => {
     if (farmerData) {
       setFormData(prev => ({ ...prev, ...farmerData }));
-      if (farmerData.state !== "Maharashtra") {
+      if (farmerData.state && farmerData.state !== "Maharashtra") {
         setIsOtherState(true);
       }
+    } else if (mainProfile) {
+      // Pre-fill from main registration profile
+      setFormData(prev => ({ ...prev, name: mainProfile.name, contactNumber: mainProfile.mobile }));
     }
-  }, [farmerData]);
+  }, [farmerData, mainProfile]);
 
   if (isUserLoading) return <div className="min-h-screen flex items-center justify-center"><Loader2 className="animate-spin text-primary w-12 h-12" /></div>;
   if (!user) { router.push("/login"); return null; }
 
-  const calculateTotalCropArea = () => {
-    return formData.crops.reduce((acc, curr) => acc + (parseFloat(curr.area) || 0), 0);
-  };
-
   const handleInputChange = (id: string, value: string) => {
+    if (id === "contactNumber" && value.length > 10) return;
     setFormData(prev => ({ ...prev, [id]: value }));
   };
 
@@ -189,9 +196,22 @@ export default function ProfilePage() {
     <div className="min-h-screen bg-slate-50">
       <Navigation />
       <main className="container mx-auto px-4 py-12">
-        <h1 className="text-4xl font-headline font-bold text-primary mb-10 flex items-center gap-3">
-          <LayoutDashboard className="w-10 h-10" /> माझे शेती व्यवस्थापन
-        </h1>
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10">
+          <h1 className="text-4xl font-headline font-bold text-primary flex items-center gap-3">
+            <LayoutDashboard className="w-10 h-10" /> माझे शेती व्यवस्थापन
+          </h1>
+          {mainProfile && (
+            <div className="bg-white px-6 py-3 rounded-2xl shadow-sm border flex items-center gap-4">
+              <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center text-green-600">
+                <ShieldCheck className="w-6 h-6" />
+              </div>
+              <div>
+                <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider leading-none mb-1">लॉगिन केलेला मोबाईल</p>
+                <p className="font-bold text-slate-700 leading-none">{mainProfile.mobile}</p>
+              </div>
+            </div>
+          )}
+        </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-1 space-y-6">
@@ -201,7 +221,7 @@ export default function ProfilePage() {
               </CardHeader>
               <CardContent className="p-6 space-y-6">
                 <div className="space-y-2"><Label>शेतकऱ्याचे नाव</Label><Input value={formData.name} onChange={e => handleInputChange("name", e.target.value)} className="rounded-xl" /></div>
-                <div className="space-y-2"><Label>मोबाईल नंबर</Label><Input type="number" value={formData.contactNumber} onChange={e => { if (e.target.value.length <= 10) handleInputChange("contactNumber", e.target.value) }} className="rounded-xl" /></div>
+                <div className="space-y-2"><Label>मोबाईल नंबर</Label><Input type="number" value={formData.contactNumber} onChange={e => handleInputChange("contactNumber", e.target.value)} className="rounded-xl" /></div>
                 
                 <div className="space-y-4 pt-4 border-t">
                   <Label className="font-bold">पत्ता</Label>
@@ -221,6 +241,17 @@ export default function ProfilePage() {
                       </Select>
                     </>
                   )}
+                  {isOtherState && (
+                    <>
+                      <Input placeholder="राज्याचे नाव" value={formData.state} onChange={e => handleInputChange("state", e.target.value)} className="rounded-xl h-10" />
+                      <Input placeholder="जिल्ह्याचे नाव" value={formData.district} onChange={e => handleInputChange("district", e.target.value)} className="rounded-xl h-10" />
+                      <Input placeholder="तालुक्याचे नाव" value={formData.taluka} onChange={e => handleInputChange("taluka", e.target.value)} className="rounded-xl h-10" />
+                    </>
+                  )}
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-1"><Label className="text-xs">गाव</Label><Input value={formData.village} onChange={e => handleInputChange("village", e.target.value)} className="h-10 rounded-lg"/></div>
+                    <div className="space-y-1"><Label className="text-xs">पिनकोड</Label><Input type="number" value={formData.pincode} onChange={e => handleInputChange("pincode", e.target.value)} className="h-10 rounded-lg"/></div>
+                  </div>
                 </div>
 
                 <div className="space-y-4 pt-4 border-t">
@@ -241,13 +272,13 @@ export default function ProfilePage() {
                   {formData.migrationEntries.map((entry, index) => (
                     <div key={index} className="p-3 bg-slate-50 rounded-xl space-y-3 relative group">
                       <Button variant="ghost" size="icon" onClick={() => removeMigrationEntry(index)} className="absolute top-1 right-1 h-6 w-6 text-red-400 opacity-0 group-hover:opacity-100"><Trash2 className="w-3 h-3" /></Button>
-                      <select className="w-full h-8 rounded-lg border text-xs" value={entry.reason} onChange={e => handleMigrationChange(index, "reason", e.target.value)}>
+                      <select className="w-full h-8 rounded-lg border text-xs bg-white" value={entry.reason} onChange={e => handleMigrationChange(index, "reason", e.target.value)}>
                         <option value="">कारण निवडा</option>
                         {MIGRATION_REASONS.map(r => <option key={r.value} value={r.value}>{r.label}</option>)}
                       </select>
-                      <Input list={`loc-prof-${index}`} placeholder="शहर..." value={entry.city} onChange={e => handleMigrationChange(index, "city", e.target.value)} className="h-8 text-xs"/>
+                      <Input list={`loc-prof-${index}`} placeholder="शहर..." value={entry.city} onChange={e => handleMigrationChange(index, "city", e.target.value)} className="h-8 text-xs bg-white"/>
                       <datalist id={`loc-prof-${index}`}>{allLocations.map(l => <option key={l} value={l} />)}</datalist>
-                      <Input type="number" placeholder="संख्या" value={entry.count} onChange={e => handleMigrationChange(index, "count", e.target.value)} className="h-8 text-xs"/>
+                      <Input type="number" placeholder="संख्या" value={entry.count} onChange={e => handleMigrationChange(index, "count", e.target.value)} className="h-8 text-xs bg-white"/>
                     </div>
                   ))}
                 </div>
@@ -260,34 +291,57 @@ export default function ProfilePage() {
           </div>
 
           <div className="lg:col-span-2 space-y-6">
-            <div className="flex items-center justify-between"><h2 className="text-2xl font-bold text-slate-800">सक्रिय पीक चक्र (Active Crops)</h2><Button onClick={() => setShowAddCrop(true)} className="rounded-xl gap-2 bg-green-600 hover:bg-green-700"><Plus className="w-4 h-4" /> नवीन पीक जोडा</Button></div>
-            {/* Existing Crop Cycles rendering logic... */}
+            <div className="flex items-center justify-between">
+              <h2 className="text-2xl font-bold text-slate-800">सक्रिय पीक चक्र (Active Crops)</h2>
+              <Button onClick={() => setShowAddCrop(true)} className="rounded-xl gap-2 bg-green-600 hover:bg-green-700">
+                <Plus className="w-4 h-4" /> नवीन पीक जोडा
+              </Button>
+            </div>
+            
             <div className="space-y-6">
-              {cropCycles?.map(crop => (
-                <Card key={crop.id} className="rounded-[2.5rem] shadow-xl border-none overflow-hidden bg-white">
-                  <div className="bg-slate-50 p-6 border-b flex justify-between items-center">
-                    <div>
-                      <h3 className="text-2xl font-bold text-slate-800">{crop.name} <span className="text-slate-400 text-lg font-normal">({crop.area} एकर)</span></h3>
-                      <div className="flex gap-2 mt-1"><Badge variant="outline">{crop.season}</Badge><Badge className={crop.status === 'Growing' ? 'bg-blue-500' : 'bg-green-500'}>{crop.status === 'Growing' ? 'वाढ चालू' : 'काढणी झाली'}</Badge></div>
+              {isCropsLoading ? (
+                <div className="py-20 text-center text-muted-foreground">माहिती लोड होत आहे...</div>
+              ) : cropCycles && cropCycles.length > 0 ? (
+                cropCycles.map(crop => (
+                  <Card key={crop.id} className="rounded-[2.5rem] shadow-xl border-none overflow-hidden bg-white">
+                    <div className="bg-slate-50 p-6 border-b flex justify-between items-center">
+                      <div>
+                        <h3 className="text-2xl font-bold text-slate-800">{crop.name} <span className="text-slate-400 text-lg font-normal">({crop.area} एकर)</span></h3>
+                        <div className="flex gap-2 mt-1">
+                          <Badge variant="outline">{crop.season}</Badge>
+                          <Badge className={crop.status === 'Growing' ? 'bg-blue-500' : 'bg-green-500'}>
+                            {crop.status === 'Growing' ? 'वाढ चालू' : 'काढणी झाली'}
+                          </Badge>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-xs text-muted-foreground uppercase font-bold tracking-tighter">प्रगती</p>
+                        <p className="text-2xl font-bold text-primary">{Math.round((crop.stagesCompleted?.length || 0) / STAGES.length * 100)}%</p>
+                      </div>
                     </div>
-                    <div className="text-right"><p className="text-xs text-muted-foreground uppercase font-bold tracking-tighter">प्रगती</p><p className="text-2xl font-bold text-primary">{Math.round((crop.stagesCompleted?.length || 0) / STAGES.length * 100)}%</p></div>
-                  </div>
-                  <CardContent className="p-8">
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                      {STAGES.map(stage => {
-                        const isDone = crop.stagesCompleted?.includes(stage.id);
-                        return (
-                          <div key={stage.id} onClick={() => {}} className={`p-4 rounded-2xl border flex flex-col items-center text-center gap-2 ${isDone ? 'bg-green-50 border-green-200 text-green-700' : 'bg-white border-slate-100 text-slate-400'}`}>
-                            <stage.icon className={`w-6 h-6 ${isDone ? 'text-green-600' : 'text-slate-300'}`} />
-                            <span className="text-[10px] font-bold leading-tight">{stage.label}</span>
-                            {isDone && <CheckCircle2 className="w-4 h-4 text-green-600 mt-auto" />}
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </CardContent>
+                    <CardContent className="p-8">
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        {STAGES.map(stage => {
+                          const isDone = crop.stagesCompleted?.includes(stage.id);
+                          return (
+                            <div key={stage.id} className={`p-4 rounded-2xl border flex flex-col items-center text-center gap-2 ${isDone ? 'bg-green-50 border-green-200 text-green-700' : 'bg-white border-slate-100 text-slate-400'}`}>
+                              <stage.icon className={`w-6 h-6 ${isDone ? 'text-green-600' : 'text-slate-300'}`} />
+                              <span className="text-[10px] font-bold leading-tight">{stage.label}</span>
+                              {isDone && <CheckCircle2 className="w-4 h-4 text-green-600 mt-auto" />}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))
+              ) : (
+                <Card className="p-12 text-center rounded-[2.5rem] border-dashed">
+                  <Sprout className="w-16 h-16 text-slate-200 mx-auto mb-4" />
+                  <p className="text-slate-500 font-bold">अद्याप कोणतेही पीक जोडलेले नाही.</p>
+                  <Button variant="link" onClick={() => setShowAddCrop(true)}>पहिले पीक जोडा</Button>
                 </Card>
-              ))}
+              )}
             </div>
           </div>
         </div>
