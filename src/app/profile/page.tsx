@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { 
   User, 
   Sprout, 
@@ -37,6 +38,16 @@ const steps = [
   { id: 4, name: "स्थलांतर माहिती", icon: Plane },
 ];
 
+const locationData = {
+  "Maharashtra": {
+    "Pune": ["Haveli", "Khed", "Shirur", "Ambegaon", "Maval", "Mulshi"],
+    "Nashik": ["Niphad", "Sinnar", "Dindori", "Malegaon", "Yeola"],
+    "Sangli": ["Miraj", "Tasgaon", "Walwa", "Khanapur", "Atpadi"],
+    "Satara": ["Karad", "Wai", "Phaltan", "Khatav", "Koregaon"],
+    "Solapur": ["Barshi", "Madha", "Karmala", "Sangola", "Pandharpur"]
+  }
+};
+
 interface CropEntry {
   name: string;
   area: string;
@@ -59,7 +70,8 @@ export default function ProfilePage() {
   const [currentStep, setCurrentStep] = useState(1);
   const [isSaving, setIsSaving] = useState(false);
   const [formData, setFormData] = useState({
-    name: "", address: "", contactNumber: "", recommendation: "",
+    name: "", contactNumber: "", recommendation: "",
+    state: "", district: "", taluka: "", village: "", pincode: "",
     landArea: "", waterSource: "", production: "",
     crops: [] as CropEntry[],
     totalMembers: "", womenCount: "", menCount: "", studentCount: "",
@@ -84,6 +96,15 @@ export default function ProfilePage() {
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { id, value } = e.target;
     setFormData(prev => ({ ...prev, [id]: value }));
+  };
+
+  const handleSelectChange = (id: string, value: string) => {
+    setFormData(prev => {
+      const updates: any = { [id]: value };
+      if (id === "state") { updates.district = ""; updates.taluka = ""; }
+      if (id === "district") { updates.taluka = ""; }
+      return { ...prev, ...updates };
+    });
   };
 
   const handleAddCrop = () => {
@@ -138,6 +159,10 @@ export default function ProfilePage() {
   const handleNext = () => setCurrentStep(prev => Math.min(prev + 1, steps.length));
   const handlePrev = () => setCurrentStep(prev => Math.max(prev - 1, 1));
 
+  const selectedStateData = (locationData as any)[formData.state];
+  const districts = selectedStateData ? Object.keys(selectedStateData) : [];
+  const talukas = (formData.district && selectedStateData) ? selectedStateData[formData.district] : [];
+
   const CurrentStepIcon = steps[currentStep - 1].icon;
 
   return (
@@ -160,10 +185,10 @@ export default function ProfilePage() {
             {steps.map((step) => (
               <div 
                 key={step.id}
-                className={`flex flex-col items-center gap-2 z-10`}
+                className={`flex flex-col items-center gap-2 z-10 cursor-pointer`}
                 onClick={() => setCurrentStep(step.id)}
               >
-                <div className={`w-12 h-12 rounded-full flex items-center justify-center border-4 cursor-pointer transition-all ${currentStep >= step.id ? "bg-primary text-white border-primary scale-110" : "bg-white border-slate-200 text-slate-400"}`}>
+                <div className={`w-12 h-12 rounded-full flex items-center justify-center border-4 transition-all ${currentStep >= step.id ? "bg-primary text-white border-primary scale-110" : "bg-white border-slate-200 text-slate-400"}`}>
                   <step.icon className="w-6 h-6" />
                 </div>
                 <span className={`text-[10px] font-bold hidden sm:block ${currentStep >= step.id ? "text-primary" : "text-slate-400"}`}>{step.name}</span>
@@ -190,15 +215,64 @@ export default function ProfilePage() {
               ) : (
                 <>
                   {currentStep === 1 && (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-in fade-in slide-in-from-right-4">
-                      <Field id="name" label="शेतकऱ्याचे पूर्ण नाव" icon={User} value={formData.name} onChange={handleInputChange} />
-                      <Field id="contactNumber" label="संपर्क क्रमांक" icon={Phone} value={formData.contactNumber} onChange={handleInputChange} />
-                      <div className="md:col-span-2">
-                        <Field id="address" label="पत्ता (गाव, तालुका, जिल्हा)" icon={MapPin} value={formData.address} onChange={handleInputChange} />
+                    <div className="space-y-8 animate-in fade-in slide-in-from-right-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <Field id="name" label="शेतकऱ्याचे पूर्ण नाव" icon={User} value={formData.name} onChange={handleInputChange} />
+                        <Field id="contactNumber" label="संपर्क क्रमांक" icon={Phone} value={formData.contactNumber} onChange={handleInputChange} />
                       </div>
-                      <div className="md:col-span-2">
-                        <Field id="recommendation" label="शिफारस (कोणी सुचवले?)" icon={CheckCircle2} value={formData.recommendation} onChange={handleInputChange} />
+
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div className="space-y-2">
+                          <Label className="font-bold">राज्य</Label>
+                          <Select value={formData.state} onValueChange={(val) => handleSelectChange("state", val)}>
+                            <SelectTrigger className="h-12 rounded-xl">
+                              <SelectValue placeholder="निवडा" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {Object.keys(locationData).map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                            </SelectContent>
+                          </Select>
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label className="font-bold">जिल्हा</Label>
+                          <Select 
+                            value={formData.district} 
+                            disabled={!formData.state}
+                            onValueChange={(val) => handleSelectChange("district", val)}
+                          >
+                            <SelectTrigger className="h-12 rounded-xl">
+                              <SelectValue placeholder="निवडा" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {districts.map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}
+                            </SelectContent>
+                          </Select>
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label className="font-bold">तालुका</Label>
+                          <Select 
+                            value={formData.taluka} 
+                            disabled={!formData.district}
+                            onValueChange={(val) => handleSelectChange("taluka", val)}
+                          >
+                            <SelectTrigger className="h-12 rounded-xl">
+                              <SelectValue placeholder="निवडा" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {talukas.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}
+                            </SelectContent>
+                          </Select>
+                        </div>
                       </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <Field id="village" label="गाव" icon={MapPin} value={formData.village} onChange={handleInputChange} />
+                        <Field id="pincode" label="पिनकोड" icon={MapPin} value={formData.pincode} onChange={handleInputChange} />
+                      </div>
+
+                      <Field id="recommendation" label="शिफारस (कोणी सुचवले?)" icon={CheckCircle2} value={formData.recommendation} onChange={handleInputChange} />
                     </div>
                   )}
 
@@ -212,7 +286,7 @@ export default function ProfilePage() {
 
                       <div className="space-y-4">
                         <div className="flex items-center justify-between">
-                          <h3 className="text-lg font-bold text-slate-700">पिकनिहाय माहिती (Unique Entries)</h3>
+                          <h3 className="text-lg font-bold text-slate-700">पिकनिहाय माहिती</h3>
                           <Button onClick={handleAddCrop} variant="outline" size="sm" className="gap-2 rounded-xl">
                             <Plus className="w-4 h-4" /> पीक जोडा
                           </Button>
