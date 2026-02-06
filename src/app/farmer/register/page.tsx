@@ -3,7 +3,7 @@
 import { useState, useMemo } from "react";
 import { Navigation } from "@/components/navigation";
 import { Button } from "@/components/ui/button";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -13,22 +13,17 @@ import {
   MapPin, 
   Phone, 
   Sprout, 
-  Droplets, 
   Users, 
   ArrowRight, 
   ArrowLeft,
-  CheckCircle2,
-  TrendingUp,
   Plane,
   Plus,
   Trash2,
   Globe,
-  Briefcase,
-  GraduationCap,
-  Heart
+  GraduationCap
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { useFirestore } from "@/firebase";
+import { useFirestore, useUser } from "@/firebase";
 import { doc, setDoc } from "firebase/firestore";
 import { useRouter } from "next/navigation";
 import { locationData } from "@/lib/locations";
@@ -57,6 +52,7 @@ const MIGRATION_REASONS = [
 export default function FarmerRegistrationPage() {
   const [currentStep, setCurrentStep] = useState(1);
   const [isOtherState, setIsOtherState] = useState(false);
+  const { user } = useUser();
   const [formData, setFormData] = useState({
     name: "", contactNumber: "", 
     recommendationName: "", recommendationContact: "",
@@ -71,7 +67,6 @@ export default function FarmerRegistrationPage() {
   const db = useFirestore();
   const router = useRouter();
 
-  // Get all unique locations for suggestions
   const allLocations = useMemo(() => {
     const locations: string[] = [];
     const maharashtra = locationData["Maharashtra"];
@@ -127,66 +122,30 @@ export default function FarmerRegistrationPage() {
     setFormData(prev => ({ ...prev, crops: [...prev.crops, { name: "", area: "" }] }));
   };
 
-  const removeCropField = (index: number) => {
-    setFormData(prev => ({ ...prev, crops: prev.crops.filter((_, i) => i !== index) }));
-  };
-
   const handleCropChange = (index: number, field: string, value: string) => {
     const newCrops = [...formData.crops];
     newCrops[index] = { ...newCrops[index], [field]: value };
     setFormData(prev => ({ ...prev, crops: newCrops }));
   };
 
-  // Migration Handlers
-  const addMigrationEntry = () => {
-    setFormData(prev => ({
-      ...prev,
-      migrationEntries: [...prev.migrationEntries, { reason: "", city: "", count: "" }]
-    }));
-  };
-
-  const removeMigrationEntry = (index: number) => {
-    setFormData(prev => ({
-      ...prev,
-      migrationEntries: prev.migrationEntries.filter((_, i) => i !== index)
-    }));
-  };
-
   const handleMigrationChange = (index: number, field: string, value: string) => {
     const newEntries = [...formData.migrationEntries];
-    
     if (field === "count") {
       const totalKutumb = parseInt(formData.totalMembers) || 0;
       const countVal = parseInt(value) || 0;
       if (countVal > totalKutumb) {
-        toast({ variant: "destructive", title: "त्रुटी", description: "स्थलांतरित संख्या एकूण कुटुंब संख्येपेक्षा जास्त असू शकत नाही." });
+        toast({ variant: "destructive", title: "त्रुटी", description: "संख्या एकूण सदस्यांपेक्षा जास्त नको." });
         return;
       }
     }
-
     newEntries[index] = { ...newEntries[index], [field]: value };
     setFormData(prev => ({ ...prev, migrationEntries: newEntries }));
   };
 
   const handleNext = () => {
-    if (currentStep === 1) {
-      if (formData.contactNumber.length !== 10) {
-        toast({ variant: "destructive", title: "त्रुटी", description: "मोबाईल नंबर १० अंकी असणे आवश्यक आहे." });
-        return;
-      }
-    }
-    if (currentStep === 2) {
-      const totalArea = calculateTotalCropArea();
-      if (totalArea > parseFloat(formData.landArea)) {
-        toast({ variant: "destructive", title: "त्रुटी", description: "क्षेत्र मर्यादा ओलांडली आहे." });
-        return;
-      }
-    }
-    if (currentStep === 3) {
-      if (!formData.totalMembers) {
-        toast({ variant: "destructive", title: "त्रुटी", description: "कृपया एकूण सदस्य संख्या भरा." });
-        return;
-      }
+    if (currentStep === 1 && formData.contactNumber.length !== 10) {
+      toast({ variant: "destructive", title: "त्रुटी", description: "मोबाईल नंबर १० अंकी हवा." });
+      return;
     }
     setCurrentStep(prev => Math.min(prev + 1, steps.length));
   };
@@ -195,22 +154,25 @@ export default function FarmerRegistrationPage() {
 
   const handleSubmit = async () => {
     if (!db) return;
+    if (!user) {
+      toast({ variant: "destructive", title: "लॉगिन आवश्यक", description: "माहिती साठवण्यासाठी कृपया आधी लॉगिन करा." });
+      router.push("/login");
+      return;
+    }
+
     try {
-      const farmerId = crypto.randomUUID();
-      const userId = "demo-user"; 
-      await setDoc(doc(db, "users", userId, "farmers", farmerId), {
-        id: farmerId,
+      await setDoc(doc(db, "users", user.uid, "profile", "farmerData"), {
         ...formData,
-        createdAt: new Date().toISOString()
-      });
-      toast({ title: "नोंदणी यशस्वी!", description: "शेतकऱ्याची माहिती यशस्वीरित्या साठवण्यात आली आहे." });
-      router.push("/");
+        updatedAt: new Date().toISOString()
+      }, { merge: true });
+      toast({ title: "नोंदणी यशस्वी!", description: "माहिती यशस्वीरित्या साठवण्यात आली आहे." });
+      router.push("/profile");
     } catch (error) {
       toast({ variant: "destructive", title: "त्रुटी", description: "माहिती साठवताना अडचण आली." });
     }
   };
 
-  const selectedStateData = (locationData as any)["Maharashtra"];
+  const selectedStateData = locationData["Maharashtra"];
   const districts = selectedStateData ? Object.keys(selectedStateData) : [];
   const talukas = (!isOtherState && formData.district) ? selectedStateData[formData.district] : [];
 
@@ -235,38 +197,31 @@ export default function FarmerRegistrationPage() {
           </div>
 
           <Card className="rounded-[2.5rem] border-none shadow-2xl overflow-hidden">
-            <div className="bg-primary p-8 text-white">
-              <div className="flex justify-between items-center">
-                <div>
-                  <h2 className="text-3xl font-bold flex items-center gap-3">{activeStep.name}</h2>
-                  <p className="text-blue-100 mt-2">कृपया अचूक माहिती भरा.</p>
-                </div>
-                <div className="hidden md:block">
-                  <StepIcon className="w-16 h-16 opacity-20" />
-                </div>
+            <div className="bg-primary p-8 text-white flex justify-between items-center">
+              <div>
+                <h2 className="text-3xl font-bold">{activeStep.name}</h2>
+                <p className="text-blue-100 mt-2">कृपया अचूक माहिती भरा.</p>
+              </div>
+              <div className="hidden md:block">
+                <StepIcon className="w-16 h-16 opacity-20" />
               </div>
             </div>
             
             <CardContent className="p-8 md:p-12">
               {currentStep === 1 && (
-                <div className="space-y-8 animate-in fade-in slide-in-from-right-4">
+                <div className="space-y-8">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <Field id="name" label="शेतकऱ्याचे पूर्ण नाव" icon={User} value={formData.name} onChange={handleInputChange} />
                     <Field id="contactNumber" label="संपर्क क्रमांक" icon={Phone} type="number" value={formData.contactNumber} onChange={handleInputChange} />
                   </div>
-
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <div className="space-y-2">
                       <Label className="font-bold">राज्य</Label>
                       <Select value={isOtherState ? "Other" : "Maharashtra"} onValueChange={(val) => handleSelectChange("state", val)}>
                         <SelectTrigger className="h-12 rounded-xl"><SelectValue placeholder="निवडा" /></SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="Maharashtra">Maharashtra (महाराष्ट्र)</SelectItem>
-                          <SelectItem value="Other">Other (इतर राज्य)</SelectItem>
-                        </SelectContent>
+                        <SelectContent><SelectItem value="Maharashtra">Maharashtra</SelectItem><SelectItem value="Other">Other</SelectItem></SelectContent>
                       </Select>
                     </div>
-
                     {isOtherState ? (
                       <>
                         <Field id="state" label="राज्याचे नाव" icon={Globe} value={formData.state} onChange={handleInputChange} />
@@ -292,16 +247,14 @@ export default function FarmerRegistrationPage() {
                       </>
                     )}
                   </div>
-
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <Field id="village" label="गाव" icon={MapPin} value={formData.village} onChange={handleInputChange} />
                     <Field id="pincode" label="पिनकोड" icon={MapPin} type="number" value={formData.pincode} onChange={handleInputChange} />
                   </div>
-
                   <div className="pt-4 border-t">
-                    <Label className="text-slate-500 text-xs font-bold uppercase tracking-wider mb-4 block">शिफारस (कोणी सुचवले?)</Label>
+                    <Label className="text-slate-500 text-xs font-bold uppercase mb-4 block">शिफारस</Label>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <Field id="recommendationName" label="शिफारस करणाऱ्याचे नाव" icon={User} value={formData.recommendationName} onChange={handleInputChange} />
+                      <Field id="recommendationName" label="नाव" icon={User} value={formData.recommendationName} onChange={handleInputChange} />
                       <Field id="recommendationContact" label="मोबाईल नंबर" icon={Phone} type="number" value={formData.recommendationContact} onChange={handleInputChange} />
                     </div>
                   </div>
@@ -309,143 +262,88 @@ export default function FarmerRegistrationPage() {
               )}
 
               {currentStep === 2 && (
-                <div className="space-y-8 animate-in fade-in slide-in-from-right-4">
+                <div className="space-y-8">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <Field id="landArea" label="एकूण जमीन क्षेत्र (एकर)" icon={Sprout} type="number" value={formData.landArea} onChange={handleInputChange} />
                     <div className="space-y-3">
                       <Label className="font-bold">पाण्याची सोय</Label>
                       <div className="grid grid-cols-2 gap-4">
                         {WATER_SOURCES.map((source) => (
-                          <div key={source.id} className="flex items-center space-x-2 bg-slate-50 p-3 rounded-xl border border-slate-100">
+                          <div key={source.id} className="flex items-center space-x-2 bg-slate-50 p-3 rounded-xl border">
                             <Checkbox id={source.id} checked={formData.waterSources?.includes(source.label)} onCheckedChange={() => handleWaterSourceChange(source.label)}/>
-                            <label htmlFor={source.id} className="text-sm font-medium leading-none cursor-pointer">{source.label}</label>
+                            <label htmlFor={source.id} className="text-sm cursor-pointer">{source.label}</label>
                           </div>
                         ))}
                       </div>
                     </div>
                   </div>
-
                   <div className="space-y-4 border-t pt-6">
-                    <div className="flex items-center justify-between">
-                      <Label className="font-bold text-lg">पीकनिहाय क्षेत्र माहिती</Label>
-                      <div className="text-sm font-bold text-slate-500">
-                        शिल्लक क्षेत्र: {(parseFloat(formData.landArea) || 0) - calculateTotalCropArea()} एकर
-                      </div>
-                    </div>
+                    <Label className="font-bold text-lg">पीकनिहाय क्षेत्र माहिती</Label>
                     {formData.crops.map((crop, index) => (
-                      <div key={index} className="flex gap-4 items-end animate-in fade-in zoom-in-95">
+                      <div key={index} className="flex gap-4 items-end">
                         <div className="flex-1 space-y-2">
                           <Label className="text-xs">पिकाचे नाव</Label>
-                          <Input placeholder="उदा. आंबा" value={crop.name} onChange={(e) => handleCropChange(index, "name", e.target.value)} className="h-12 rounded-xl bg-slate-50"/>
+                          <Input placeholder="उदा. आंबा" value={crop.name} onChange={(e) => handleCropChange(index, "name", e.target.value)} className="h-12 rounded-xl"/>
                         </div>
                         <div className="w-32 space-y-2">
                           <Label className="text-xs">क्षेत्र (एकर)</Label>
-                          <Input type="number" placeholder="0.0" value={crop.area} onChange={(e) => handleCropChange(index, "area", e.target.value)} className="h-12 rounded-xl bg-slate-50"/>
+                          <Input type="number" placeholder="0.0" value={crop.area} onChange={(e) => handleCropChange(index, "area", e.target.value)} className="h-12 rounded-xl"/>
                         </div>
-                        {formData.crops.length > 1 && (
-                          <Button variant="ghost" size="icon" onClick={() => removeCropField(index)} className="text-red-500 hover:bg-red-50 h-12 w-12 rounded-xl"><Trash2 className="w-5 h-5" /></Button>
-                        )}
+                        <Button variant="ghost" onClick={() => setFormData(prev => ({...prev, crops: prev.crops.filter((_,i) => i !== index)}))} className="text-red-500 h-12 w-12"><Trash2/></Button>
                       </div>
                     ))}
-                    <Button variant="outline" onClick={addCropField} className="w-full h-12 rounded-xl border-dashed border-2 gap-2 text-primary hover:bg-primary/5"><Plus className="w-5 h-5" /> आणखी पीक जोडा</Button>
+                    <Button variant="outline" onClick={addCropField} className="w-full h-12 rounded-xl border-dashed gap-2"><Plus/> आणखी पीक जोडा</Button>
                   </div>
                 </div>
               )}
 
               {currentStep === 3 && (
-                <div className="space-y-6 animate-in fade-in slide-in-from-right-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <Field id="totalMembers" label="एकूण सदस्य" icon={Users} type="number" value={formData.totalMembers} onChange={handleInputChange} />
-                    <Field id="womenCount" label="महिलांची संख्या" icon={User} type="number" value={formData.womenCount} onChange={handleInputChange} />
-                    <Field id="menCount" label="पुरुषांची संख्या" icon={User} type="number" value={formData.menCount} onChange={handleInputChange} />
-                    <Field id="studentCount" label="विद्यार्थ्यांची संख्या (१५ ते ३५ वयोगट)" icon={GraduationCap} type="number" value={formData.studentCount} onChange={handleInputChange} />
-                  </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <Field id="totalMembers" label="एकूण सदस्य" icon={Users} type="number" value={formData.totalMembers} onChange={handleInputChange} />
+                  <Field id="womenCount" label="महिलांची संख्या" icon={User} type="number" value={formData.womenCount} onChange={handleInputChange} />
+                  <Field id="menCount" label="पुरुषांची संख्या" icon={User} type="number" value={formData.menCount} onChange={handleInputChange} />
+                  <Field id="studentCount" label="विद्यार्थ्यांची संख्या (१५ ते ३५ वयोगट)" icon={GraduationCap} type="number" value={formData.studentCount} onChange={handleInputChange} />
                 </div>
               )}
 
               {currentStep === 4 && (
-                <div className="space-y-8 animate-in fade-in slide-in-from-right-4">
-                  <div className="flex items-center justify-between mb-4">
+                <div className="space-y-6">
+                  <div className="flex justify-between items-center">
                     <Label className="font-bold text-lg">कुटुंबातील सदस्यांचे स्थलांतर</Label>
-                    <Button onClick={addMigrationEntry} variant="outline" className="rounded-xl gap-2 text-primary border-primary hover:bg-primary/5">
-                      <Plus className="w-4 h-4" /> स्थलांतर माहिती जोडा
-                    </Button>
+                    <Button onClick={() => setFormData(prev => ({...prev, migrationEntries: [...prev.migrationEntries, {reason:"", city:"", count:""}]}))} variant="outline" size="sm"><Plus/></Button>
                   </div>
-
-                  <div className="space-y-6">
-                    {formData.migrationEntries.map((entry, index) => (
-                      <Card key={index} className="p-6 border-slate-200 bg-slate-50/50 rounded-2xl relative group">
-                        <Button 
-                          variant="ghost" 
-                          size="icon" 
-                          onClick={() => removeMigrationEntry(index)}
-                          className="absolute -top-3 -right-3 h-8 w-8 rounded-full bg-white shadow-md text-red-500 hover:bg-red-50 opacity-0 group-hover:opacity-100 transition-opacity"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                        
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                          <div className="space-y-2">
-                            <Label className="text-xs font-bold text-slate-500 uppercase">स्थलांतराचे कारण</Label>
-                            <Select value={entry.reason} onValueChange={(val) => handleMigrationChange(index, "reason", val)}>
-                              <SelectTrigger className="h-12 rounded-xl bg-white">
-                                <SelectValue placeholder="निवडा" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {MIGRATION_REASONS.map(r => <SelectItem key={r.value} value={r.value}>{r.label}</SelectItem>)}
-                              </SelectContent>
-                            </Select>
-                          </div>
-
-                          <div className="space-y-2">
-                            <Label className="text-xs font-bold text-slate-500 uppercase">शहर / ठिकाण</Label>
-                            <div className="relative">
-                              <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                              <Input 
-                                list={`locations-${index}`}
-                                placeholder="शहराचे नाव..." 
-                                value={entry.city}
-                                onChange={(e) => handleMigrationChange(index, "city", e.target.value)}
-                                className="pl-10 h-12 rounded-xl bg-white border-slate-200"
-                              />
-                              <datalist id={`locations-${index}`}>
-                                {allLocations.map(loc => <option key={loc} value={loc} />)}
-                              </datalist>
-                            </div>
-                          </div>
-
-                          <div className="space-y-2">
-                            <Label className="text-xs font-bold text-slate-500 uppercase">सदस्यांची संख्या</Label>
-                            <div className="relative">
-                              <Users className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                              <Input 
-                                type="number"
-                                placeholder="0" 
-                                value={entry.count}
-                                onChange={(e) => handleMigrationChange(index, "count", e.target.value)}
-                                className="pl-10 h-12 rounded-xl bg-white border-slate-200"
-                              />
-                            </div>
-                          </div>
+                  {formData.migrationEntries.map((entry, index) => (
+                    <Card key={index} className="p-4 bg-slate-50 relative">
+                      <Button variant="ghost" onClick={() => setFormData(prev => ({...prev, migrationEntries: prev.migrationEntries.filter((_,i) => i !== index)}))} className="absolute top-2 right-2 text-red-400"><Trash2/></Button>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div className="space-y-2">
+                          <Label className="text-xs">कारण</Label>
+                          <Select value={entry.reason} onValueChange={(val) => handleMigrationChange(index, "reason", val)}>
+                            <SelectTrigger className="bg-white"><SelectValue placeholder="निवडा"/></SelectTrigger>
+                            <SelectContent>{MIGRATION_REASONS.map(r => <SelectItem key={r.value} value={r.value}>{r.label}</SelectItem>)}</SelectContent>
+                          </Select>
                         </div>
-                      </Card>
-                    ))}
-                  </div>
+                        <div className="space-y-2">
+                          <Label className="text-xs">शहर/ठिकाण</Label>
+                          <Input list={`locs-${index}`} value={entry.city} onChange={(e) => handleMigrationChange(index, "city", e.target.value)} className="bg-white"/>
+                          <datalist id={`locs-${index}`}>{allLocations.map(l => <option key={l} value={l}/>)}</datalist>
+                        </div>
+                        <div className="space-y-2">
+                          <Label className="text-xs">संख्या</Label>
+                          <Input type="number" value={entry.count} onChange={(e) => handleMigrationChange(index, "count", e.target.value)} className="bg-white"/>
+                        </div>
+                      </div>
+                    </Card>
+                  ))}
                 </div>
               )}
 
               <div className="mt-12 flex justify-between gap-4">
-                <Button variant="outline" onClick={handlePrev} disabled={currentStep === 1} className="rounded-xl px-8 h-12 font-bold">
-                  <ArrowLeft className="mr-2 w-4 h-4" /> मागे
-                </Button>
+                <Button variant="outline" onClick={handlePrev} disabled={currentStep === 1} className="rounded-xl px-8 h-12">मागे</Button>
                 {currentStep < steps.length ? (
-                  <Button onClick={handleNext} className="bg-primary hover:bg-primary/90 rounded-xl px-8 h-12 font-bold">
-                    पुढे जा <ArrowRight className="ml-2 w-4 h-4" />
-                  </Button>
+                  <Button onClick={handleNext} className="bg-primary px-8 h-12">पुढे जा <ArrowRight/></Button>
                 ) : (
-                  <Button onClick={handleSubmit} className="bg-green-600 hover:bg-green-700 rounded-xl px-12 h-12 font-bold text-white shadow-lg shadow-green-200">
-                    नोंदणी पूर्ण करा
-                  </Button>
+                  <Button onClick={handleSubmit} className="bg-green-600 px-12 h-12 text-white">नोंदणी पूर्ण करा</Button>
                 )}
               </div>
             </CardContent>
@@ -456,15 +354,13 @@ export default function FarmerRegistrationPage() {
   );
 }
 
-function Field({ id, label, icon: Icon, value, onChange, type = "text", readOnly = false }: any) {
+function Field({ id, label, icon: Icon, value, onChange, type = "text" }: any) {
   return (
     <div className="space-y-2">
-      <Label htmlFor={id} className="text-slate-700 font-bold">{label}</Label>
+      <Label htmlFor={id} className="font-bold">{label}</Label>
       <div className="relative">
         <Icon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
-        <Input id={id} type={type} value={value || ""} onChange={onChange} placeholder={`${label} भरा...`} readOnly={readOnly}
-          className={`pl-12 h-12 rounded-xl border-slate-200 focus:ring-primary bg-slate-50 ${readOnly ? "opacity-70 cursor-not-allowed" : ""}`} 
-        />
+        <Input id={id} type={type} value={value} onChange={onChange} className="pl-12 h-12 rounded-xl bg-slate-50" />
       </div>
     </div>
   );

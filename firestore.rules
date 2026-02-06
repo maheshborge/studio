@@ -4,53 +4,32 @@ service cloud.firestore {
 
     /**
      * CORE PHILOSOPHY:
-     * This ruleset implements a User-Centric Ownership model designed for an agricultural management system.
-     * The primary security boundary is the User ID ({userId}) present in the document path.
-     * 
-     * DATA STRUCTURE:
-     * 1. User-Specific Data: Farmer profiles, Questions, and Buyer profiles are nested under /users/{userId}/.
-     *    Access is strictly limited to the authenticated user matching that ID.
-     * 2. Shared Metadata: Information like PersonalInfo, FarmingInfo, and BuyerCategories are top-level 
-     *    collections referenced by IDs. For this prototype, we prioritize read-access for authenticated 
-     *    users to allow for data resolution across these references.
-     * 3. System Reports: Global reports are stored in a top-level /reports collection and are 
-     *    accessible to all authenticated users.
-     * 
-     * KEY SECURITY DECISIONS:
-     * - Ownership via Path: We rely on the /users/{userId}/ structure as the source of truth for 
-     *   ownership to ensure performant list operations and zero-cost authorization.
-     * - Relational Integrity: On creation, we enforce that the document's internal 'id' matches 
-     *   the Firestore document ID to ensure consistency between the data and the path.
-     * - Prototyping Flexibility: We do not enforce strict data types or optional/required field 
-     *   presence, allowing the application schema to evolve rapidly without rule changes.
+     * User-Centric Ownership model. The primary boundary is the User ID ({userId}).
      */
 
-    // --- Helper Functions ---
-
-    /** Checks if the request is from a signed-in user. */
     function isSignedIn() {
       return request.auth != null;
     }
 
-    /** Checks if the authenticated user's UID matches the provided ID (usually from the path). */
     function isOwner(userId) {
       return isSignedIn() && request.auth.uid == userId;
     }
 
-    /** Combines ownership check with existence check for destructive operations. */
     function isExistingOwner(userId) {
       return resource != null && isOwner(userId);
     }
 
-    // --- Collection Rules ---
+    // Rules for User Profile Data
+    match /users/{userId}/profile/{docId} {
+      allow get, write: if isOwner(userId);
+    }
 
-    /**
-     * @description Rules for Farmer profiles. Users can only manage farmers in their own path.
-     * @path /users/{userId}/farmers/{farmerId}
-     * @allow (create) User 'abc' creates a farmer at /users/abc/farmers/farmer_123.
-     * @deny (list) User 'abc' attempts to list farmers under /users/xyz/farmers/.
-     * @principle Restricts access to a user's own data tree and enforces path consistency.
-     */
+    // Rules for Crop Cycles
+    match /users/{userId}/cropCycles/{cropId} {
+      allow get, list, write: if isOwner(userId);
+    }
+
+    // Rules for Farmer profiles
     match /users/{userId}/farmers/{farmerId} {
       allow get, list: if isOwner(userId);
       allow create: if isOwner(userId) && request.resource.data.id == farmerId;
@@ -58,13 +37,7 @@ service cloud.firestore {
       allow delete: if isExistingOwner(userId);
     }
 
-    /**
-     * @description Rules for questions asked by farmers. Tied to the user who manages the farmer.
-     * @path /users/{userId}/farmerQuestions/{farmerQuestionId}
-     * @allow (update) User 'abc' updates their own question text.
-     * @deny (create) User 'abc' tries to create a question under user 'xyz'.
-     * @principle Enforces document ownership for writes and private listing.
-     */
+    // Rules for Farmer Questions
     match /users/{userId}/farmerQuestions/{farmerQuestionId} {
       allow get, list: if isOwner(userId);
       allow create: if isOwner(userId) && request.resource.data.id == farmerQuestionId;
@@ -72,13 +45,7 @@ service cloud.firestore {
       allow delete: if isExistingOwner(userId);
     }
 
-    /**
-     * @description Rules for Buyer profiles. Users can only manage buyers in their own path.
-     * @path /users/{userId}/buyers/{buyerId}
-     * @allow (get) User 'abc' retrieves a buyer profile they created.
-     * @deny (delete) User 'abc' attempts to delete a buyer under user 'xyz'.
-     * @principle Path-based authorization for private CRM data.
-     */
+    // Rules for Buyer profiles
     match /users/{userId}/buyers/{buyerId} {
       allow get, list: if isOwner(userId);
       allow create: if isOwner(userId) && request.resource.data.id == buyerId;
@@ -86,82 +53,13 @@ service cloud.firestore {
       allow delete: if isExistingOwner(userId);
     }
 
-    /**
-     * @description Shared Personal Info. Referenced by Farmers and Buyers.
-     * @path /personalInfos/{personalInfoId}
-     * @principle CRITICAL: The 'PersonalInfo' entity is missing an internal 'ownerId'. 
-     * To allow the system to function in prototyping, we allow authenticated reads, 
-     * but writes are restricted to prevent unauthorized global data modification.
-     */
-    match /personalInfos/{personalInfoId} {
-      allow get, list: if isSignedIn();
-      allow create, update, delete: if false; // TODO: Add owner validation once the schema is updated with an ownership field.
-    }
-
-    /**
-     * @description Agricultural data details. Referenced by Farmer profiles.
-     * @path /farmingInfos/{farmingInfoId}
-     * @principle Missing ownership field. Only authenticated read access is permitted for prototyping.
-     */
-    match /farmingInfos/{farmingInfoId} {
-      allow get, list: if isSignedIn();
-      allow create, update, delete: if false; // TODO: Add owner validation once the schema is updated with an ownership field.
-    }
-
-    /**
-     * @description Family details. Referenced by Farmer profiles.
-     * @path /familyInfos/{familyInfoId}
-     * @principle Missing ownership field. Only authenticated read access is permitted for prototyping.
-     */
-    match /familyInfos/{familyInfoId} {
-      allow get, list: if isSignedIn();
-      allow create, update, delete: if false; // TODO: Add owner validation once the schema is updated with an ownership field.
-    }
-
-    /**
-     * @description Migration history. Referenced by Farmer profiles.
-     * @path /migrationInfos/{migrationInfoId}
-     * @principle Missing ownership field. Only authenticated read access is permitted for prototyping.
-     */
-    match /migrationInfos/{migrationInfoId} {
-      allow get, list: if isSignedIn();
-      allow create, update, delete: if false; // TODO: Add owner validation once the schema is updated with an ownership field.
-    }
-
-    /**
-     * @description System lookup data for Buyer Categories.
-     * @path /buyerCategories/{buyerCategoryId}
-     * @allow (list) Signed-in user fetching the list of categories for a dropdown.
-     * @deny (write) Any user trying to modify the list of categories.
-     * @principle Public read (authenticated) with read-only restriction for users.
-     */
-    match /buyerCategories/{buyerCategoryId} {
-      allow get, list: if isSignedIn();
-      allow create, update, delete: if false;
-    }
-
-    /**
-     * @description System lookup data for Purchase Types.
-     * @path /purchaseTypes/{purchaseTypeId}
-     * @allow (get) Signed-in user viewing a specific purchase type definition.
-     * @deny (write) Any user trying to modify system metadata.
-     * @principle Public read (authenticated) with read-only restriction for users.
-     */
-    match /purchaseTypes/{purchaseTypeId} {
-      allow get, list: if isSignedIn();
-      allow create, update, delete: if false;
-    }
-
-    /**
-     * @description Aggregated reports for the agricultural system.
-     * @path /reports/{reportId}
-     * @allow (list) Signed-in user viewing the list of generated reports.
-     * @deny (create) User trying to manually create a system report.
-     * @principle Broad read access for authenticated users, system-controlled writes.
-     */
-    match /reports/{reportId} {
-      allow get, list: if isSignedIn();
-      allow create, update, delete: if false; // Reports are typically system-generated in this context.
-    }
+    // Shared lookup collections
+    match /personalInfos/{id} { allow read: if isSignedIn(); }
+    match /farmingInfos/{id} { allow read: if isSignedIn(); }
+    match /familyInfos/{id} { allow read: if isSignedIn(); }
+    match /migrationInfos/{id} { allow read: if isSignedIn(); }
+    match /buyerCategories/{id} { allow read: if isSignedIn(); }
+    match /purchaseTypes/{id} { allow read: if isSignedIn(); }
+    match /reports/{id} { allow read: if isSignedIn(); }
   }
 }
