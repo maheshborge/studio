@@ -5,7 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Clock, MessageSquare, Play, ExternalLink } from "lucide-react";
+import { Clock, MessageSquare, Play, ExternalLink, Share2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface ContentCardProps {
@@ -19,6 +19,14 @@ interface ContentCardProps {
 }
 
 export function ContentCard({ id, title, excerpt, imageUrl, category, date, type }: ContentCardProps) {
+  const handleShare = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const currentUrl = typeof window !== "undefined" ? `${window.location.origin}/content/${id}` : "";
+    const text = `${title}\n\nयेथे वाचा: ${currentUrl}`;
+    window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`, '_blank');
+  };
+
   return (
     <Card className="group overflow-hidden border-none shadow-md hover:shadow-xl transition-all duration-300 bg-card rounded-2xl flex flex-col h-full">
       <div className="relative aspect-video overflow-hidden">
@@ -66,6 +74,14 @@ export function ContentCard({ id, title, excerpt, imageUrl, category, date, type
             <MessageSquare className="w-3 h-3" />
             12
           </span>
+          <button 
+            onClick={handleShare}
+            className="flex items-center gap-1 hover:text-green-600 transition-colors cursor-pointer group/share"
+            title="WhatsApp वर शेअर करा"
+          >
+            <Share2 className="w-3 h-3 group-hover/share:scale-110 transition-transform" />
+            <span className="hidden sm:inline">शेअर</span>
+          </button>
         </div>
         <Link 
           href={`/content/${id}`}
