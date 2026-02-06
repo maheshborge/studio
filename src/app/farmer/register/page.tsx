@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from "react";
@@ -24,6 +25,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useFirestore } from "@/firebase";
 import { doc, setDoc } from "firebase/firestore";
 import { useRouter } from "next/navigation";
+import { locationData } from "@/lib/locations";
 
 const steps = [
   { id: 1, name: "वैयक्तिक माहिती", icon: User },
@@ -31,16 +33,6 @@ const steps = [
   { id: 3, name: "कुटुंबाची माहिती", icon: Users },
   { id: 4, name: "स्थलांतर माहिती", icon: Plane },
 ];
-
-const locationData = {
-  "Maharashtra": {
-    "Pune": ["Haveli", "Khed", "Shirur", "Ambegaon", "Maval", "Mulshi"],
-    "Nashik": ["Niphad", "Sinnar", "Dindori", "Malegaon", "Yeola"],
-    "Sangli": ["Miraj", "Tasgaon", "Walwa", "Khanapur", "Atpadi"],
-    "Satara": ["Karad", "Wai", "Phaltan", "Khatav", "Koregaon"],
-    "Solapur": ["Barshi", "Madha", "Karmala", "Sangola", "Pandharpur"]
-  }
-};
 
 export default function FarmerRegistrationPage() {
   const [currentStep, setCurrentStep] = useState(1);

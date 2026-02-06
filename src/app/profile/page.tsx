@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect } from "react";
@@ -30,6 +31,7 @@ import { doc, setDoc } from "firebase/firestore";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
 import { signOut } from "firebase/auth";
+import { locationData } from "@/lib/locations";
 
 const steps = [
   { id: 1, name: "वैयक्तिक माहिती", icon: User },
@@ -37,16 +39,6 @@ const steps = [
   { id: 3, name: "कुटुंबाची माहिती", icon: Users },
   { id: 4, name: "स्थलांतर माहिती", icon: Plane },
 ];
-
-const locationData = {
-  "Maharashtra": {
-    "Pune": ["Haveli", "Khed", "Shirur", "Ambegaon", "Maval", "Mulshi"],
-    "Nashik": ["Niphad", "Sinnar", "Dindori", "Malegaon", "Yeola"],
-    "Sangli": ["Miraj", "Tasgaon", "Walwa", "Khanapur", "Atpadi"],
-    "Satara": ["Karad", "Wai", "Phaltan", "Khatav", "Koregaon"],
-    "Solapur": ["Barshi", "Madha", "Karmala", "Sangola", "Pandharpur"]
-  }
-};
 
 interface CropEntry {
   name: string;
