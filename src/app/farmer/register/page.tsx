@@ -7,6 +7,7 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
 import { 
   User, 
   MapPin, 
@@ -35,7 +36,12 @@ const steps = [
   { id: 4, name: "स्थलांतर माहिती", icon: Plane },
 ];
 
-const WATER_SOURCES = ["बोअरवेल १", "बोअरवेल २", "शेततळे", "इरिगेशन स्कीम"];
+const WATER_SOURCES = [
+  { id: "borewell", label: "बोअरवेल" },
+  { id: "well", label: "विहीर" },
+  { id: "pond", label: "शेततळे" },
+  { id: "lift", label: "उपसा सिंचन" }
+];
 
 export default function FarmerRegistrationPage() {
   const [currentStep, setCurrentStep] = useState(1);
@@ -43,7 +49,7 @@ export default function FarmerRegistrationPage() {
     name: "", contactNumber: "", 
     recommendationName: "", recommendationContact: "",
     state: "Maharashtra", district: "", taluka: "", village: "", pincode: "",
-    landArea: "", waterSource: "", 
+    landArea: "", waterSources: [] as string[], 
     crops: [{ name: "", area: "" }],
     totalMembers: "", womenCount: "", menCount: "", studentCount: "",
     migrationEducation: "", migrationJob: "", migrationMarriage: ""
@@ -65,6 +71,16 @@ export default function FarmerRegistrationPage() {
       if (id === "state") { updates.district = ""; updates.taluka = ""; }
       if (id === "district") { updates.taluka = ""; }
       return { ...prev, ...updates };
+    });
+  };
+
+  const handleWaterSourceChange = (label: string) => {
+    setFormData(prev => {
+      const sources = prev.waterSources || [];
+      const updated = sources.includes(label)
+        ? sources.filter(s => s !== label)
+        : [...sources, label];
+      return { ...prev, waterSources: updated };
     });
   };
 
@@ -266,16 +282,22 @@ export default function FarmerRegistrationPage() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <Field id="landArea" label="एकूण जमीन क्षेत्र (एकर)" icon={Sprout} type="number" value={formData.landArea} onChange={handleInputChange} />
                     
-                    <div className="space-y-2">
-                      <Label className="font-bold">पाण्याची सोय</Label>
-                      <Select value={formData.waterSource} onValueChange={(val) => handleSelectChange("waterSource", val)}>
-                        <SelectTrigger className="h-12 rounded-xl border-slate-200 bg-slate-50">
-                          <SelectValue placeholder="निवडा" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {WATER_SOURCES.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
-                        </SelectContent>
-                      </Select>
+                    <div className="space-y-3">
+                      <Label className="font-bold">पाण्याची सोय (एक किंवा अधिक निवडा)</Label>
+                      <div className="grid grid-cols-2 gap-4">
+                        {WATER_SOURCES.map((source) => (
+                          <div key={source.id} className="flex items-center space-x-2 bg-slate-50 p-3 rounded-xl border border-slate-100">
+                            <Checkbox 
+                              id={source.id} 
+                              checked={formData.waterSources?.includes(source.label)}
+                              onCheckedChange={() => handleWaterSourceChange(source.label)}
+                            />
+                            <label htmlFor={source.id} className="text-sm font-medium leading-none cursor-pointer">
+                              {source.label}
+                            </label>
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   </div>
 

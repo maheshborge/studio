@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
 import { 
   User, 
   Sprout, 
@@ -43,7 +43,12 @@ const STAGES = [
   { id: "post_harvest", label: "ग्रेडिंग, सॉर्टिंग व पॅकिंग", icon: PackageCheck }
 ];
 
-const WATER_SOURCES = ["बोअरवेल १", "बोअरवेल २", "शेततळे", "इरिगेशन स्कीम"];
+const WATER_SOURCES = [
+  { id: "borewell", label: "बोअरवेल" },
+  { id: "well", label: "विहीर" },
+  { id: "pond", label: "शेततळे" },
+  { id: "lift", label: "उपसा सिंचन" }
+];
 
 export default function ProfilePage() {
   const { user, isUserLoading } = useUser();
@@ -66,7 +71,7 @@ export default function ProfilePage() {
 
   const [formData, setFormData] = useState({
     name: "", contactNumber: "", state: "Maharashtra", district: "", taluka: "", village: "", pincode: "",
-    totalLandArea: "", waterSource: "", crops: [{ name: "", area: "" }]
+    totalLandArea: "", waterSources: [] as string[], crops: [{ name: "", area: "" }]
   });
 
   const [isSaving, setIsSaving] = useState(false);
@@ -82,6 +87,16 @@ export default function ProfilePage() {
 
   const calculateTotalCropArea = () => {
     return formData.crops.reduce((acc, curr) => acc + (parseFloat(curr.area) || 0), 0);
+  };
+
+  const handleWaterSourceChange = (label: string) => {
+    setFormData(prev => {
+      const sources = prev.waterSources || [];
+      const updated = sources.includes(label)
+        ? sources.filter(s => s !== label)
+        : [...sources, label];
+      return { ...prev, waterSources: updated };
+    });
   };
 
   const handleProfileSave = async () => {
@@ -249,16 +264,22 @@ export default function ProfilePage() {
                   />
                 </div>
                 
-                <div className="space-y-2">
+                <div className="space-y-3">
                   <Label className="font-bold">पाण्याची सोय</Label>
-                  <Select value={formData.waterSource} onValueChange={(val) => setFormData({...formData, waterSource: val})}>
-                    <SelectTrigger className="h-12 rounded-xl bg-slate-50">
-                      <SelectValue placeholder="निवडा" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {WATER_SOURCES.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
-                    </SelectContent>
-                  </Select>
+                  <div className="grid grid-cols-1 gap-2">
+                    {WATER_SOURCES.map((source) => (
+                      <div key={source.id} className="flex items-center space-x-2 bg-slate-50 p-2 rounded-lg border border-slate-100">
+                        <Checkbox 
+                          id={`prof-${source.id}`} 
+                          checked={formData.waterSources?.includes(source.label)}
+                          onCheckedChange={() => handleWaterSourceChange(source.label)}
+                        />
+                        <label htmlFor={`prof-${source.id}`} className="text-xs font-medium cursor-pointer">
+                          {source.label}
+                        </label>
+                      </div>
+                    ))}
+                  </div>
                 </div>
 
                 <div className="space-y-4 pt-4 border-t">
