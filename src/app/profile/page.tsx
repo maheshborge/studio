@@ -117,7 +117,6 @@ export default function ProfilePage() {
         setIsOtherState(true);
       }
     } else if (mainProfile) {
-      // Pre-fill from main registration profile
       setFormData(prev => ({ ...prev, name: mainProfile.name, contactNumber: mainProfile.mobile }));
     }
   }, [farmerData, mainProfile]);
@@ -198,7 +197,7 @@ export default function ProfilePage() {
       <main className="container mx-auto px-4 py-12">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10">
           <h1 className="text-4xl font-headline font-bold text-primary flex items-center gap-3">
-            <LayoutDashboard className="w-10 h-10" /> माझे शेती व्यवस्थापन
+            <LayoutDashboard className="w-10 h-10" /> माझीशेती, माझे व्यवस्थापन
           </h1>
           {mainProfile && (
             <div className="bg-white px-6 py-3 rounded-2xl shadow-sm border flex items-center gap-4">
