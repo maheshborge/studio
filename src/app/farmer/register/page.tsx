@@ -130,6 +130,8 @@ export default function FarmerRegistrationPage() {
   const districts = selectedStateData ? Object.keys(selectedStateData) : [];
   const talukas = (formData.district && selectedStateData) ? selectedStateData[formData.district] : [];
 
+  const StepIcon = steps[currentStep - 1].icon;
+
   return (
     <div className="min-h-screen bg-slate-50">
       <Navigation />
@@ -154,7 +156,7 @@ export default function FarmerRegistrationPage() {
                   <h2 className="text-3xl font-bold flex items-center gap-3">{steps[currentStep - 1].name}</h2>
                   <p className="text-blue-100 mt-2">कृपया अचूक माहिती भरा.</p>
                 </div>
-                <steps.0.icon className="w-16 h-16 opacity-20" />
+                <StepIcon className="w-16 h-16 opacity-20" />
               </div>
             </div>
             
