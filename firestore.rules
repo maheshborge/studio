@@ -46,6 +46,12 @@ service cloud.firestore {
       allow read: if isSignedIn();
     }
 
+    // Community Content (Advice, Schemes, News, etc.) - Public Read
+    match /communityContent/{id} {
+      allow read: if true;
+      allow write: if isSignedIn(); // Admin or Expert can write
+    }
+
     // Lookup collections
     match /personalInfos/{id} { allow read: if isSignedIn(); }
     match /locations/{id} { allow read: if true; }

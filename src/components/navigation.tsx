@@ -14,7 +14,8 @@ import {
   X,
   LogIn,
   ShoppingBag,
-  Sprout
+  Sprout,
+  BookOpen
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
@@ -22,6 +23,7 @@ import { useUser } from "@/firebase";
 
 const navItems = [
   { name: "मुख्य पृष्ठ", href: "/", icon: Globe },
+  { name: "माहिती केंद्र", href: "/#knowledge", icon: BookOpen },
   { name: "बाजारपेठ", href: "/marketplace", icon: ShoppingBag },
   { name: "माझी शेती", href: "/profile", icon: Sprout },
   { name: "डॅशबोर्ड", href: "/dashboard", icon: BarChart3 },
