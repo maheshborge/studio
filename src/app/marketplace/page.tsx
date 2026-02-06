@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Navigation } from "@/components/navigation";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -28,12 +28,14 @@ import {
   ArrowRight,
   Package,
   Phone,
-  User
+  User,
+  AlertCircle
 } from "lucide-react";
 import { useFirestore, useCollection, useMemoFirebase, useUser } from "@/firebase";
-import { collectionGroup, doc, addDoc, collection, query, where, updateDoc } from "firebase/firestore";
+import { collectionGroup, doc, addDoc, collection, query, where, updateDoc, getDocs, getDoc } from "firebase/firestore";
 import Image from "next/image";
 import { useToast } from "@/hooks/use-toast";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 const PACKING_TYPES = [
   { id: "bag", label: "बॅग" },
@@ -51,6 +53,9 @@ export default function MarketplacePage() {
   const [searchTerm, setSearchSearchTerm] = useState("");
   const [selectedCrop, setSelectedCrop] = useState<any>(null);
   const [isBuying, setIsBuying] = useState(false);
+  const [isSearchingTransporter, setIsSearchingTransporter] = useState(false);
+  const [foundTransporter, setFoundTransporter] = useState<any>(null);
+  const [transporterVehicles, setTransporterVehicles] = useState<any[]>([]);
 
   // Purchase form state
   const [purchaseData, setPurchaseData] = useState({
@@ -65,7 +70,6 @@ export default function MarketplacePage() {
 
   const cropsQuery = useMemoFirebase(() => {
     if (!db) return null;
-    // Collection group query to see all crops marked for sale
     return query(collectionGroup(db, "cropCycles"), where("isReadyForSale", "==", true));
   }, [db]);
 
@@ -77,14 +81,63 @@ export default function MarketplacePage() {
       c.remainingQuantity > 0 &&
       (c.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
       (c.variety && c.variety.toLowerCase().includes(searchTerm.toLowerCase())))
-    ).sort((a, b) => a.name.localeCompare(b.name)); // Alphabetical sorting
+    ).sort((a, b) => a.name.localeCompare(b.name));
   }, [allCrops, searchTerm]);
+
+  // Logic to search transporter when mobile number is entered
+  useEffect(() => {
+    const searchTransporter = async () => {
+      if (!db || purchaseData.driverMobile.length !== 10) {
+        setFoundTransporter(null);
+        setTransporterVehicles([]);
+        return;
+      }
+
+      setIsSearchingTransporter(true);
+      try {
+        // 1. Search for a profile with this mobile number
+        const q = query(collectionGroup(db, "profile"), where("mobile", "==", purchaseData.driverMobile));
+        const snapshot = await getDocs(q);
+        
+        let foundUser: any = null;
+        snapshot.forEach(doc => {
+          if (doc.id === "main") {
+            foundUser = { ...doc.data(), userId: doc.ref.parent.parent?.id };
+          }
+        });
+
+        if (foundUser && foundUser.userType === "transporter") {
+          setFoundTransporter(foundUser);
+          // 2. Fetch transporter vehicles
+          const tDoc = await getDoc(doc(db, "users", foundUser.userId, "profile", "transporterData"));
+          if (tDoc.exists()) {
+            const data = tDoc.data();
+            setTransporterVehicles(data.vehicles || []);
+            if (data.vehicles?.length === 1) {
+              setPurchaseData(prev => ({ ...prev, vehicleNumber: data.vehicles[0].number }));
+            }
+          }
+          toast({ title: "ट्रान्सपोर्टर सापडला!", description: `${foundUser.name} यांची माहिती फेच केली आहे.` });
+        } else {
+          setFoundTransporter("not_found");
+          setTransporterVehicles([]);
+        }
+      } catch (error) {
+        console.error("Transporter search error:", error);
+      } finally {
+        setIsSearchingTransporter(false);
+      }
+    };
+
+    const timeoutId = setTimeout(searchTransporter, 500);
+    return () => clearTimeout(timeoutId);
+  }, [purchaseData.driverMobile, db, toast]);
 
   const handleFinalPurchase = async () => {
     if (!db || !user || !selectedCrop) return;
 
     if (!purchaseData.vehicleNumber || !purchaseData.driverMobile) {
-      toast({ variant: "destructive", title: "त्रुटी", description: "गाडी नंबर आणि ड्रायव्हर नंबर मॅन्युअली भरणे आवश्यक आहे." });
+      toast({ variant: "destructive", title: "त्रुटी", description: "गाडी नंबर आणि ड्रायव्हर नंबर आवश्यक आहे." });
       return;
     }
 
@@ -97,7 +150,6 @@ export default function MarketplacePage() {
         return;
       }
 
-      // 1. Create transaction
       await addDoc(collection(db, "transactions"), {
         ...purchaseData,
         cropId: selectedCrop.id,
@@ -109,7 +161,6 @@ export default function MarketplacePage() {
         timestamp: new Date().toISOString()
       });
 
-      // 2. Update crop remaining quantity (Partial Buying Support)
       const farmerId = selectedCrop.farmerId;
       const cropRef = doc(db, "users", farmerId, "cropCycles", selectedCrop.id);
       const newRemaining = selectedCrop.remainingQuantity - qty;
@@ -183,7 +234,7 @@ export default function MarketplacePage() {
                   <DialogTrigger asChild>
                     <Button className="w-full h-12 rounded-xl bg-primary gap-2" onClick={() => {
                       setSelectedCrop(crop);
-                      setPurchaseData(prev => ({...prev, quantity: crop.remainingQuantity.toString()}));
+                      setPurchaseData(prev => ({...prev, quantity: crop.remainingQuantity.toString(), rate: ""}));
                     }}>
                       खरेदी करा <ArrowRight className="w-4 h-4" />
                     </Button>
@@ -227,19 +278,8 @@ export default function MarketplacePage() {
 
                       <div className="md:col-span-2 border-t pt-4">
                         <h4 className="font-bold text-primary mb-4 flex items-center gap-2"><Truck className="w-5 h-5" /> ट्रान्सपोर्टर व गाडी माहिती</h4>
+                        
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                          <div className="space-y-2">
-                            <Label className="font-bold">गाडी नंबर (एंट्री करा)</Label>
-                            <div className="relative">
-                              <Truck className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                              <Input 
-                                placeholder="उदा. MH-12-AB-1234"
-                                value={purchaseData.vehicleNumber}
-                                onChange={(e) => setPurchaseData(prev => ({...prev, vehicleNumber: e.target.value}))}
-                                className="rounded-xl pl-10"
-                              />
-                            </div>
-                          </div>
                           <div className="space-y-2">
                             <Label className="font-bold">ड्रायव्हर मोबाईल नंबर</Label>
                             <div className="relative">
@@ -253,11 +293,58 @@ export default function MarketplacePage() {
                                     setPurchaseData(prev => ({...prev, driverMobile: e.target.value}));
                                   }
                                 }}
-                                className="rounded-xl pl-10"
+                                className="rounded-xl pl-10 h-12"
                               />
+                              {isSearchingTransporter && <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 animate-spin text-primary" />}
                             </div>
                           </div>
+
+                          <div className="space-y-2">
+                            <Label className="font-bold">गाडी नंबर</Label>
+                            {transporterVehicles.length > 0 ? (
+                              <Select 
+                                value={purchaseData.vehicleNumber} 
+                                onValueChange={(val) => setPurchaseData(prev => ({...prev, vehicleNumber: val}))}
+                              >
+                                <SelectTrigger className="h-12 rounded-xl">
+                                  <SelectValue placeholder="गाडी निवडा" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {transporterVehicles.map((v: any) => (
+                                    <SelectItem key={v.number} value={v.number}>{v.number} ({v.type})</SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            ) : (
+                              <div className="relative">
+                                <Truck className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                                <Input 
+                                  placeholder="उदा. MH-12-AB-1234"
+                                  value={purchaseData.vehicleNumber}
+                                  onChange={(e) => setPurchaseData(prev => ({...prev, vehicleNumber: e.target.value}))}
+                                  className="rounded-xl pl-10 h-12"
+                                />
+                              </div>
+                            )}
+                          </div>
                         </div>
+
+                        {foundTransporter === "not_found" && purchaseData.driverMobile.length === 10 && (
+                          <Alert variant="destructive" className="mt-4 rounded-2xl bg-red-50 border-red-100">
+                            <AlertCircle className="h-4 w-4" />
+                            <AlertTitle>ट्रान्सपोर्टर सापडला नाही</AlertTitle>
+                            <AlertDescription>
+                              हा नंबर सिस्टिममध्ये नोंदणीकृत नाही. कृपया ट्रान्सपोर्टरला नोंदणी करण्यास सांगा किंवा मॅन्युअली माहिती भरा.
+                            </AlertDescription>
+                          </Alert>
+                        )}
+                        
+                        {foundTransporter && foundTransporter !== "not_found" && (
+                          <div className="mt-4 p-4 bg-blue-50 rounded-2xl border border-blue-100 flex items-center gap-3">
+                            <User className="w-5 h-5 text-blue-600" />
+                            <p className="text-sm font-bold text-blue-700">ट्रान्सपोर्टर: {foundTransporter.name}</p>
+                          </div>
+                        )}
                       </div>
 
                       <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-3 gap-6 border-t pt-4">
