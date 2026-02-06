@@ -8,7 +8,6 @@ import {
   Globe, 
   User, 
   LayoutDashboard, 
-  MessageSquare,
   BarChart3,
   Menu,
   X,
@@ -24,7 +23,6 @@ import { useUser } from "@/firebase";
 
 const navItems = [
   { name: "मुख्य पृष्ठ", href: "/", icon: Globe },
-  { name: "माहिती केंद्र", href: "/#knowledge", icon: BookOpen },
   { name: "बाजारपेठ", href: "/marketplace", icon: ShoppingBag },
   { name: "माझी शेती", href: "/profile", icon: Sprout },
   { name: "डॅशबोर्ड", href: "/dashboard", icon: BarChart3 },
@@ -51,7 +49,7 @@ export function Navigation() {
         </div>
 
         {/* Desktop Nav */}
-        <nav className="hidden lg:flex items-center space-x-6">
+        <nav className="hidden lg:flex items-center space-x-8">
           {navItems.map((item) => (
             <Link
               key={item.href}
@@ -74,7 +72,7 @@ export function Navigation() {
           
           {user ? (
             <Link href="/profile">
-              <Button className="rounded-full h-10 w-10 p-0 bg-primary shadow-lg shadow-primary/20 hover:scale-105 transition-transform">
+              <Button className="rounded-full h-10 w-10 p-0 bg-primary shadow-lg shadow-primary/20 hover:scale-105 transition-transform overflow-hidden">
                 <User className="w-5 h-5 text-white" />
               </Button>
             </Link>
