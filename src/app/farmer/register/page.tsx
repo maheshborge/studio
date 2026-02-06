@@ -21,7 +21,9 @@ import {
   Globe,
   GraduationCap,
   Calendar,
-  Tag
+  Tag,
+  Briefcase,
+  Building
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useFirestore, useUser } from "@/firebase";
@@ -77,6 +79,26 @@ export default function FarmerRegistrationPage() {
     setFormData(prev => ({ ...prev, crops: newCrops }));
   };
 
+  const handleMigrationChange = (index: number, field: string, value: string) => {
+    const newEntries = [...formData.migrationEntries];
+    newEntries[index] = { ...newEntries[index], [field]: value };
+    setFormData(prev => ({ ...prev, migrationEntries: newEntries }));
+  };
+
+  const addMigrationEntry = () => {
+    setFormData(prev => ({
+      ...prev,
+      migrationEntries: [...prev.migrationEntries, { reason: "", city: "", count: "" }]
+    }));
+  };
+
+  const removeMigrationEntry = (index: number) => {
+    setFormData(prev => ({
+      ...prev,
+      migrationEntries: prev.migrationEntries.filter((_, i) => i !== index)
+    }));
+  };
+
   const handleSubmit = async () => {
     if (!db || !user) return;
 
@@ -89,6 +111,7 @@ export default function FarmerRegistrationPage() {
 
       // 2. Save individual crop cycles
       for (const crop of formData.crops) {
+        if (!crop.name) continue;
         const categoryData = CROP_CATEGORIES.find(c => c.id === crop.category);
         const maturityDays = categoryData?.days || 90;
         const expectedHarvest = addDays(new Date(crop.startDate), maturityDays);
@@ -131,6 +154,9 @@ export default function FarmerRegistrationPage() {
                 <h2 className="text-3xl font-bold">{activeStep.name}</h2>
                 <p className="text-blue-100 mt-2">मिडास पीक व्यवस्थापन</p>
               </div>
+              <div className="bg-white/20 p-4 rounded-2xl">
+                <activeStep.icon className="w-8 h-8" />
+              </div>
             </div>
             
             <CardContent className="p-8 md:p-12">
@@ -167,7 +193,7 @@ export default function FarmerRegistrationPage() {
                   <div className="space-y-6 border-t pt-6">
                     <Label className="font-bold text-lg">पीक तपशील व लागवड तारीख</Label>
                     {formData.crops.map((crop, index) => (
-                      <Card key={index} className="p-6 bg-slate-50 border-none rounded-2xl">
+                      <Card key={index} className="p-6 bg-slate-50 border-none rounded-2xl relative">
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                           <div className="space-y-2">
                             <Label className="text-xs font-bold">पिकाचा प्रकार</Label>
@@ -197,7 +223,7 @@ export default function FarmerRegistrationPage() {
                             <Label className="text-xs font-bold">क्षेत्र (एकर)</Label>
                             <div className="flex gap-2">
                               <Input type="number" placeholder="0.0" value={crop.area} onChange={(e) => handleCropChange(index, "area", e.target.value)} className="bg-white h-12 rounded-xl"/>
-                              <Button variant="ghost" onClick={() => setFormData(prev => ({...prev, crops: prev.crops.filter((_,i) => i !== index)}))} className="text-red-500 h-12 w-12"><Trash2/></Button>
+                              <Button variant="ghost" onClick={() => setFormData(prev => ({...prev, crops: prev.crops.filter((_,i) => i !== index)}))} className="text-red-500 h-12 w-12 hover:bg-red-50 hover:text-red-600 rounded-xl transition-colors"><Trash2/></Button>
                             </div>
                           </div>
                         </div>
@@ -223,18 +249,84 @@ export default function FarmerRegistrationPage() {
               {currentStep === 4 && (
                 <div className="space-y-8">
                   <h3 className="text-xl font-bold text-primary border-b pb-2">स्थलांतर माहिती</h3>
-                  <div className="p-8 bg-slate-50 rounded-3xl text-center border-dashed border-2">
-                    <p className="text-slate-500">तुमच्या कुटुंबातील सदस्य कामासाठी किंवा शिक्षणासाठी बाहेर गावी जात असल्यास त्याची माहिती भरा.</p>
+                  
+                  <div className="grid grid-cols-1 gap-6">
+                    {formData.migrationEntries.map((entry, index) => (
+                      <Card key={index} className="p-8 bg-slate-50 border-none rounded-[2rem] shadow-sm relative animate-in fade-in slide-in-from-bottom-2 duration-300">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                          <div className="space-y-2">
+                            <Label className="text-sm font-bold flex items-center gap-2">
+                              <Briefcase className="w-4 h-4 text-primary" /> स्थलांतराचे कारण
+                            </Label>
+                            <Input 
+                              placeholder="उदा. शिक्षण, नोकरी" 
+                              value={entry.reason} 
+                              onChange={(e) => handleMigrationChange(index, "reason", e.target.value)} 
+                              className="bg-white h-12 rounded-xl"
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label className="text-sm font-bold flex items-center gap-2">
+                              <Building className="w-4 h-4 text-primary" /> गाव / शहर
+                            </Label>
+                            <Input 
+                              placeholder="उदा. पुणे, मुंबई" 
+                              value={entry.city} 
+                              onChange={(e) => handleMigrationChange(index, "city", e.target.value)} 
+                              className="bg-white h-12 rounded-xl"
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label className="text-sm font-bold flex items-center gap-2">
+                              <Users className="w-4 h-4 text-primary" /> सदस्य संख्या
+                            </Label>
+                            <div className="flex gap-3">
+                              <Input 
+                                type="number" 
+                                placeholder="0" 
+                                value={entry.count} 
+                                onChange={(e) => handleMigrationChange(index, "count", e.target.value)} 
+                                className="bg-white h-12 rounded-xl"
+                              />
+                              <Button 
+                                variant="ghost" 
+                                onClick={() => removeMigrationEntry(index)}
+                                className="text-red-500 h-12 w-12 hover:bg-red-50 hover:text-red-600 rounded-xl transition-colors shrink-0"
+                              >
+                                <Trash2 className="w-5 h-5" />
+                              </Button>
+                            </div>
+                          </div>
+                        </div>
+                      </Card>
+                    ))}
+
+                    <Button 
+                      variant="outline" 
+                      onClick={addMigrationEntry}
+                      className="w-full h-16 rounded-2xl border-dashed border-primary/30 text-primary gap-2 hover:bg-primary/5 font-bold"
+                    >
+                      <Plus className="w-6 h-6" /> नवीन स्थलांतर माहिती जोडा
+                    </Button>
+
+                    <div className="p-8 bg-blue-50/50 rounded-3xl border border-blue-100 flex items-start gap-4">
+                      <div className="bg-blue-100 p-3 rounded-xl text-blue-600">
+                        <GraduationCap className="w-6 h-6" />
+                      </div>
+                      <p className="text-sm text-blue-800 leading-relaxed font-medium">
+                        तुमच्या कुटुंबातील सदस्य कामासाठी किंवा शिक्षणासाठी बाहेर गावी जात असल्यास त्याची माहिती भरा. यामुळे आम्हाला तुमच्या कुटुंबाच्या गरजा अधिक चांगल्या प्रकारे समजतील.
+                      </p>
+                    </div>
                   </div>
                 </div>
               )}
 
               <div className="mt-12 flex justify-between gap-4">
-                <Button variant="outline" onClick={() => setCurrentStep(prev => Math.max(prev - 1, 1))} disabled={currentStep === 1} className="rounded-xl px-8 h-12">मागे</Button>
+                <Button variant="outline" onClick={() => setCurrentStep(prev => Math.max(prev - 1, 1))} disabled={currentStep === 1} className="rounded-xl px-8 h-12 font-bold">मागे</Button>
                 {currentStep < steps.length ? (
-                  <Button onClick={() => setCurrentStep(prev => Math.min(prev + 1, steps.length))} className="bg-primary px-8 h-12 rounded-xl">पुढे जा <ArrowRight className="ml-2 w-4 h-4"/></Button>
+                  <Button onClick={() => setCurrentStep(prev => Math.min(prev + 1, steps.length))} className="bg-primary px-8 h-12 rounded-xl font-bold shadow-lg shadow-primary/20">पुढे जा <ArrowRight className="ml-2 w-4 h-4"/></Button>
                 ) : (
-                  <Button onClick={handleSubmit} className="bg-green-600 hover:bg-green-700 px-12 h-12 text-white font-bold rounded-xl shadow-lg shadow-green-200">नोंदणी पूर्ण करा</Button>
+                  <Button onClick={handleSubmit} className="bg-green-600 hover:bg-green-700 px-12 h-12 text-white font-bold rounded-xl shadow-lg shadow-green-200 transition-all hover:scale-105 active:scale-95">नोंदणी पूर्ण करा</Button>
                 )}
               </div>
             </CardContent>
