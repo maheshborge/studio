@@ -19,7 +19,9 @@ import {
   ArrowLeft,
   CheckCircle2,
   TrendingUp,
-  Plane
+  Plane,
+  Plus,
+  Trash2
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useFirestore } from "@/firebase";
@@ -34,13 +36,16 @@ const steps = [
   { id: 4, name: "स्थलांतर माहिती", icon: Plane },
 ];
 
+const WATER_SOURCES = ["बोअरवेल १", "बोअरवेल २", "शेततळे", "इरिगेशन स्कीम"];
+
 export default function FarmerRegistrationPage() {
   const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState({
     name: "", contactNumber: "", 
     recommendationName: "", recommendationContact: "",
-    state: "", district: "", taluka: "", village: "", pincode: "",
-    landArea: "", waterSource: "", cropArea: "", production: "",
+    state: "Maharashtra", district: "", taluka: "", village: "", pincode: "",
+    landArea: "4", waterSource: "", 
+    crops: [{ name: "", area: "" }],
     totalMembers: "", womenCount: "", menCount: "", studentCount: "",
     migrationEducation: "", migrationJob: "", migrationMarriage: ""
   });
@@ -63,7 +68,45 @@ export default function FarmerRegistrationPage() {
     });
   };
 
-  const handleNext = () => setCurrentStep(prev => Math.min(prev + 1, steps.length));
+  const addCropField = () => {
+    setFormData(prev => ({
+      ...prev,
+      crops: [...prev.crops, { name: "", area: "" }]
+    }));
+  };
+
+  const removeCropField = (index: number) => {
+    setFormData(prev => ({
+      ...prev,
+      crops: prev.crops.filter((_, i) => i !== index)
+    }));
+  };
+
+  const handleCropChange = (index: number, field: string, value: string) => {
+    const newCrops = [...formData.crops];
+    newCrops[index] = { ...newCrops[index], [field]: value };
+    setFormData(prev => ({ ...prev, crops: newCrops }));
+  };
+
+  const calculateTotalCropArea = () => {
+    return formData.crops.reduce((acc, curr) => acc + (parseFloat(curr.area) || 0), 0);
+  };
+
+  const handleNext = () => {
+    if (currentStep === 2) {
+      const totalArea = calculateTotalCropArea();
+      if (totalArea > parseFloat(formData.landArea)) {
+        toast({
+          variant: "destructive",
+          title: "त्रुटी",
+          description: `पिकांचे एकूण क्षेत्र (${totalArea} एकर) तुमच्या जमिनीपेक्षा (${formData.landArea} एकर) जास्त आहे.`
+        });
+        return;
+      }
+    }
+    setCurrentStep(prev => Math.min(prev + 1, steps.length));
+  };
+
   const handlePrev = () => setCurrentStep(prev => Math.max(prev - 1, 1));
 
   const handleSubmit = async () => {
@@ -106,8 +149,13 @@ export default function FarmerRegistrationPage() {
 
           <Card className="rounded-[2.5rem] border-none shadow-2xl overflow-hidden">
             <div className="bg-primary p-8 text-white">
-              <h2 className="text-3xl font-bold flex items-center gap-3">{steps[currentStep - 1].name}</h2>
-              <p className="text-blue-100 mt-2">कृपया अचूक माहिती भरा.</p>
+              <div className="flex justify-between items-center">
+                <div>
+                  <h2 className="text-3xl font-bold flex items-center gap-3">{steps[currentStep - 1].name}</h2>
+                  <p className="text-blue-100 mt-2">कृपया अचूक माहिती भरा.</p>
+                </div>
+                <steps.0.icon className="w-16 h-16 opacity-20" />
+              </div>
             </div>
             
             <CardContent className="p-8 md:p-12">
@@ -170,12 +218,74 @@ export default function FarmerRegistrationPage() {
               )}
 
               {currentStep === 2 && (
-                <div className="space-y-6 animate-in fade-in slide-in-from-right-4">
+                <div className="space-y-8 animate-in fade-in slide-in-from-right-4">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <Field id="landArea" label="एकूण जमीन क्षेत्र (एकर)" icon={Sprout} value={formData.landArea} onChange={handleInputChange} />
-                    <Field id="waterSource" label="पाण्याची सोय" icon={Droplets} value={formData.waterSource} onChange={handleInputChange} />
-                    <Field id="cropArea" label="पीकनिहाय क्षेत्र" icon={TrendingUp} value={formData.cropArea} onChange={handleInputChange} />
-                    <Field id="production" label="अंदाजित वार्षिक उत्पादन" icon={TrendingUp} value={formData.production} onChange={handleInputChange} />
+                    <Field id="landArea" label="एकूण जमीन क्षेत्र (एकर)" icon={Sprout} value={formData.landArea} onChange={handleInputChange} readOnly />
+                    
+                    <div className="space-y-2">
+                      <Label className="font-bold">पाण्याची सोय</Label>
+                      <Select value={formData.waterSource} onValueChange={(val) => handleSelectChange("waterSource", val)}>
+                        <SelectTrigger className="h-12 rounded-xl border-slate-200 bg-slate-50">
+                          <SelectValue placeholder="निवडा" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {WATER_SOURCES.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+
+                  <div className="space-y-4 border-t pt-6">
+                    <div className="flex items-center justify-between">
+                      <Label className="font-bold text-lg">पीकनिहाय क्षेत्र माहिती</Label>
+                      <div className="text-sm font-bold text-slate-500">
+                        शिल्लक क्षेत्र: {parseFloat(formData.landArea) - calculateTotalCropArea()} एकर
+                      </div>
+                    </div>
+                    
+                    <div className="space-y-4">
+                      {formData.crops.map((crop, index) => (
+                        <div key={index} className="flex gap-4 items-end animate-in fade-in zoom-in-95">
+                          <div className="flex-1 space-y-2">
+                            <Label className="text-xs">पिकाचे नाव</Label>
+                            <Input 
+                              placeholder="उदा. आंबा" 
+                              value={crop.name}
+                              onChange={(e) => handleCropChange(index, "name", e.target.value)}
+                              className="h-12 rounded-xl bg-slate-50"
+                            />
+                          </div>
+                          <div className="w-32 space-y-2">
+                            <Label className="text-xs">क्षेत्र (एकर)</Label>
+                            <Input 
+                              type="number"
+                              placeholder="0.0" 
+                              value={crop.area}
+                              onChange={(e) => handleCropChange(index, "area", e.target.value)}
+                              className="h-12 rounded-xl bg-slate-50"
+                            />
+                          </div>
+                          {formData.crops.length > 1 && (
+                            <Button 
+                              variant="ghost" 
+                              size="icon" 
+                              onClick={() => removeCropField(index)}
+                              className="text-red-500 hover:bg-red-50 h-12 w-12 rounded-xl"
+                            >
+                              <Trash2 className="w-5 h-5" />
+                            </Button>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+
+                    <Button 
+                      variant="outline" 
+                      onClick={addCropField}
+                      className="w-full h-12 rounded-xl border-dashed border-2 gap-2 text-primary hover:bg-primary/5"
+                    >
+                      <Plus className="w-5 h-5" /> आणखी पीक जोडा
+                    </Button>
                   </div>
                 </div>
               )}
@@ -223,13 +333,21 @@ export default function FarmerRegistrationPage() {
   );
 }
 
-function Field({ id, label, icon: Icon, value, onChange, type = "text" }: any) {
+function Field({ id, label, icon: Icon, value, onChange, type = "text", readOnly = false }: any) {
   return (
     <div className="space-y-2">
       <Label htmlFor={id} className="text-slate-700 font-bold">{label}</Label>
       <div className="relative">
         <Icon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
-        <Input id={id} type={type} value={value || ""} onChange={onChange} placeholder={`${label} भरा...`} className="pl-12 h-12 rounded-xl border-slate-200 focus:ring-primary bg-slate-50" />
+        <Input 
+          id={id} 
+          type={type} 
+          value={value || ""} 
+          onChange={onChange} 
+          placeholder={`${label} भरा...`} 
+          readOnly={readOnly}
+          className={`pl-12 h-12 rounded-xl border-slate-200 focus:ring-primary bg-slate-50 ${readOnly ? "opacity-70 cursor-not-allowed" : ""}`} 
+        />
       </div>
     </div>
   );

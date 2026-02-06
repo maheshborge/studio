@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { 
   User, 
   Sprout, 
@@ -31,7 +32,6 @@ import { useAuth, useFirestore, useUser, useDoc, useMemoFirebase, useCollection 
 import { doc, setDoc, collection, addDoc, serverTimestamp, updateDoc, deleteDoc, query, where } from "firebase/firestore";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
-import { locationData } from "@/lib/locations";
 
 const STAGES = [
   { id: "preparation", label: "मशागत / जमीन तयार करणे", icon: Hammer },
@@ -39,10 +39,12 @@ const STAGES = [
   { id: "sowing", label: "पेरणी / लागवड", icon: MapPin },
   { id: "weeding", label: "आंतरमशागत / तण नियंत्रण", icon: Hammer },
   { id: "pest_control", label: "कीड व रोग नियंत्रण", icon: Bug },
-  { id: "fertilization", label: "खत व्यवस्थापन", icon: Droplets, subStages: ["लागणीनंतर", "फुलोरा वेळ", "फळधारणा वेळ"] },
+  { id: "fertilization", label: "खत व्यवस्थापन", icon: Droplets },
   { id: "harvesting", label: "काढणी", icon: PackageCheck },
   { id: "post_harvest", label: "ग्रेडिंग, सॉर्टिंग व पॅकिंग", icon: PackageCheck }
 ];
+
+const WATER_SOURCES = ["बोअरवेल १", "बोअरवेल २", "शेततळे", "इरिगेशन स्कीम"];
 
 export default function ProfilePage() {
   const { user, isUserLoading } = useUser();
@@ -65,7 +67,7 @@ export default function ProfilePage() {
 
   const [formData, setFormData] = useState({
     name: "", contactNumber: "", state: "Maharashtra", district: "", taluka: "", village: "", pincode: "",
-    totalLandArea: "4", waterSources: [] as string[]
+    totalLandArea: "4", waterSource: "", crops: [{ name: "", area: "" }]
   });
 
   const [isSaving, setIsSaving] = useState(false);
@@ -81,6 +83,17 @@ export default function ProfilePage() {
 
   const handleProfileSave = async () => {
     if (!db || !user) return;
+    
+    const totalArea = formData.crops.reduce((acc, curr) => acc + (parseFloat(curr.area) || 0), 0);
+    if (totalArea > parseFloat(formData.totalLandArea)) {
+      toast({
+        variant: "destructive",
+        title: "त्रुटी",
+        description: `पिकांचे एकूण क्षेत्र (${totalArea} एकर) तुमच्या जमिनीपेक्षा जास्त आहे.`
+      });
+      return;
+    }
+
     setIsSaving(true);
     try {
       await setDoc(doc(db, "users", user.uid, "profile", "farmerData"), {
@@ -91,6 +104,26 @@ export default function ProfilePage() {
     } catch (e) {
       toast({ variant: "destructive", title: "त्रुटी", description: "माहिती साठवता आली नाही." });
     } finally { setIsSaving(false); }
+  };
+
+  const handleCropChange = (index: number, field: string, value: string) => {
+    const newCrops = [...formData.crops];
+    newCrops[index] = { ...newCrops[index], [field]: value };
+    setFormData(prev => ({ ...prev, crops: newCrops }));
+  };
+
+  const addCropField = () => {
+    setFormData(prev => ({
+      ...prev,
+      crops: [...prev.crops, { name: "", area: "" }]
+    }));
+  };
+
+  const removeCropField = (index: number) => {
+    setFormData(prev => ({
+      ...prev,
+      crops: prev.crops.filter((_, i) => i !== index)
+    }));
   };
 
   const handleAddCropCycle = async () => {
@@ -136,13 +169,12 @@ export default function ProfilePage() {
         </h1>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Farm Assets & Profile */}
           <div className="lg:col-span-1 space-y-6">
             <Card className="rounded-[2rem] shadow-xl border-none">
               <CardHeader className="bg-primary text-white rounded-t-[2rem]">
                 <CardTitle className="flex items-center gap-2"><User className="w-5 h-5" /> वैयक्तिक व शेती माहिती</CardTitle>
               </CardHeader>
-              <CardContent className="p-6 space-y-4">
+              <CardContent className="p-6 space-y-6">
                 <div className="space-y-2">
                   <Label>शेतकऱ्याचे नाव</Label>
                   <Input value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} className="rounded-xl" />
@@ -151,34 +183,61 @@ export default function ProfilePage() {
                   <Label>एकूण जमीन क्षेत्र (एकर)</Label>
                   <Input value={formData.totalLandArea} readOnly className="bg-slate-50 rounded-xl font-bold text-primary" />
                 </div>
+                
                 <div className="space-y-2">
-                  <Label>पाण्याचे स्रोत</Label>
-                  <div className="flex flex-wrap gap-2">
-                    {["बोअरवेल १", "बोअरवेल २", "शेततळे", "इरिगेशन स्कीम"].map(source => (
-                      <Badge 
-                        key={source} 
-                        variant={formData.waterSources.includes(source) ? "default" : "outline"}
-                        className="cursor-pointer px-3 py-1 rounded-lg"
-                        onClick={() => {
-                          const newSources = formData.waterSources.includes(source)
-                            ? formData.waterSources.filter(s => s !== source)
-                            : [...formData.waterSources, source];
-                          setFormData({...formData, waterSources: newSources});
-                        }}
-                      >
-                        {source}
-                      </Badge>
-                    ))}
-                  </div>
+                  <Label className="font-bold">पाण्याची सोय</Label>
+                  <Select value={formData.waterSource} onValueChange={(val) => setFormData({...formData, waterSource: val})}>
+                    <SelectTrigger className="h-12 rounded-xl bg-slate-50">
+                      <SelectValue placeholder="निवडा" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {WATER_SOURCES.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
                 </div>
-                <Button onClick={handleProfileSave} disabled={isSaving} className="w-full rounded-xl gap-2">
+
+                <div className="space-y-4 pt-4 border-t">
+                  <div className="flex items-center justify-between">
+                    <Label className="font-bold">पीकनिहाय क्षेत्र</Label>
+                    <Button variant="ghost" size="sm" onClick={addCropField} className="text-primary h-8 w-8 p-0">
+                      <Plus className="w-5 h-5" />
+                    </Button>
+                  </div>
+                  {formData.crops.map((crop, index) => (
+                    <div key={index} className="flex gap-2 items-end">
+                      <div className="flex-1">
+                        <Input 
+                          placeholder="पीक" 
+                          value={crop.name}
+                          onChange={(e) => handleCropChange(index, "name", e.target.value)}
+                          className="h-10 rounded-lg text-sm"
+                        />
+                      </div>
+                      <div className="w-20">
+                        <Input 
+                          type="number"
+                          placeholder="एकर" 
+                          value={crop.area}
+                          onChange={(e) => handleCropChange(index, "area", e.target.value)}
+                          className="h-10 rounded-lg text-sm"
+                        />
+                      </div>
+                      {formData.crops.length > 1 && (
+                        <Button variant="ghost" size="icon" onClick={() => removeCropField(index)} className="text-red-400 h-10 w-10">
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+
+                <Button onClick={handleProfileSave} disabled={isSaving} className="w-full rounded-xl gap-2 mt-4">
                   {isSaving ? <Loader2 className="animate-spin" /> : <Save className="w-4 h-4" />} माहिती साठवा
                 </Button>
               </CardContent>
             </Card>
           </div>
 
-          {/* Active Crops Management */}
           <div className="lg:col-span-2 space-y-6">
             <div className="flex items-center justify-between">
               <h2 className="text-2xl font-bold text-slate-800">सक्रिय पीक चक्र (Active Crops)</h2>
