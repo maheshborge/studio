@@ -15,7 +15,11 @@ import {
   CheckCircle2,
   Lightbulb,
   Sparkles,
-  Loader2
+  Loader2,
+  Share2,
+  Facebook,
+  Twitter,
+  Send
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -28,9 +32,14 @@ export default function ContentDetailPage({ params }: { params: Promise<{ id: st
   const [isLoading, setIsLoading] = useState(true);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [adviceData, setAdviceData] = useState<{advice: string, keyPoints: string[]} | null>(null);
+  const [currentUrl, setCurrentUrl] = useState("");
   const { toast } = useToast();
 
   useEffect(() => {
+    if (typeof window !== "undefined") {
+      setCurrentUrl(window.location.href);
+    }
+    
     async function fetchData() {
       setIsLoading(true);
       const result = await getArticleById(id);
@@ -69,6 +78,20 @@ export default function ContentDetailPage({ params }: { params: Promise<{ id: st
     }
   };
 
+  const shareOnWhatsApp = () => {
+    const text = `${data.title}\n\nयेथे वाचा: ${currentUrl}`;
+    window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`, '_blank');
+  };
+
+  const shareOnFacebook = () => {
+    window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(currentUrl)}`, '_blank');
+  };
+
+  const shareOnTwitter = () => {
+    const text = `${data.title}`;
+    window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(currentUrl)}`, '_blank');
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-white">
@@ -100,9 +123,23 @@ export default function ContentDetailPage({ params }: { params: Promise<{ id: st
       <Navigation />
       
       <main className="container mx-auto px-4 py-8">
-        <Link href="/" className="inline-flex items-center text-sm font-medium text-primary hover:underline mb-8">
-          <ChevronLeft className="w-4 h-4 mr-1" /> मागे वळा
-        </Link>
+        <div className="flex justify-between items-center mb-8">
+          <Link href="/" className="inline-flex items-center text-sm font-medium text-primary hover:underline">
+            <ChevronLeft className="w-4 h-4 mr-1" /> मागे वळा
+          </Link>
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-bold text-slate-400 uppercase hidden sm:inline">शेअर करा:</span>
+            <Button onClick={shareOnWhatsApp} size="icon" variant="outline" className="rounded-full w-9 h-9 border-green-200 text-green-600 hover:bg-green-50 hover:text-green-700">
+              <Send className="w-4 h-4" />
+            </Button>
+            <Button onClick={shareOnFacebook} size="icon" variant="outline" className="rounded-full w-9 h-9 border-blue-200 text-blue-600 hover:bg-blue-50 hover:text-blue-700">
+              <Facebook className="w-4 h-4" />
+            </Button>
+            <Button onClick={shareOnTwitter} size="icon" variant="outline" className="rounded-full w-9 h-9 border-slate-200 text-slate-600 hover:bg-slate-50 hover:text-slate-900">
+              <Twitter className="w-4 h-4" />
+            </Button>
+          </div>
+        </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
           <article className="lg:col-span-8">
@@ -146,7 +183,22 @@ export default function ContentDetailPage({ params }: { params: Promise<{ id: st
               ))}
             </div>
 
-            <div className="mt-12 p-8 bg-blue-50 rounded-[2.5rem] border border-blue-100 flex flex-col md:flex-row items-center gap-6">
+            <div className="mt-12 flex flex-col sm:flex-row gap-6 p-8 bg-slate-50 rounded-[2.5rem] border border-slate-100 items-center justify-between">
+               <div>
+                 <h4 className="font-bold text-primary mb-2">तुम्हाला ही माहिती आवडली का?</h4>
+                 <p className="text-sm text-slate-600">इतर शेतकरी मित्रांसोबत ही माहिती शेअर करा.</p>
+               </div>
+               <div className="flex gap-4">
+                  <Button onClick={shareOnWhatsApp} className="rounded-xl bg-green-600 hover:bg-green-700 gap-2 font-bold px-6">
+                    <Send className="w-4 h-4 rotate-45" /> WhatsApp
+                  </Button>
+                  <Button onClick={shareOnFacebook} variant="outline" className="rounded-xl border-blue-200 text-blue-600 gap-2 font-bold px-6">
+                    <Facebook className="w-4 h-4" /> Facebook
+                  </Button>
+               </div>
+            </div>
+
+            <div className="mt-8 p-8 bg-blue-50 rounded-[2.5rem] border border-blue-100 flex flex-col md:flex-row items-center gap-6">
                <div className="flex-1">
                  <h4 className="font-bold text-primary mb-2">मूळ स्रोत</h4>
                  <p className="text-sm text-slate-600 mb-4">ही माहिती mazisheti.org वरून घेण्यात आली आहे.</p>
