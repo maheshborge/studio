@@ -1,4 +1,3 @@
-
 import { Navigation } from "@/components/navigation";
 import { ContentCard } from "@/components/content-card";
 import { Button } from "@/components/ui/button";
@@ -29,7 +28,7 @@ const featuredContent = [
   },
   {
     id: "3",
-    title: "Mazi Link Exclusive: Interview with Elder Kalume",
+    title: "MaziSheti Exclusive: Interview with Elder Kalume",
     excerpt: "A deep dive into the oral history of the region through the lens of one of our most respected community elders.",
     imageUrl: PlaceHolderImages.find(img => img.id === 'video-1')?.imageUrl || "https://picsum.photos/seed/video1/600/400",
     category: "Interview",
@@ -181,7 +180,7 @@ export default function Home() {
             <div className="md:col-span-2">
               <Link href="/" className="flex items-center space-x-2 mb-6">
                 <Globe className="w-8 h-8 text-primary" />
-                <span className="font-headline font-bold text-2xl text-primary">MaziLink</span>
+                <span className="font-headline font-bold text-2xl text-primary">MaziSheti</span>
               </Link>
               <p className="text-muted-foreground max-w-sm leading-relaxed">
                 Empowering the Mazisheti community through information technology, AI, and connectivity. Aggregating culture and news for the next generation.
@@ -205,7 +204,7 @@ export default function Home() {
             </div>
           </div>
           <div className="pt-8 border-t flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-muted-foreground">
-            <p>© 2024 MaziLink App. All rights reserved.</p>
+            <p>© 2024 MaziSheti App. All rights reserved.</p>
             <div className="flex gap-8">
               <Link href="/privacy" className="hover:text-primary">Privacy Policy</Link>
               <Link href="/terms" className="hover:text-primary">Terms of Service</Link>

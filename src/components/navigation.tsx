@@ -1,4 +1,3 @@
-
 "use client";
 
 import Link from "next/link";
@@ -38,7 +37,7 @@ export function Navigation() {
               <Globe className="w-6 h-6" />
             </div>
             <span className="font-headline font-bold text-xl text-primary hidden sm:inline-block">
-              MaziLink
+              MaziSheti
             </span>
           </Link>
         </div>

@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState } from "react";
@@ -18,7 +17,7 @@ export default function LoginPage() {
         <div className="w-12 h-12 bg-primary rounded-2xl flex items-center justify-center text-white shadow-lg">
           <Globe className="w-7 h-7" />
         </div>
-        <span className="font-headline font-bold text-3xl text-primary">MaziLink</span>
+        <span className="font-headline font-bold text-3xl text-primary">MaziSheti</span>
       </Link>
 
       <Card className="w-full max-w-md border-none shadow-2xl rounded-[2.5rem] p-8 md:p-12 bg-white relative overflow-hidden">
@@ -122,7 +121,7 @@ export default function LoginPage() {
       </Card>
 
       <div className="mt-10 text-xs text-muted-foreground text-center max-w-xs leading-relaxed">
-        By continuing, you agree to MaziLink's <Link href="#" className="underline">Terms of Service</Link> and <Link href="#" className="underline">Privacy Policy</Link>.
+        By continuing, you agree to MaziSheti's <Link href="#" className="underline">Terms of Service</Link> and <Link href="#" className="underline">Privacy Policy</Link>.
       </div>
     </div>
   );
