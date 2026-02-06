@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState } from "react";
@@ -14,7 +13,8 @@ import {
   Search,
   ArrowRight,
   ChevronRight,
-  UserPlus
+  UserPlus,
+  TrendingUp
 } from "lucide-react";
 import Link from "next/link";
 import { Card, CardContent } from "@/components/ui/card";
@@ -86,9 +86,14 @@ export default function Home() {
                   शेतकरी नोंदणी <UserPlus className="ml-2 w-5 h-5" />
                 </Button>
               </Link>
-              <Link href="/marketplace">
+              <Link href="/buyer/register">
                 <Button size="lg" variant="outline" className="border-white text-white hover:bg-white/10 font-bold rounded-2xl h-14 px-8 text-lg w-full sm:w-auto">
-                  बाजारपेठ पहा <ShoppingBag className="ml-2 w-5 h-5" />
+                  खरेदीदार नोंदणी <ShoppingBag className="ml-2 w-5 h-5" />
+                </Button>
+              </Link>
+              <Link href="/marketplace" className="hidden md:block">
+                <Button size="lg" variant="ghost" className="text-white hover:bg-white/10 font-bold rounded-2xl h-14 px-8 text-lg">
+                  बाजारपेठ पहा <TrendingUp className="ml-2 w-5 h-5" />
                 </Button>
               </Link>
             </div>
@@ -164,11 +169,18 @@ export default function Home() {
               <FeatureItem text="कुटुंबाची व स्थलांतराची माहिती साठवा" />
               <FeatureItem text="बाजारपेठेत स्वतःचे पीक विका" />
             </ul>
-            <Link href="/login" className="inline-block mt-4">
-              <Button className="bg-primary px-8 h-14 rounded-2xl font-bold text-lg shadow-lg shadow-primary/20">
-                लॉगिन / नवीन नोंदणी <ArrowRight className="ml-2" />
-              </Button>
-            </Link>
+            <div className="flex flex-wrap gap-4 mt-4">
+              <Link href="/login">
+                <Button className="bg-primary px-8 h-14 rounded-2xl font-bold text-lg shadow-lg shadow-primary/20">
+                  लॉगिन / नवीन नोंदणी <ArrowRight className="ml-2" />
+                </Button>
+              </Link>
+              <Link href="/buyer/register">
+                <Button variant="outline" className="border-primary text-primary px-8 h-14 rounded-2xl font-bold text-lg">
+                  खरेदीदार नोंदणी
+                </Button>
+              </Link>
+            </div>
           </div>
           <div className="flex-1 relative aspect-square w-full max-w-md">
             <div className="absolute inset-0 bg-blue-100 rounded-[3rem] rotate-3" />
