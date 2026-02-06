@@ -13,17 +13,27 @@ service cloud.firestore {
       allow read, list: if isSignedIn();
     }
 
-    // २. युजर प्रोफाईल आणि पिके: फक्त स्वतःचा डेटा बदलण्याची परवानगी
+    // २. कलेक्शन ग्रुप (Collection Group) नियम - अत्यंत महत्त्वाचे
+    // डॅशबोर्डवर सर्व पिकांची आणि प्रोफाईल्सची माहिती एकत्रित पाहण्यासाठी हे आवश्यक आहे
+    match /{path=**}/profile/{profileDoc} {
+      allow read, list: if isSignedIn();
+    }
+    
+    match /{path=**}/cropCycles/{cropId} {
+      allow read, list: if isSignedIn();
+    }
+
+    // ३. युजर प्रोफाईल आणि पिके: फक्त स्वतःचा डेटा बदलण्याची परवानगी
     match /users/{userId}/{allSubPaths=**} {
       allow write: if isSignedIn() && request.auth.uid == userId;
     }
 
-    // ३. खरेदी (Transactions): सर्व लॉगिन युजर्सना खरेदी करण्याची परवानगी
+    // ४. खरेदी (Transactions): सर्व लॉगिन युजर्सना खरेदी करण्याची परवानगी
     match /transactions/{txnId} {
-      allow write: if isSignedIn();
+      allow read, list, write: if isSignedIn();
     }
 
-    // ४. सार्वजनिक माहिती (उदा. बातम्या किंवा प्रश्न)
+    // ५. सार्वजनिक माहिती (उदा. बातम्या किंवा प्रश्न)
     match /questions/{questionId} {
       allow read, list: if true;
       allow write: if isSignedIn();
