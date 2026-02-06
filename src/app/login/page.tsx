@@ -3,7 +3,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Globe, ChevronRight, Mail, Lock, User as UserIcon, Loader2, Phone, ShieldCheck } from "lucide-react";
+import { Globe, ChevronRight, Mail, Lock, User as UserIcon, Loader2, Phone, ShieldCheck, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -47,31 +47,53 @@ export default function LoginPage() {
   const handleAuth = async () => {
     if (!auth || !db) return;
     
+    // Forgot Password Flow
+    if (isForgot) {
+      if (!email || !email.includes("@")) {
+        return toast({ 
+          variant: "destructive", 
+          title: "त्रुटी", 
+          description: "कृपया वैध ईमेल पत्ता टाका. पासवर्ड लिंक तुमच्या ईमेलवर पाठवली जाईल." 
+        });
+      }
+      setIsLoading(true);
+      try {
+        await sendPasswordResetEmail(auth, email);
+        toast({
+          title: "ईमेल पाठवला आहे",
+          description: "पासवर्ड बदलण्यासाठीची लिंक तुमच्या ईमेलवर पाठवली आहे.",
+        });
+        setIsForgot(false);
+      } catch (error: any) {
+        toast({
+          variant: "destructive",
+          title: "त्रुटी",
+          description: "ईमेल पाठवताना अडचण आली. कृपया पुन्हा तपासा.",
+        });
+      } finally {
+        setIsLoading(false);
+      }
+      return;
+    }
+
     // Validation for Sign Up
-    if (!isLogin && !isForgot) {
+    if (!isLogin) {
       if (!name) return toast({ variant: "destructive", title: "त्रुटी", description: "कृपया पूर्ण नाव टाका." });
       if (mobile.length !== 10) return toast({ variant: "destructive", title: "त्रुटी", description: "मोबाईल नंबर १० अंकी असावा." });
       if (!userType) return toast({ variant: "destructive", title: "त्रुटी", description: "कृपया तुमचा प्रकार निवडा." });
     }
 
-    if (!isForgot && password.length < 6) {
+    if (password.length < 6) {
       return toast({ variant: "destructive", title: "त्रुटी", description: "पासवर्ड किमान ६ अंकी असावा." });
     }
 
     setIsLoading(true);
     
     try {
-      // Use generated email if optional email is missing
+      // Use generated email if optional email is missing (for login/signup)
       const finalEmail = email || `${mobile}@mazisheti.local`;
 
-      if (isForgot) {
-        await sendPasswordResetEmail(auth, finalEmail);
-        toast({
-          title: "ईमेल पाठवला आहे",
-          description: "पासवर्ड बदलण्यासाठी तुमची लिंक पाठवली आहे.",
-        });
-        setIsForgot(false);
-      } else if (isLogin) {
+      if (isLogin) {
         await signInWithEmailAndPassword(auth, finalEmail, password);
         toast({ title: "लॉगिन यशस्वी!" });
         router.push("/profile");
@@ -79,7 +101,6 @@ export default function LoginPage() {
         const userCredential = await createUserWithEmailAndPassword(auth, finalEmail, password);
         const user = userCredential.user;
         
-        // Save profile info to Firestore
         await setDoc(doc(db, "users", user.uid, "profile", "main"), {
           id: user.uid,
           name,
@@ -95,7 +116,7 @@ export default function LoginPage() {
     } catch (error: any) {
       let errorMessage = "काहीतरी चुकले आहे.";
       if (error.code === "auth/email-already-in-use") errorMessage = "हा मोबाईल नंबर किंवा ईमेल आधीच नोंदणीकृत आहे.";
-      if (error.code === "auth/wrong-password") errorMessage = "चुकीचा पासवर्ड.";
+      if (error.code === "auth/invalid-credential") errorMessage = "चुकीचा पासवर्ड किंवा मोबाईल नंबर.";
       if (error.code === "auth/user-not-found") errorMessage = "हे खाते सापडले नाही.";
       
       toast({
@@ -126,14 +147,31 @@ export default function LoginPage() {
           </h2>
           <p className="text-muted-foreground text-center mb-10 text-sm">
             {isForgot 
-              ? "तुमचा मोबाईल/ईमेल टाका, आम्ही पासवर्ड बदलण्याची लिंक पाठवू." 
+              ? "तुमचा ईमेल टाका, आम्ही पासवर्ड बदलण्याची लिंक पाठवू." 
               : isLogin 
                 ? "तुमच्या खात्यात प्रवेश करण्यासाठी लॉगिन करा." 
                 : "MaziSheti समुदायात सामील होण्यासाठी माहिती भरा."}
           </p>
 
           <div className="space-y-5">
-            {!isLogin && !isForgot && (
+            {isForgot && (
+              <div className="space-y-2">
+                <Label htmlFor="reset-email" className="font-bold">नोंदणीकृत ईमेल</Label>
+                <div className="relative">
+                  <Mail className="absolute left-4 top-3.5 h-5 w-5 text-slate-400" />
+                  <Input 
+                    id="reset-email" 
+                    type="email"
+                    placeholder="example@email.com" 
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="pl-12 h-12 rounded-xl border-slate-200" 
+                  />
+                </div>
+              </div>
+            )}
+
+            {!isForgot && !isLogin && (
               <>
                 <div className="space-y-2">
                   <Label htmlFor="name" className="font-bold">पूर्ण नाव <span className="text-red-500">*</span></Label>
@@ -165,76 +203,61 @@ export default function LoginPage() {
               </>
             )}
 
-            {!isForgot && isLogin ? (
-              <div className="space-y-2">
-                <Label htmlFor="login-id" className="font-bold">मोबाईल किंवा ईमेल</Label>
-                <div className="relative">
-                  <Phone className="absolute left-4 top-3.5 h-5 w-5 text-slate-400" />
-                  <Input 
-                    id="login-id" 
-                    placeholder="मोबाईल किंवा ईमेल टाका" 
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="pl-12 h-12 rounded-xl border-slate-200" 
-                  />
-                </div>
-              </div>
-            ) : (
-              <div className="space-y-2">
-                <Label htmlFor="mobile" className="font-bold">मोबाईल नंबर <span className="text-red-500">*</span></Label>
-                <div className="relative">
-                  <Phone className="absolute left-4 top-3.5 h-5 w-5 text-slate-400" />
-                  <Input 
-                    id="mobile" 
-                    type="number"
-                    placeholder="१० अंकी मोबाईल नंबर" 
-                    value={mobile}
-                    onChange={(e) => { if (e.target.value.length <= 10) setMobile(e.target.value) }}
-                    className="pl-12 h-12 rounded-xl border-slate-200" 
-                  />
-                </div>
-              </div>
-            )}
-
-            {!isLogin && !isForgot && (
-              <div className="space-y-2">
-                <Label htmlFor="email" className="font-bold text-slate-500 italic">ईमेल (पर्यायी)</Label>
-                <div className="relative">
-                  <Mail className="absolute left-4 top-3.5 h-5 w-5 text-slate-300" />
-                  <Input 
-                    id="email" 
-                    type="email" 
-                    placeholder="email@example.com" 
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="pl-12 h-12 rounded-xl border-slate-100" 
-                  />
-                </div>
-              </div>
-            )}
-
             {!isForgot && (
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="password">{isLogin ? "पासवर्ड" : "पासवर्ड सेट करा"} <span className="text-red-500">*</span></Label>
-                  {isLogin && (
-                    <button onClick={() => setIsForgot(true)} className="text-xs text-primary font-bold hover:underline">
-                      विसरलात?
-                    </button>
-                  )}
+              <>
+                <div className="space-y-2">
+                  <Label htmlFor="login-id" className="font-bold">{isLogin ? "मोबाईल किंवा ईमेल" : "मोबाईल नंबर"}</Label>
+                  <div className="relative">
+                    {isLogin ? <UserIcon className="absolute left-4 top-3.5 h-5 w-5 text-slate-400" /> : <Phone className="absolute left-4 top-3.5 h-5 w-5 text-slate-400" />}
+                    <Input 
+                      id="login-id" 
+                      placeholder={isLogin ? "मोबाईल किंवा ईमेल टाका" : "१० अंकी मोबाईल नंबर"} 
+                      value={isLogin ? email : mobile}
+                      onChange={(e) => isLogin ? setEmail(e.target.value) : setMobile(e.target.value)}
+                      className="pl-12 h-12 rounded-xl border-slate-200" 
+                    />
+                  </div>
                 </div>
-                <div className="relative">
-                  <Lock className="absolute left-4 top-3.5 h-5 w-5 text-slate-400" />
-                  <Input 
-                    id="password" 
-                    type="password" 
-                    placeholder="किमान ६ अंकी" 
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="pl-12 h-12 rounded-xl border-slate-200" 
-                  />
+
+                {!isLogin && (
+                  <div className="space-y-2">
+                    <Label htmlFor="reg-email" className="font-bold text-slate-500 italic">ईमेल (पासवर्ड विसरल्यास उपयोगाचा)</Label>
+                    <div className="relative">
+                      <Mail className="absolute left-4 top-3.5 h-5 w-5 text-slate-300" />
+                      <Input 
+                        id="reg-email" 
+                        type="email" 
+                        placeholder="email@example.com" 
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        className="pl-12 h-12 rounded-xl border-slate-100" 
+                      />
+                    </div>
+                  </div>
+                )}
+
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="password">{isLogin ? "पासवर्ड" : "पासवर्ड सेट करा"} <span className="text-red-500">*</span></Label>
+                    {isLogin && (
+                      <button onClick={() => setIsForgot(true)} className="text-xs text-primary font-bold hover:underline">
+                        विसरलात?
+                      </button>
+                    )}
+                  </div>
+                  <div className="relative">
+                    <Lock className="absolute left-4 top-3.5 h-5 w-5 text-slate-400" />
+                    <Input 
+                      id="password" 
+                      type="password" 
+                      placeholder="किमान ६ अंकी" 
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      className="pl-12 h-12 rounded-xl border-slate-200" 
+                    />
+                  </div>
                 </div>
-              </div>
+              </>
             )}
 
             <Button 
@@ -249,8 +272,8 @@ export default function LoginPage() {
 
           <div className="mt-8 text-center text-sm">
             {isForgot ? (
-              <button onClick={() => setIsForgot(false)} className="text-primary font-bold hover:underline">
-                मागे वळा
+              <button onClick={() => setIsForgot(false)} className="text-primary font-bold hover:underline flex items-center justify-center gap-2 mx-auto">
+                <ArrowLeft className="w-4 h-4" /> लॉगिनकडे वळा
               </button>
             ) : (
               <div className="p-4 bg-slate-50 rounded-2xl border border-dashed border-slate-200">

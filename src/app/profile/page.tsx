@@ -20,16 +20,19 @@ import {
   Users,
   Plus,
   TrendingUp,
-  Truck
+  Truck,
+  LogOut
 } from "lucide-react";
-import { useFirestore, useUser, useDoc, useMemoFirebase, useCollection } from "@/firebase";
+import { useFirestore, useUser, useDoc, useMemoFirebase, useCollection, useAuth } from "@/firebase";
 import { doc, collection, updateDoc } from "firebase/firestore";
+import { signOut } from "firebase/auth";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useToast } from "@/hooks/use-toast";
 
 export default function ProfilePage() {
   const { user, isUserLoading } = useUser();
+  const auth = useAuth();
   const db = useFirestore();
   const router = useRouter();
   const { toast } = useToast();
@@ -64,6 +67,16 @@ export default function ProfilePage() {
   const { data: buyerData } = useDoc(buyerRef);
   const { data: transporterData } = useDoc(transporterRef);
   const { data: cropCycles, isLoading: isCropsLoading } = useCollection(cropsQuery);
+
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+      toast({ title: "लॉग आऊट यशस्वी", description: "तुम्ही तुमच्या खात्यातून बाहेर पडला आहात." });
+      router.push("/");
+    } catch (error) {
+      toast({ variant: "destructive", title: "त्रुटी", description: "बाहेर पडताना अडचण आली." });
+    }
+  };
 
   if (isUserLoading) return <div className="min-h-screen flex items-center justify-center"><Loader2 className="animate-spin text-primary w-12 h-12" /></div>;
   if (!user) { router.push("/login"); return null; }
@@ -195,6 +208,16 @@ export default function ProfilePage() {
                     <p className="font-bold">{displayDistrict || "नोंदणी नाही"}</p>
                   </div>
                 </div>
+              </div>
+              
+              <div className="mt-8 pt-6 border-t">
+                <Button 
+                  onClick={handleLogout}
+                  variant="outline" 
+                  className="w-full rounded-xl border-red-200 text-red-600 hover:bg-red-50 gap-2 font-bold h-12"
+                >
+                  <LogOut className="w-4 h-4" /> लॉग आऊट
+                </Button>
               </div>
             </Card>
           </div>
