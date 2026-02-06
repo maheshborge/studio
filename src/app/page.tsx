@@ -9,13 +9,13 @@ import {
   FileText, 
   CloudSun, 
   Newspaper, 
-  CalendarDays, 
   ShoppingBag,
   Search,
   ArrowRight,
   ChevronRight,
   TrendingUp,
-  LogIn
+  LogIn,
+  Globe
 } from "lucide-react";
 import Link from "next/link";
 import { Card } from "@/components/ui/card";
@@ -23,23 +23,16 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { ContentCard } from "@/components/content-card";
 import { cn } from "@/lib/utils";
+import { PlaceHolderImages } from "@/lib/placeholder-images";
 
 const KNOWLEDGE_CATEGORIES = [
-  { id: "all", name: "सर्व", icon: GlobeAltIcon, color: "bg-slate-500", desc: "सर्व माहिती" },
+  { id: "all", name: "सर्व", icon: Globe, color: "bg-slate-500", desc: "सर्व माहिती" },
   { id: "advice", name: "शेती सल्ला", icon: Sprout, color: "bg-green-500", desc: "तज्ज्ञांचे मार्गदर्शन" },
   { id: "schemes", name: "शासकीय योजना", icon: FileText, color: "bg-blue-500", desc: "अनुदान व लाभ" },
   { id: "weather", name: "हवामान अंदाज", icon: CloudSun, color: "bg-orange-500", desc: "पाऊस व तापमान" },
   { id: "news", name: "बातम्या", icon: Newspaper, color: "bg-purple-500", desc: "ताज्या घडामोडी" },
   { id: "market", name: "बाजारपेठ", icon: ShoppingBag, color: "bg-amber-500", desc: "खरेदी व विक्री" },
 ];
-
-function GlobeAltIcon(props: any) {
-  return (
-    <svg {...props} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-      <path strokeLinecap="round" strokeLinejoin="round" d="M12 21a9.004 9.004 0 0 0 8.716-6.747M12 21a9.004 9.004 0 0 1-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9s2.015-9 4.5-9m0 0a9.015 9.015 0 0 1 8.716 2.253M12 3a9.015 9.015 0 0 0-8.716 2.253m0 0A9.015 9.015 0 0 1 12 3m0 0c2.485 0 4.5 4.03 4.5 9s-2.015 9-4.5 9" />
-    </svg>
-  );
-}
 
 const MOCK_FEED = [
   {
@@ -90,6 +83,16 @@ const MOCK_FEED = [
     category: "शासकीय योजना",
     categoryKey: "schemes",
     date: "११ मे २०२४",
+    type: "article" as const
+  },
+  {
+    id: "6",
+    title: "माती परीक्षण: यशस्वी शेतीची पहिली पायरी",
+    excerpt: "तुमच्या शेतातील मातीचे परीक्षण करून खतांचे नियोजन कसे करावे, याबद्दल सविस्तर माहिती...",
+    imageUrl: "https://picsum.photos/seed/advice2/600/400",
+    category: "शेती सल्ला",
+    categoryKey: "advice",
+    date: "१० मे २०२४",
     type: "article" as const
   }
 ];
@@ -222,40 +225,6 @@ export default function Home() {
             आणखी माहिती पहा <ChevronRight className="ml-2 w-6 h-6" />
           </Button>
         </div>
-
-        {/* Features teaser */}
-        <section className="mt-32 bg-white rounded-[3.5rem] p-10 md:p-16 shadow-2xl border border-slate-50 flex flex-col lg:flex-row items-center gap-16 relative overflow-hidden">
-          <div className="absolute top-0 left-0 w-24 h-24 bg-primary/5 rounded-full -ml-12 -mt-12" />
-          <div className="flex-1 space-y-8 relative z-10">
-            <h2 className="text-4xl md:text-5xl font-headline font-bold text-slate-800 leading-tight">वैयक्तिक शेती व्यवस्थापन सुरू करा</h2>
-            <p className="text-xl text-slate-600 leading-relaxed">
-              मिडास सोबत तुम्ही तुमच्या पिकांची नोंदणी करू शकता, खर्चाचा हिशोब ठेवू शकता आणि थेट तज्ज्ञांना प्रश्न विचारू शकता.
-            </p>
-            <ul className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-              <FeatureItem text="पिकनिहाय प्रगती ट्रॅक करा" />
-              <FeatureItem text="बाजारपेठेत स्वतःचे पीक विका" />
-              <FeatureItem text="खरेदीदार व ट्रान्सपोर्टरशी जोडा" />
-              <FeatureItem text="AI तज्ज्ञ सल्ला मिळवा" />
-            </ul>
-            <div className="pt-6">
-              <Link href="/login">
-                <Button className="bg-primary px-10 h-16 rounded-2xl font-bold text-xl shadow-2xl shadow-primary/30 transition-all hover:scale-105">
-                  लॉगिन / नवीन नोंदणी <ArrowRight className="ml-2" />
-                </Button>
-              </Link>
-            </div>
-          </div>
-          <div className="flex-1 relative aspect-square w-full max-w-lg">
-            <div className="absolute inset-0 bg-blue-50 rounded-[3rem] rotate-3 scale-105" />
-            <div className="absolute inset-0 bg-primary rounded-[3.5rem] -rotate-3 overflow-hidden shadow-2xl ring-8 ring-white">
-              <img 
-                src="https://picsum.photos/seed/farmer_app_v2/1000/1000" 
-                alt="Farmer using app" 
-                className="object-cover w-full h-full opacity-90 transition-transform duration-700 hover:scale-110"
-              />
-            </div>
-          </div>
-        </section>
       </main>
 
       <footer className="bg-slate-900 text-slate-400 py-20 mt-10">
@@ -279,16 +248,5 @@ export default function Home() {
         </div>
       </footer>
     </div>
-  );
-}
-
-function FeatureItem({ text }: { text: string }) {
-  return (
-    <li className="flex items-center gap-4 font-bold text-slate-700 text-lg">
-      <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center text-green-600 shrink-0">
-        <ChevronRight className="w-5 h-5" />
-      </div>
-      {text}
-    </li>
   );
 }

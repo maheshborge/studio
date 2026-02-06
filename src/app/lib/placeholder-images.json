@@ -2,34 +2,40 @@
 {
   "placeholderImages": [
     {
-      "id": "hero-bg",
-      "description": "African landscape community gathering",
-      "imageUrl": "https://picsum.photos/seed/mazi1/1200/600",
-      "imageHint": "African culture community"
+      "id": "advice-mango",
+      "description": "Mango crop disease care",
+      "imageUrl": "https://picsum.photos/seed/advice1/600/400",
+      "imageHint": "Mango tree agriculture"
     },
     {
-      "id": "culture-1",
-      "description": "Giriama dance traditional",
-      "imageUrl": "https://picsum.photos/seed/mazi2/600/400",
-      "imageHint": "Traditional dance"
+      "id": "scheme-tractor",
+      "description": "Government tractor subsidy",
+      "imageUrl": "https://picsum.photos/seed/scheme1/600/400",
+      "imageHint": "Tractor farming"
     },
     {
-      "id": "news-1",
-      "description": "Community news meeting",
-      "imageUrl": "https://picsum.photos/seed/mazi3/600/400",
-      "imageHint": "Community meeting"
+      "id": "weather-rain",
+      "description": "Rain forecast for coastal region",
+      "imageUrl": "https://picsum.photos/seed/weather1/600/400",
+      "imageHint": "Rainy weather field"
     },
     {
-      "id": "video-1",
-      "description": "Interview session",
-      "imageUrl": "https://picsum.photos/seed/mazi4/600/400",
-      "imageHint": "Interview video"
+      "id": "market-cotton",
+      "description": "Cotton market price update",
+      "imageUrl": "https://picsum.photos/seed/market1/600/400",
+      "imageHint": "Cotton harvest"
     },
     {
-      "id": "profile-avatar",
-      "description": "User profile avatar",
-      "imageUrl": "https://picsum.photos/seed/avatar1/150/150",
-      "imageHint": "User portrait"
+      "id": "scheme-drip",
+      "description": "Drip irrigation subsidy",
+      "imageUrl": "https://picsum.photos/seed/scheme2/600/400",
+      "imageHint": "Drip irrigation system"
+    },
+    {
+      "id": "advice-soil",
+      "description": "Soil testing importance",
+      "imageUrl": "https://picsum.photos/seed/advice2/600/400",
+      "imageHint": "Soil testing lab"
     }
   ]
 }
