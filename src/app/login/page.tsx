@@ -1,15 +1,65 @@
+
 "use client";
 
 import { useState } from "react";
 import Link from "next/link";
-import { Globe, ChevronRight, Mail, Lock, User } from "lucide-react";
+import { Globe, ChevronRight, Mail, Lock, User as UserIcon, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
+import { useAuth } from "@/firebase";
+import { 
+  signInWithEmailAndPassword, 
+  createUserWithEmailAndPassword, 
+  sendPasswordResetEmail 
+} from "firebase/auth";
+import { useToast } from "@/hooks/use-toast";
+import { useRouter } from "next/navigation";
 
 export default function LoginPage() {
   const [isLogin, setIsLogin] = useState(true);
+  const [isForgot, setIsForgot] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [name, setName] = useState("");
+  
+  const auth = useAuth();
+  const { toast } = useToast();
+  const router = useRouter();
+
+  const handleAuth = async () => {
+    if (!auth || !email) return;
+    setIsLoading(true);
+    
+    try {
+      if (isForgot) {
+        await sendPasswordResetEmail(auth, email);
+        toast({
+          title: "ईमेल पाठवला आहे",
+          description: "तुमचा पासवर्ड बदलण्यासाठी ईमेल तपासा.",
+        });
+        setIsForgot(false);
+      } else if (isLogin) {
+        await signInWithEmailAndPassword(auth, email, password);
+        toast({ title: "लॉगिन यशस्वी!" });
+        router.push("/profile");
+      } else {
+        await createUserWithEmailAndPassword(auth, email, password);
+        toast({ title: "नोंदणी यशस्वी!", description: "कृपया तुमची प्रोफाईल पूर्ण करा." });
+        router.push("/profile");
+      }
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "त्रुटी",
+        description: error.message || "काहीतरी चुकले आहे.",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4">
@@ -26,23 +76,27 @@ export default function LoginPage() {
         
         <div className="relative z-10">
           <h2 className="text-3xl font-headline font-bold text-primary mb-2 text-center">
-            {isLogin ? "Welcome Back" : "Create Account"}
+            {isForgot ? "पासवर्ड विसरलात?" : isLogin ? "स्वागत आहे" : "नवीन खाते तयार करा"}
           </h2>
           <p className="text-muted-foreground text-center mb-10">
-            {isLogin 
-              ? "Sign in to access aggregated Mazisheti content." 
-              : "Join our community hub for insights and news."}
+            {isForgot 
+              ? "तुमचा ईमेल टाका, आम्ही पासवर्ड बदलण्याची लिंक पाठवू." 
+              : isLogin 
+                ? "तुमच्या खात्यात प्रवेश करण्यासाठी लॉगिन करा." 
+                : "MaziSheti समुदायात सामील व्हा."}
           </p>
 
           <div className="space-y-6">
-            {!isLogin && (
+            {!isLogin && !isForgot && (
               <div className="space-y-2">
-                <Label htmlFor="name">Full Name</Label>
+                <Label htmlFor="name">पूर्ण नाव</Label>
                 <div className="relative">
-                  <User className="absolute left-4 top-3.5 h-5 w-5 text-muted-foreground" />
+                  <UserIcon className="absolute left-4 top-3.5 h-5 w-5 text-muted-foreground" />
                   <Input 
                     id="name" 
-                    placeholder="John Doe" 
+                    placeholder="उदा. राहुल पाटील" 
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
                     className="pl-12 h-12 rounded-xl border-muted focus:ring-primary" 
                   />
                 </div>
@@ -50,78 +104,81 @@ export default function LoginPage() {
             )}
             
             <div className="space-y-2">
-              <Label htmlFor="email">Email Address</Label>
+              <Label htmlFor="email">ईमेल पत्ता</Label>
               <div className="relative">
                 <Mail className="absolute left-4 top-3.5 h-5 w-5 text-muted-foreground" />
                 <Input 
                   id="email" 
                   type="email" 
                   placeholder="name@example.com" 
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                   className="pl-12 h-12 rounded-xl border-muted focus:ring-primary" 
                 />
               </div>
             </div>
 
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <Label htmlFor="password">Password</Label>
-                {isLogin && (
-                  <Link href="#" className="text-xs text-primary hover:underline">
-                    Forgot Password?
-                  </Link>
-                )}
+            {!isForgot && (
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="password">पासवर्ड</Label>
+                  {isLogin && (
+                    <button 
+                      onClick={() => setIsForgot(true)}
+                      className="text-xs text-primary hover:underline"
+                    >
+                      पासवर्ड विसरलात?
+                    </button>
+                  )}
+                </div>
+                <div className="relative">
+                  <Lock className="absolute left-4 top-3.5 h-5 w-5 text-muted-foreground" />
+                  <Input 
+                    id="password" 
+                    type="password" 
+                    placeholder="••••••••" 
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="pl-12 h-12 rounded-xl border-muted focus:ring-primary" 
+                  />
+                </div>
               </div>
-              <div className="relative">
-                <Lock className="absolute left-4 top-3.5 h-5 w-5 text-muted-foreground" />
-                <Input 
-                  id="password" 
-                  type="password" 
-                  placeholder="••••••••" 
-                  className="pl-12 h-12 rounded-xl border-muted focus:ring-primary" 
-                />
-              </div>
-            </div>
+            )}
 
-            <Button className="w-full h-14 bg-primary hover:bg-primary/90 text-white rounded-xl font-bold text-lg mt-4 shadow-lg shadow-primary/20 group">
-              {isLogin ? "Sign In" : "Register Now"}
-              <ChevronRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
+            <Button 
+              onClick={handleAuth}
+              disabled={isLoading}
+              className="w-full h-14 bg-primary hover:bg-primary/90 text-white rounded-xl font-bold text-lg mt-4 shadow-lg shadow-primary/20 group"
+            >
+              {isLoading ? <Loader2 className="animate-spin" /> : isForgot ? "लिंक पाठवा" : isLogin ? "लॉगिन करा" : "नोंदणी करा"}
+              {!isLoading && <ChevronRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />}
             </Button>
-
-            <div className="relative py-4">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-muted" />
-              </div>
-              <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-white px-4 text-muted-foreground">Or continue with</span>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-               <Button variant="outline" className="h-12 rounded-xl border-muted hover:bg-muted/10 font-medium">
-                  Google
-               </Button>
-               <Button variant="outline" className="h-12 rounded-xl border-muted hover:bg-muted/10 font-medium">
-                  Facebook
-               </Button>
-            </div>
           </div>
 
           <div className="mt-10 text-center text-sm">
-            <span className="text-muted-foreground">
-              {isLogin ? "Don't have an account?" : "Already have an account?"}
-            </span>{" "}
-            <button 
-              onClick={() => setIsLogin(!isLogin)}
-              className="text-primary font-bold hover:underline"
-            >
-              {isLogin ? "Register here" : "Sign in here"}
-            </button>
+            {isForgot ? (
+              <button onClick={() => setIsForgot(false)} className="text-primary font-bold hover:underline">
+                मागे वळा
+              </button>
+            ) : (
+              <>
+                <span className="text-muted-foreground">
+                  {isLogin ? "खाते नाहीये?" : "आधीच खाते आहे?"}
+                </span>{" "}
+                <button 
+                  onClick={() => setIsLogin(!isLogin)}
+                  className="text-primary font-bold hover:underline"
+                >
+                  {isLogin ? "येथे नोंदणी करा" : "येथे लॉगिन करा"}
+                </button>
+              </>
+            )}
           </div>
         </div>
       </Card>
 
       <div className="mt-10 text-xs text-muted-foreground text-center max-w-xs leading-relaxed">
-        By continuing, you agree to MaziSheti's <Link href="#" className="underline">Terms of Service</Link> and <Link href="#" className="underline">Privacy Policy</Link>.
+        पुढे चालू ठेवून, तुम्ही MaziSheti च्या <Link href="#" className="underline">अटी आणि शर्तींशी</Link> सहमत आहात.
       </div>
     </div>
   );
