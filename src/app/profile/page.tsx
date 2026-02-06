@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect } from "react";
@@ -111,6 +110,8 @@ export default function ProfilePage() {
   const handleNext = () => setCurrentStep(prev => Math.min(prev + 1, steps.length));
   const handlePrev = () => setCurrentStep(prev => Math.max(prev - 1, 1));
 
+  const CurrentStepIcon = steps[currentStep - 1].icon;
+
   return (
     <div className="min-h-screen bg-slate-50">
       <Navigation />
@@ -152,7 +153,7 @@ export default function ProfilePage() {
                 <p className="text-blue-100 mt-2">कृपया अचूक माहिती भरा आणि साठवा.</p>
               </div>
               <div className="hidden md:block">
-                <steps.0.icon className="w-16 h-16 opacity-20" />
+                <CurrentStepIcon className="w-16 h-16 opacity-20" />
               </div>
             </div>
             
