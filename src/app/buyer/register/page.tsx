@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Navigation } from "@/components/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
@@ -15,13 +15,13 @@ import {
   ShoppingBag,
   IdCard,
   FileText,
-  CheckCircle2,
-  ChevronRight,
-  ArrowRight
+  Building2,
+  ArrowRight,
+  Loader2
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
-import { useFirestore, useUser } from "@/firebase";
+import { useFirestore, useUser, useDoc, useMemoFirebase } from "@/firebase";
 import { doc, setDoc } from "firebase/firestore";
 
 const BUYER_CATEGORIES = [
@@ -55,18 +55,44 @@ const PURCHASE_TYPES = [
 ];
 
 export default function BuyerRegistrationPage() {
-  const [formData, setFormData] = useState({
-    name: "", address: "", contactNumber: "", 
-    recommendationName: "", recommendationContact: "",
-    category: "", idType: "", idNumber: "",
-    licenseType: "", licenseNumber: "",
-    purchaseTypes: [] as string[]
-  });
-  
+  const { user, isUserLoading } = useUser();
+  const db = useFirestore();
   const { toast } = useToast();
   const router = useRouter();
-  const db = useFirestore();
-  const { user } = useUser();
+
+  // Fetch logged-in user's profile to pre-fill contact info
+  const profileRef = useMemoFirebase(() => {
+    if (!db || !user) return null;
+    return doc(db, "users", user.uid, "profile", "main");
+  }, [db, user]);
+
+  const { data: profile, isLoading: isProfileLoading } = useDoc(profileRef);
+
+  const [formData, setFormData] = useState({
+    orgName: "",
+    contactName: "",
+    contactNumber: "",
+    address: "",
+    recommendationName: "",
+    recommendationContact: "",
+    category: "",
+    idType: "",
+    idNumber: "",
+    licenseType: "",
+    licenseNumber: "",
+    purchaseTypes: [] as string[]
+  });
+
+  // Effect to pre-fill contact info once profile is loaded
+  useEffect(() => {
+    if (profile) {
+      setFormData(prev => ({
+        ...prev,
+        contactName: profile.name || "",
+        contactNumber: profile.mobile || ""
+      }));
+    }
+  }, [profile]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { id, value } = e.target;
@@ -85,36 +111,36 @@ export default function BuyerRegistrationPage() {
   };
 
   const handleSubmit = async () => {
-    if (!db) return;
+    if (!db || !user) return;
     
-    if (formData.contactNumber.length !== 10) {
-      toast({ variant: "destructive", title: "त्रुटी", description: "मोबाईल नंबर १० अंकी असणे आवश्यक आहे." });
+    if (!formData.orgName) {
+      toast({ variant: "destructive", title: "त्रुटी", description: "संस्था/कंपनीचे नाव आवश्यक आहे." });
       return;
     }
 
     try {
-      const buyerId = crypto.randomUUID();
-      const userId = user?.uid || "guest-buyer";
-      
-      await setDoc(doc(db, "users", userId, "buyers", buyerId), {
-        id: buyerId,
+      await setDoc(doc(db, "users", user.uid, "profile", "buyerData"), {
         ...formData,
-        createdAt: new Date().toISOString()
-      });
+        updatedAt: new Date().toISOString()
+      }, { merge: true });
 
       toast({
-        title: "खरेदीदार नोंदणी यशस्वी!",
-        description: "तुमची माहिती सुरक्षितपणे साठवण्यात आली आहे.",
+        title: "नोंदणी यशस्वी!",
+        description: "तुमची खरेदीदार माहिती सुरक्षितपणे साठवण्यात आली आहे.",
       });
-      router.push("/");
+      router.push("/profile");
     } catch (error) {
       toast({
         variant: "destructive",
         title: "त्रुटी",
-        description: "नोंदणी करताना अडचण आली.",
+        description: "माहिती साठवताना अडचण आली.",
       });
     }
   };
+
+  if (isUserLoading || isProfileLoading) {
+    return <div className="min-h-screen flex items-center justify-center"><Loader2 className="animate-spin text-primary w-12 h-12" /></div>;
+  }
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -127,21 +153,51 @@ export default function BuyerRegistrationPage() {
                 <h2 className="text-3xl font-bold flex items-center gap-3">
                   <ShoppingBag className="w-8 h-8" /> खरेदीदार नोंदणी
                 </h2>
-                <p className="text-blue-100 mt-2">व्यापारी, हॉटेल किंवा संस्थांसाठी नोंदणी.</p>
+                <p className="text-blue-100 mt-2">व्यापारी, हॉटेल किंवा संस्थांसाठी तपशील भरा.</p>
               </div>
             </div>
             
             <CardContent className="p-8 md:p-12 space-y-10">
-              {/* वैयक्तिक माहिती */}
+              {/* संस्था व संपर्क माहिती */}
               <div className="space-y-6">
                 <h3 className="text-xl font-bold text-primary flex items-center gap-2 border-b pb-2">
-                  <User className="w-5 h-5" /> वैयक्तिक माहिती
+                  <Building2 className="w-5 h-5" /> संस्था व संपर्क माहिती
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <Field id="name" label="खरेदीदाराचे/संस्थेचे नाव" icon={User} value={formData.name} onChange={handleInputChange} />
-                  <Field id="contactNumber" label="संपर्क क्रमांक" icon={Phone} type="number" value={formData.contactNumber} onChange={handleInputChange} />
                   <div className="md:col-span-2">
-                    <Field id="address" label="पत्ता" icon={MapPin} value={formData.address} onChange={handleInputChange} />
+                    <Field 
+                      id="orgName" 
+                      label="संस्था / आस्थापना / कंपनीचे नाव" 
+                      icon={Building2} 
+                      value={formData.orgName} 
+                      onChange={handleInputChange} 
+                      placeholder="उदा. श्री गणेश ट्रेडर्स"
+                    />
+                  </div>
+                  <Field 
+                    id="contactName" 
+                    label="संपर्क व्यक्तीचे नाव" 
+                    icon={User} 
+                    value={formData.contactName} 
+                    onChange={handleInputChange}
+                    readOnly
+                  />
+                  <Field 
+                    id="contactNumber" 
+                    label="संपर्क क्रमांक (मोबाईल)" 
+                    icon={Phone} 
+                    value={formData.contactNumber} 
+                    onChange={handleInputChange}
+                    readOnly
+                  />
+                  <div className="md:col-span-2">
+                    <Field 
+                      id="address" 
+                      label="पत्ता (पूर्ण पत्ता)" 
+                      icon={MapPin} 
+                      value={formData.address} 
+                      onChange={handleInputChange} 
+                    />
                   </div>
                 </div>
               </div>
@@ -228,7 +284,7 @@ export default function BuyerRegistrationPage() {
                 onClick={handleSubmit}
                 className="w-full bg-primary hover:bg-primary/90 rounded-2xl h-16 font-bold text-xl shadow-lg shadow-primary/20 gap-2"
               >
-                नोंदणी पूर्ण करा <ArrowRight className="w-6 h-6" />
+                माहिती साठवा <ArrowRight className="w-6 h-6" />
               </Button>
             </CardContent>
           </Card>
@@ -238,7 +294,7 @@ export default function BuyerRegistrationPage() {
   );
 }
 
-function Field({ id, label, icon: Icon, value, onChange, type = "text" }: any) {
+function Field({ id, label, icon: Icon, value, onChange, type = "text", placeholder = "", readOnly = false }: any) {
   return (
     <div className="space-y-2">
       <Label htmlFor={id} className="text-slate-700 font-bold">{label}</Label>
@@ -249,7 +305,9 @@ function Field({ id, label, icon: Icon, value, onChange, type = "text" }: any) {
           type={type}
           value={value}
           onChange={onChange}
-          className="pl-12 h-12 rounded-xl border-slate-200 focus:ring-primary bg-slate-50"
+          placeholder={placeholder}
+          readOnly={readOnly}
+          className={`pl-12 h-12 rounded-xl border-slate-200 focus:ring-primary ${readOnly ? 'bg-slate-100 cursor-not-allowed' : 'bg-slate-50'}`}
         />
       </div>
     </div>
