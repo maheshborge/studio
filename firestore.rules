@@ -2,19 +2,30 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // मदतनीस कार्य (Helper function)
+    // Helper function for Auth
     function isSignedIn() {
       return request.auth != null;
     }
 
-    // १. सर्वसाधारण नियम: लॉगिन केलेल्या युजर्सना सर्व डेटा वाचण्याची परवानगी
-    // यामुळे डॅशबोर्ड, मार्केटप्लेस आणि डेटा व्ह्यूमधील 'Permissions' एरर दूर होईल
+    // Rule for Admin access (Master access)
+    // We check the profile doc for userType == 'admin'
+    function isAdmin() {
+      return isSignedIn() && 
+        get(/databases/$(database)/documents/users/$(request.auth.uid)/profile/main).data.userType == 'admin';
+    }
+
+    // 1. GLOBAL ADMIN RULE: Admins can do everything
+    match /{document=**} {
+      allow read, write: if isAdmin();
+    }
+
+    // 2. PUBLIC/USER RULES
+    // Allow reading of any document for logged in users to avoid UI crashes
     match /{document=**} {
       allow read, list: if isSignedIn();
     }
 
-    // २. कलेक्शन ग्रुप (Collection Group) नियम - अत्यंत महत्त्वाचे
-    // डॅशबोर्डवर सर्व पिकांची आणि प्रोफाईल्सची माहिती एकत्रित पाहण्यासाठी हे आवश्यक आहे
+    // 3. COLLECTION GROUPS: Explicitly allow listing for critical data
     match /{path=**}/profile/{profileDoc} {
       allow read, list: if isSignedIn();
     }
@@ -23,17 +34,17 @@ service cloud.firestore {
       allow read, list: if isSignedIn();
     }
 
-    // ३. युजर प्रोफाईल आणि पिके: फक्त स्वतःचा डेटा बदलण्याची परवानगी
+    // 4. OWNERSHIP RULES: Users can edit their own profile/crops
     match /users/{userId}/{allSubPaths=**} {
       allow write: if isSignedIn() && request.auth.uid == userId;
     }
 
-    // ४. खरेदी (Transactions): सर्व लॉगिन युजर्सना खरेदी करण्याची परवानगी
+    // 5. TRANSACTIONS: Allow creation/read for marketplace flow
     match /transactions/{txnId} {
       allow read, list, write: if isSignedIn();
     }
 
-    // ५. सार्वजनिक माहिती (उदा. बातम्या किंवा प्रश्न)
+    // 6. PUBLIC CONTENT
     match /questions/{questionId} {
       allow read, list: if true;
       allow write: if isSignedIn();

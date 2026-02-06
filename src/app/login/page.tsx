@@ -25,7 +25,8 @@ const USER_TYPES = [
   { value: "supplier", label: "सप्लायर (Supplier)" },
   { value: "transporter", label: "ट्रान्सपोर्टर (Transporter)" },
   { value: "consultant", label: "सल्लागार (Consultant)" },
-  { value: "expert", label: "एक्सपर्ट (Expert)" }
+  { value: "expert", label: "एक्सपर्ट (Expert)" },
+  { value: "admin", label: "प्रशासक (Admin)" }
 ];
 
 export default function LoginPage() {

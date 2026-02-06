@@ -10,7 +10,7 @@
         "name": { "type": "string" },
         "mobile": { "type": "string" },
         "email": { "type": "string" },
-        "userType": { "type": "string", "enum": ["farmer", "buyer", "supplier", "transporter", "consultant", "expert"] },
+        "userType": { "type": "string", "enum": ["farmer", "buyer", "supplier", "transporter", "consultant", "expert", "admin"] },
         "createdAt": { "type": "string", "format": "date-time" }
       },
       "required": ["id", "name", "mobile", "userType"]
