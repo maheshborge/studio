@@ -1,0 +1,35 @@
+
+{
+  "placeholderImages": [
+    {
+      "id": "hero-bg",
+      "description": "African landscape community gathering",
+      "imageUrl": "https://picsum.photos/seed/mazi1/1200/600",
+      "imageHint": "African culture community"
+    },
+    {
+      "id": "culture-1",
+      "description": "Giriama dance traditional",
+      "imageUrl": "https://picsum.photos/seed/mazi2/600/400",
+      "imageHint": "Traditional dance"
+    },
+    {
+      "id": "news-1",
+      "description": "Community news meeting",
+      "imageUrl": "https://picsum.photos/seed/mazi3/600/400",
+      "imageHint": "Community meeting"
+    },
+    {
+      "id": "video-1",
+      "description": "Interview session",
+      "imageUrl": "https://picsum.photos/seed/mazi4/600/400",
+      "imageHint": "Interview video"
+    },
+    {
+      "id": "profile-avatar",
+      "description": "User profile avatar",
+      "imageUrl": "https://picsum.photos/seed/avatar1/150/150",
+      "imageHint": "User portrait"
+    }
+  ]
+}
