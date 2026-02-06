@@ -10,45 +10,37 @@ service cloud.firestore {
       return isSignedIn() && request.auth.uid == userId;
     }
 
-    // User Profile Rules
     match /users/{userId}/profile/{docId} {
       allow read: if isSignedIn();
       allow write: if isOwner(userId);
     }
     
-    // Allow collectionGroup queries for 'profile' (Admin & Dashboard)
     match /{path=**}/profile/{docId} {
       allow read: if isSignedIn();
     }
 
-    // Crop Cycles Rules
     match /users/{userId}/cropCycles/{cropId} {
       allow read: if isSignedIn();
-      allow write: if isOwner(userId);
+      allow write: if isOwner(userId) || (isSignedIn() && request.method == 'update');
     }
     
-    // Allow collectionGroup queries for 'cropCycles' (Marketplace & Dashboard)
     match /{path=**}/cropCycles/{cropId} {
       allow read: if isSignedIn();
     }
 
-    // Questions / Community Content
-    match /questions/{questionId} {
-      allow read: if true;
+    match /transactions/{txnId} {
+      allow read: if isSignedIn();
       allow write: if isSignedIn();
     }
 
-    // Allow collectionGroup queries for 'questions' if needed
-    match /{path=**}/questions/{questionId} {
+    match /questions/{questionId} {
       allow read: if true;
+      allow write: if isSignedIn();
     }
 
     match /communityContent/{id} {
       allow read: if true;
       allow write: if isSignedIn();
     }
-
-    match /personalInfos/{id} { allow read: if isSignedIn(); }
-    match /locations/{id} { allow read: if true; }
   }
 }

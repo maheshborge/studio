@@ -7,180 +7,324 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { 
+  Dialog, 
+  DialogContent, 
+  DialogHeader, 
+  DialogTitle, 
+  DialogTrigger 
+} from "@/components/ui/dialog";
 import { 
   ShoppingBag, 
   Search, 
   MapPin, 
   Scale,
-  TrendingUp,
-  Filter,
-  ArrowUpDown,
+  Calendar,
   Truck,
-  Tag
+  Tag,
+  Loader2,
+  ArrowRight,
+  Package,
+  Phone
 } from "lucide-react";
 import { useFirestore, useCollection, useMemoFirebase, useUser, useDoc } from "@/firebase";
-import { collectionGroup, doc } from "firebase/firestore";
+import { collectionGroup, doc, addDoc, collection, query, where, getDocs, updateDoc } from "firebase/firestore";
+import Image from "next/image";
+import { useToast } from "@/hooks/use-toast";
+
+const PACKING_TYPES = [
+  { id: "bag", label: "बॅग" },
+  { id: "sack", label: "गोणी" },
+  { id: "crate", label: "क्रेट" },
+  { id: "carton", label: "कार्टन बॉक्स" },
+  { id: "loose", label: "लुज" },
+  { id: "other", label: "इतर" }
+];
 
 export default function MarketplacePage() {
   const db = useFirestore();
   const { user } = useUser();
+  const { toast } = useToast();
   const [searchTerm, setSearchSearchTerm] = useState("");
-  const [sortBy, setSortBy] = useState<"name" | "yield" | "variety">("name");
+  const [selectedCrop, setSelectedCrop] = useState<any>(null);
+  const [isBuying, setIsBuying] = useState(false);
 
-  // Get current user profile to prioritize their category
-  const profileRef = useMemoFirebase(() => {
-    if (!db || !user) return null;
-    return doc(db, "users", user.uid, "profile", "main");
-  }, [db, user]);
-  const { data: profile } = useDoc(profileRef);
-  const { data: buyerData } = useDoc(useMemoFirebase(() => {
-    if (!db || !user) return null;
-    return doc(db, "users", user.uid, "profile", "buyerData");
-  }, [db, user]));
+  // Purchase form state
+  const [purchaseData, setPurchaseData] = useState({
+    quantity: "",
+    rate: "",
+    packingType: "bag",
+    packingCount: "",
+    packingWeight: "",
+    transporterMobile: "",
+    vehicleNumber: "",
+    driverMobile: ""
+  });
+
+  const [transporterVehicles, setTransporterVehicles] = useState<any[]>([]);
+  const [isTransporterLoading, setIsTransporterLoading] = useState(false);
 
   const cropsQuery = useMemoFirebase(() => {
     if (!db) return null;
-    return collectionGroup(db, "cropCycles");
+    return query(collectionGroup(db, "cropCycles"), where("isReadyForSale", "==", true));
   }, [db]);
 
   const { data: allCrops, isLoading } = useCollection(cropsQuery);
 
-  const processedCrops = useMemo(() => {
+  const filteredCrops = useMemo(() => {
     if (!allCrops) return [];
-    
-    // 1. Filter by search (checks name and variety)
-    let filtered = allCrops.filter(crop => 
-      crop.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-      (crop.variety && crop.variety.toLowerCase().includes(searchTerm.toLowerCase()))
+    return allCrops.filter(c => 
+      c.remainingQuantity > 0 &&
+      (c.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+      (c.variety && c.variety.toLowerCase().includes(searchTerm.toLowerCase())))
     );
+  }, [allCrops, searchTerm]);
 
-    // 2. Sort
-    filtered.sort((a, b) => {
-      if (sortBy === "name") return a.name.localeCompare(b.name);
-      if (sortBy === "variety") return (a.variety || "").localeCompare(b.variety || "");
-      return (b.estimatedYield || 0) - (a.estimatedYield || 0);
-    });
-
-    // 3. Prioritize by Buyer's preferred categories
-    const preferredTypes = buyerData?.purchaseTypes || [];
-    if (preferredTypes.length > 0) {
-      filtered.sort((a, b) => {
-        const aPref = preferredTypes.includes(a.category) ? 1 : 0;
-        const bPref = preferredTypes.includes(b.category) ? 1 : 0;
-        return bPref - aPref;
-      });
+  const handleTransporterLookup = async () => {
+    if (!db || !purchaseData.transporterMobile) return;
+    setIsTransporterLoading(true);
+    
+    try {
+      const q = query(collectionGroup(db, "profile"), where("mobile", "==", purchaseData.transporterMobile), where("id", "==", "main"));
+      const snapshot = await getDocs(q);
+      
+      if (snapshot.empty) {
+        toast({ title: "नोंदणी नाही", description: "हा ट्रान्सपोर्टर नोंदणीकृत नाही. कृपया त्याला नोंदणी करण्यास सांगा.", variant: "destructive" });
+        setTransporterVehicles([]);
+      } else {
+        const userId = snapshot.docs[0].ref.parent.parent?.id;
+        if (userId) {
+          const tDoc = await getDocs(collection(db, "users", userId, "profile"));
+          const tData = tDoc.docs.find(d => d.id === "transporterData")?.data();
+          if (tData?.vehicles) {
+            setTransporterVehicles(tData.vehicles);
+            toast({ title: "ट्रान्सपोर्टर सापडला!", description: "गाडी निवडा." });
+          } else {
+            toast({ title: "वाहन माहिती नाही", description: "या ट्रान्सपोर्टरने वाहनांची नोंद केलेली नाही." });
+          }
+        }
+      }
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setIsTransporterLoading(false);
     }
+  };
 
-    return filtered;
-  }, [allCrops, searchTerm, sortBy, buyerData]);
+  const handleFinalPurchase = async () => {
+    if (!db || !user || !selectedCrop) return;
+    setIsBuying(true);
 
-  // Aggregate by Category - Crop
-  const aggregates = useMemo(() => {
-    const summary: Record<string, { area: number, yield: number }> = {};
-    processedCrops.forEach(crop => {
-      const key = `${crop.category?.toUpperCase()} - ${crop.name}`;
-      if (!summary[key]) summary[key] = { area: 0, yield: 0 };
-      summary[key].area += crop.area || 0;
-      summary[key].yield += crop.estimatedYield || 0;
-    });
-    return Object.entries(summary).map(([label, data]) => ({ label, ...data }));
-  }, [processedCrops]);
+    try {
+      const qty = parseFloat(purchaseData.quantity);
+      if (qty > selectedCrop.remainingQuantity) {
+        toast({ variant: "destructive", title: "त्रुटी", description: "उपलब्ध माल्यापेक्षा जास्त वजन निवडले आहे." });
+        return;
+      }
 
-  const isTransporter = profile?.userType === "transporter";
+      // 1. Create transaction
+      await addDoc(collection(db, "transactions"), {
+        ...purchaseData,
+        cropId: selectedCrop.id,
+        cropName: selectedCrop.name,
+        variety: selectedCrop.variety,
+        buyerId: user.uid,
+        buyerName: user.displayName || "Buyer",
+        totalAmount: qty * parseFloat(purchaseData.rate),
+        timestamp: new Date().toISOString()
+      });
+
+      // 2. Update crop remaining quantity
+      const farmerId = selectedCrop.farmerId;
+      const cropRef = doc(db, "users", farmerId, "cropCycles", selectedCrop.id);
+      const newRemaining = selectedCrop.remainingQuantity - qty;
+      
+      await updateDoc(cropRef, {
+        remainingQuantity: newRemaining,
+        status: newRemaining <= 0 ? "sold" : "ready"
+      });
+
+      toast({ title: "खरेदी यशस्वी!", description: "तुमची खरेदी नोंदवण्यात आली आहे." });
+      setSelectedCrop(null);
+    } catch (error) {
+      toast({ variant: "destructive", title: "त्रुटी", description: "खरेदी करताना अडचण आली." });
+    } finally {
+      setIsBuying(false);
+    }
+  };
+
+  if (isLoading) return <div className="min-h-screen flex items-center justify-center"><Loader2 className="animate-spin text-primary w-12 h-12" /></div>;
 
   return (
     <div className="min-h-screen bg-slate-50">
       <Navigation />
       <main className="container mx-auto px-4 py-12">
-        <div className="flex flex-col md:flex-row items-center justify-between gap-6 mb-12">
-          <div>
-            <h1 className="text-4xl font-headline font-bold text-primary flex items-center gap-3">
-              <ShoppingBag className="w-10 h-10" /> पीक बाजारपेठ (Marketplace)
-            </h1>
-            <p className="text-muted-foreground mt-2">
-              {isTransporter ? "भाड्यासाठी उपलब्ध पिके व व्यापारी" : "थेट शेतकऱ्यांकडून ताजी पिके खरेदी करा."}
-            </p>
-          </div>
-          <div className="flex gap-4 w-full md:w-auto">
-            <div className="relative flex-1 md:w-80">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
-              <Input 
-                placeholder="पीक किंवा व्हारायटी शोधा..." 
-                value={searchTerm}
-                onChange={(e) => setSearchSearchTerm(e.target.value)}
-                className="pl-12 h-14 rounded-2xl border-none shadow-lg bg-white"
-              />
-            </div>
-            <Button variant="outline" onClick={() => setSortBy(prev => prev === "name" ? "yield" : prev === "yield" ? "variety" : "name")} className="h-14 rounded-2xl gap-2 bg-white">
-              <ArrowUpDown className="w-4 h-4" /> {sortBy === "name" ? "A-Z" : sortBy === "yield" ? "उत्पादन" : "व्हारायटी"}
-            </Button>
+        <div className="mb-12">
+          <h1 className="text-4xl font-headline font-bold text-primary flex items-center gap-3">
+            <ShoppingBag className="w-10 h-10" /> पीक बाजारपेठ (Marketplace)
+          </h1>
+          <div className="mt-6 max-w-xl relative">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
+            <Input 
+              placeholder="पीक किंवा व्हारायटी शोधा..." 
+              value={searchTerm}
+              onChange={(e) => setSearchSearchTerm(e.target.value)}
+              className="pl-12 h-14 rounded-2xl border-none shadow-lg bg-white"
+            />
           </div>
         </div>
 
-        <Tabs defaultValue="list" className="w-full">
-          <TabsList className="bg-white border p-1 rounded-2xl h-14 mb-8">
-            <TabsTrigger value="list" className="rounded-xl px-8 h-full data-[state=active]:bg-primary data-[state=active]:text-white">पिकांची यादी</TabsTrigger>
-            <TabsTrigger value="summary" className="rounded-xl px-8 h-full data-[state=active]:bg-primary data-[state=active]:text-white">गटनिहाय सारांश</TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="list">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {processedCrops.map((crop) => (
-                <Card key={crop.id} className="rounded-[2.5rem] border-none shadow-xl hover:shadow-2xl transition-all overflow-hidden bg-white">
-                  <div className="bg-primary/5 p-6 border-b">
-                    <div className="flex justify-between items-start mb-4">
-                      <Badge className="bg-green-600 text-white">{crop.status === "ready" ? "काढणीसाठी तयार" : "वाढ होत आहे"}</Badge>
-                      <span className="text-2xl font-bold text-primary">{crop.area} एकर</span>
-                    </div>
-                    <h3 className="text-2xl font-bold text-slate-800">{crop.name}</h3>
-                    <div className="flex items-center gap-2 mt-1">
-                        <Tag className="w-3 h-3 text-slate-400" />
-                        <span className="text-sm font-medium text-slate-500">{crop.variety || "जात उपलब्ध नाही"}</span>
-                    </div>
-                    <p className="text-[10px] text-slate-400 font-bold uppercase mt-3 tracking-widest">{crop.category}</p>
-                  </div>
-                  <CardContent className="p-8 space-y-4">
-                    <div className="flex items-center gap-3 text-slate-600">
-                      <Scale className="w-5 h-5 text-primary" />
-                      <span className="font-bold">अंदाजित उत्पादन: {crop.estimatedYield} टन</span>
-                    </div>
-                    <div className="flex items-center gap-3 text-slate-500">
-                      <MapPin className="w-5 h-5" />
-                      <span>{crop.farmerDistrict || "महाराष्ट्र"}</span>
-                    </div>
-                    <div className="pt-4 flex items-center justify-between border-t">
-                      <div className="text-xs">
-                        <p className="text-slate-400 font-bold">काढणी तारीख (अंदाजे)</p>
-                        <p className="text-sm font-bold text-slate-700">{crop.expectedHarvestDate}</p>
-                      </div>
-                      <Button className="rounded-xl bg-primary gap-2">
-                        {isTransporter ? "ट्रान्सपोर्ट द्या" : "खरेदी करा"} <TrendingUp className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </TabsContent>
-
-          <TabsContent value="summary">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {aggregates.map((row, i) => (
-                <Card key={i} className="p-8 rounded-[2rem] border-none shadow-lg bg-white flex justify-between items-center">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {filteredCrops.map((crop) => (
+            <Card key={crop.id} className="rounded-[2.5rem] border-none shadow-xl overflow-hidden bg-white hover:shadow-2xl transition-all">
+              <div className="relative aspect-video">
+                <Image src={crop.salePhotoUrl || "https://picsum.photos/seed/market/600/400"} alt={crop.name} fill className="object-cover" />
+                <Badge className="absolute top-4 left-4 bg-green-600">काढणीस तयार</Badge>
+              </div>
+              <CardContent className="p-8 space-y-4">
+                <div className="flex justify-between items-start">
                   <div>
-                    <h4 className="text-xl font-bold text-primary">{row.label}</h4>
-                    <p className="text-sm text-slate-500 mt-1">{row.area.toFixed(1)} एकर क्षेत्र</p>
+                    <h3 className="text-2xl font-bold text-slate-800">{crop.name}</h3>
+                    <p className="text-sm text-slate-500 flex items-center gap-1"><Tag className="w-3 h-3" /> {crop.variety}</p>
                   </div>
                   <div className="text-right">
-                    <p className="text-3xl font-black text-slate-800">{row.yield.toFixed(1)} <span className="text-sm">टन</span></p>
-                    <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">एकूण उत्पादन</p>
+                    <p className="text-2xl font-bold text-primary">{crop.remainingQuantity} <span className="text-xs">टन</span></p>
+                    <p className="text-[10px] uppercase font-bold text-slate-400">उपलब्ध माल</p>
                   </div>
-                </Card>
-              ))}
-            </div>
-          </TabsContent>
-        </Tabs>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4 text-sm border-t pt-4">
+                  <div className="flex items-center gap-2 text-slate-600">
+                    <Calendar className="w-4 h-4 text-primary" />
+                    <span>{crop.saleHarvestDate}</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-slate-600">
+                    <MapPin className="w-4 h-4 text-primary" />
+                    <span>{crop.farmerDistrict}</span>
+                  </div>
+                </div>
+
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <Button className="w-full h-12 rounded-xl bg-primary gap-2" onClick={() => {
+                      setSelectedCrop(crop);
+                      setPurchaseData(prev => ({...prev, quantity: crop.remainingQuantity.toString()}));
+                    }}>
+                      खरेदी करा <ArrowRight className="w-4 h-4" />
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="max-w-2xl rounded-[2.5rem] p-8">
+                    <DialogHeader>
+                      <DialogTitle className="text-2xl font-bold flex items-center gap-2">
+                        <Package className="text-primary" /> खरेदी प्रक्रिया
+                      </DialogTitle>
+                    </DialogHeader>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+                      <div className="space-y-2">
+                        <Label className="font-bold">मालाचे नाव</Label>
+                        <Input value={crop.name} readOnly className="bg-slate-50 rounded-xl" />
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="font-bold">व्हारायटी</Label>
+                        <Input value={crop.variety} readOnly className="bg-slate-50 rounded-xl" />
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="font-bold">किती माल खरेदी करायचा? (टन)</Label>
+                        <Input 
+                          type="number" 
+                          max={crop.remainingQuantity}
+                          value={purchaseData.quantity}
+                          onChange={(e) => setPurchaseData(prev => ({...prev, quantity: e.target.value}))}
+                          className="rounded-xl border-primary" 
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="font-bold">मालाचा दर (प्रति टन)</Label>
+                        <Input 
+                          type="number"
+                          placeholder="उदा. १५०००"
+                          value={purchaseData.rate}
+                          onChange={(e) => setPurchaseData(prev => ({...prev, rate: e.target.value}))}
+                          className="rounded-xl border-primary" 
+                        />
+                      </div>
+
+                      <div className="md:col-span-2 border-t pt-4">
+                        <h4 className="font-bold text-primary mb-4 flex items-center gap-2"><Truck className="w-5 h-5" /> ट्रान्सपोर्टर व पॅकिंग</h4>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                          <div className="space-y-2">
+                            <Label className="font-bold">ट्रान्सपोर्टर मोबाईल नंबर</Label>
+                            <div className="flex gap-2">
+                              <Input 
+                                placeholder="९८७६५४३२१०"
+                                value={purchaseData.transporterMobile}
+                                onChange={(e) => setPurchaseData(prev => ({...prev, transporterMobile: e.target.value}))}
+                                className="rounded-xl"
+                              />
+                              <Button variant="outline" size="icon" onClick={handleTransporterLookup} disabled={isTransporterLoading}>
+                                {isTransporterLoading ? <Loader2 className="animate-spin" /> : <Phone className="w-4 h-4" />}
+                              </Button>
+                            </div>
+                          </div>
+                          <div className="space-y-2">
+                            <Label className="font-bold">गाडी निवडा / नंबर</Label>
+                            {transporterVehicles.length > 0 ? (
+                              <Select onValueChange={(val) => setPurchaseData(prev => ({...prev, vehicleNumber: val}))}>
+                                <SelectTrigger className="rounded-xl"><SelectValue placeholder="गाडी निवडा" /></SelectTrigger>
+                                <SelectContent>
+                                  {transporterVehicles.map(v => <SelectItem key={v.number} value={v.number}>{v.number}</SelectItem>)}
+                                </SelectContent>
+                              </Select>
+                            ) : (
+                              <Input 
+                                placeholder="उदा. MH-12-AB-1234"
+                                value={purchaseData.vehicleNumber}
+                                onChange={(e) => setPurchaseData(prev => ({...prev, vehicleNumber: e.target.value}))}
+                                className="rounded-xl"
+                              />
+                            )}
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div className="space-y-2">
+                          <Label className="font-bold text-xs">पॅकिंग प्रकार</Label>
+                          <Select onValueChange={(val) => setPurchaseData(prev => ({...prev, packingType: val}))}>
+                            <SelectTrigger className="rounded-xl"><SelectValue /></SelectTrigger>
+                            <SelectContent>
+                              {PACKING_TYPES.map(p => <SelectItem key={p.id} value={p.id}>{p.label}</SelectItem>)}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div className="space-y-2">
+                          <Label className="font-bold text-xs">पॅकिंग संख्या</Label>
+                          <Input type="number" value={purchaseData.packingCount} onChange={(e) => setPurchaseData(prev => ({...prev, packingCount: e.target.value}))} className="rounded-xl" />
+                        </div>
+                        <div className="space-y-2">
+                          <Label className="font-bold text-xs">पॅकिंगसह वजन (टन)</Label>
+                          <Input type="number" value={purchaseData.packingWeight} onChange={(e) => setPurchaseData(prev => ({...prev, packingWeight: e.target.value}))} className="rounded-xl" />
+                        </div>
+                      </div>
+                    </div>
+
+                    <Button 
+                      className="w-full h-14 bg-green-600 hover:bg-green-700 rounded-2xl mt-8 font-bold text-lg"
+                      onClick={handleFinalPurchase}
+                      disabled={isBuying}
+                    >
+                      {isBuying ? <Loader2 className="animate-spin mr-2" /> : null}
+                      खरेदी फायनल करा
+                    </Button>
+                  </DialogContent>
+                </Dialog>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
       </main>
     </div>
   );

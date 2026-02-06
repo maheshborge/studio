@@ -18,18 +18,21 @@ import {
   Loader2,
   FileText,
   Users,
-  Plane,
-  Plus
+  Plus,
+  TrendingUp,
+  Truck
 } from "lucide-react";
 import { useFirestore, useUser, useDoc, useMemoFirebase, useCollection } from "@/firebase";
-import { doc, collection } from "firebase/firestore";
+import { doc, collection, updateDoc } from "firebase/firestore";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { useToast } from "@/hooks/use-toast";
 
 export default function ProfilePage() {
   const { user, isUserLoading } = useUser();
   const db = useFirestore();
   const router = useRouter();
+  const { toast } = useToast();
 
   const mainProfileRef = useMemoFirebase(() => {
     if (!db || !user) return null;
@@ -46,14 +49,20 @@ export default function ProfilePage() {
     return doc(db, "users", user.uid, "profile", "buyerData");
   }, [db, user]);
 
+  const transporterRef = useMemoFirebase(() => {
+    if (!db || !user) return null;
+    return doc(db, "users", user.uid, "profile", "transporterData");
+  }, [db, user]);
+
   const cropsQuery = useMemoFirebase(() => {
     if (!db || !user) return null;
     return collection(db, "users", user.uid, "cropCycles");
   }, [db, user]);
 
   const { data: mainProfile } = useDoc(mainProfileRef);
-  const { data: farmerData, isLoading: isFarmerLoading } = useDoc(farmerRef);
-  const { data: buyerData, isLoading: isBuyerLoading } = useDoc(buyerRef);
+  const { data: farmerData } = useDoc(farmerRef);
+  const { data: buyerData } = useDoc(buyerRef);
+  const { data: transporterData } = useDoc(transporterRef);
   const { data: cropCycles, isLoading: isCropsLoading } = useCollection(cropsQuery);
 
   if (isUserLoading) return <div className="min-h-screen flex items-center justify-center"><Loader2 className="animate-spin text-primary w-12 h-12" /></div>;
@@ -62,8 +71,8 @@ export default function ProfilePage() {
   const userType = mainProfile?.userType || "farmer";
   const isFarmer = userType === "farmer";
   const isBuyer = userType === "buyer";
+  const isTransporter = userType === "transporter";
 
-  // Determine the display district from whichever profile is filled
   const displayDistrict = farmerData?.district || buyerData?.district || null;
 
   return (
@@ -73,9 +82,8 @@ export default function ProfilePage() {
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10">
           <div>
             <h1 className="text-4xl font-headline font-bold text-primary flex items-center gap-3">
-              <LayoutDashboard className="w-10 h-10" /> माझीशेती, माझे व्यवस्थापन
+              <LayoutDashboard className="w-10 h-10" /> माझे व्यवस्थापन
             </h1>
-            <p className="text-slate-500 mt-2">तुमच्या भूमिकेनुसार माहिती व्यवस्थापित करा.</p>
           </div>
           {mainProfile && (
             <div className="bg-white px-6 py-3 rounded-2xl shadow-sm border flex items-center gap-4">
@@ -93,79 +101,86 @@ export default function ProfilePage() {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-          {/* Main Content Area */}
           <div className="lg:col-span-8 space-y-8">
             {isFarmer && (
               <>
                 <div className="flex items-center justify-between">
-                  <h2 className="text-2xl font-bold text-slate-800">सक्रिय पीक चक्र</h2>
+                  <h2 className="text-2xl font-bold text-slate-800">माझी पिके व विक्री</h2>
                   <Link href="/farmer/register">
-                    <Button className="rounded-xl gap-2 bg-green-600 hover:bg-green-700">
-                      <Plus className="w-4 h-4" /> नवीन पीक / माहिती अपडेट
+                    <Button className="rounded-xl gap-2 bg-green-600">
+                      <Plus className="w-4 h-4" /> नवीन पीक जोडा
                     </Button>
                   </Link>
                 </div>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                   {cropCycles && cropCycles.length > 0 ? (
-                     cropCycles.map(crop => (
-                       <Card key={crop.id} className="rounded-3xl shadow-lg border-none overflow-hidden">
-                         <div className="p-6">
+                   {cropCycles?.map(crop => (
+                     <Card key={crop.id} className="rounded-3xl shadow-lg border-none overflow-hidden bg-white">
+                       <div className="p-6">
+                         <div className="flex justify-between items-start mb-4">
                            <h3 className="text-xl font-bold">{crop.name}</h3>
-                           <p className="text-sm text-muted-foreground">{crop.area} एकर • {crop.season}</p>
-                           <Badge className="mt-4 bg-blue-100 text-blue-700 hover:bg-blue-100 border-none">{crop.status}</Badge>
+                           <Badge className={crop.isReadyForSale ? "bg-green-100 text-green-700" : "bg-blue-100 text-blue-700"}>
+                             {crop.isReadyForSale ? "विक्रीसाठी उपलब्ध" : crop.status}
+                           </Badge>
                          </div>
-                       </Card>
-                     ))
-                   ) : (
-                     <Card className="col-span-full p-12 text-center rounded-[2.5rem] border-dashed bg-white">
-                       <Sprout className="w-16 h-16 text-slate-200 mx-auto mb-4" />
-                       <p className="text-slate-500 font-bold mb-4">अद्याप कोणतेही पीक जोडलेले नाही.</p>
-                       <Link href="/farmer/register">
-                        <Button variant="outline" className="rounded-xl border-primary text-primary">प्रोफाईल पूर्ण करा</Button>
-                       </Link>
+                         <p className="text-sm text-slate-500 mb-6">{crop.variety} • {crop.area} एकर</p>
+                         
+                         {!crop.isReadyForSale ? (
+                           <Link href={`/farmer/sales/${crop.id}`}>
+                             <Button variant="outline" className="w-full rounded-xl border-primary text-primary gap-2">
+                               <TrendingUp className="w-4 h-4" /> विक्रीसाठी नोंदवा
+                             </Button>
+                           </Link>
+                         ) : (
+                           <div className="p-3 bg-green-50 rounded-xl border border-green-100">
+                             <p className="text-xs font-bold text-green-700">उपलब्ध माल: {crop.remainingQuantity} टन</p>
+                           </div>
+                         )}
+                       </div>
                      </Card>
-                   )}
+                   ))}
                 </div>
               </>
+            )}
+
+            {isTransporter && (
+              <Card className="p-8 rounded-[2.5rem] bg-white shadow-xl">
+                <h3 className="text-xl font-bold mb-6 flex items-center gap-2"><Truck className="text-primary" /> माझी वाहने</h3>
+                <div className="space-y-4">
+                   {transporterData?.vehicles?.map((v: any, i: number) => (
+                     <div key={i} className="p-4 bg-slate-50 rounded-2xl flex justify-between items-center">
+                        <div>
+                          <p className="font-bold text-lg">{v.number}</p>
+                          <p className="text-sm text-slate-500">{v.type}</p>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-sm font-medium">ड्रायव्हर: {v.driverMobile}</p>
+                        </div>
+                     </div>
+                   ))}
+                   <Button className="w-full h-12 rounded-xl border-dashed border-primary/50" variant="outline">
+                     <Plus className="w-4 h-4 mr-2" /> नवीन वाहन जोडा
+                   </Button>
+                </div>
+              </Card>
             )}
 
             {isBuyer && (
-              <>
-                <div className="flex items-center justify-between">
-                  <h2 className="text-2xl font-bold text-slate-800">खरेदीदार डॅशबोर्ड</h2>
-                  <Link href="/buyer/register">
-                    <Button className="rounded-xl gap-2 bg-primary">
-                      <ShoppingBag className="w-4 h-4" /> परवाना माहिती अपडेट करा
-                    </Button>
-                  </Link>
-                </div>
-                
-                <Card className="p-12 text-center rounded-[2.5rem] border-dashed bg-white">
-                   <ShoppingBag className="w-16 h-16 text-slate-200 mx-auto mb-4" />
-                   <h3 className="text-xl font-bold text-slate-700 mb-2">तुमचे खरेदीदार प्रोफाइल</h3>
-                   <p className="text-slate-500 mb-6">तुमची कॅटेगरी, परवाना आणि खरेदीचे प्रकार अपडेट करण्यासाठी खालील बटनावर क्लिक करा.</p>
-                   <Link href="/buyer/register">
-                    <Button className="rounded-xl h-12 px-8 font-bold">माहिती अपडेट करा <ChevronRight className="ml-2 w-4 h-4" /></Button>
-                   </Link>
-                </Card>
-              </>
-            )}
-
-            {!isFarmer && !isBuyer && (
-              <Card className="p-12 text-center rounded-[2.5rem] bg-white">
-                <p className="text-slate-500 font-bold">कृपया तुमच्या भूमिकेनुसार माहिती अपडेट करा.</p>
-              </Card>
+              <div className="space-y-6">
+                <h2 className="text-2xl font-bold text-slate-800">खरेदीदार डॅशबोर्ड</h2>
+                <Link href="/marketplace">
+                  <Button size="lg" className="w-full h-20 rounded-[2rem] bg-primary text-xl font-bold gap-4 shadow-xl">
+                    <ShoppingBag className="w-8 h-8" /> बाजारपेठेत माल पहा <ChevronRight className="w-6 h-6" />
+                  </Button>
+                </Link>
+              </div>
             )}
           </div>
 
-          {/* Sidebar Info */}
           <div className="lg:col-span-4 space-y-6">
-            <Card className="rounded-[2rem] shadow-xl border-none overflow-hidden bg-white">
-              <CardHeader className="bg-slate-50 border-b">
-                <CardTitle className="text-lg flex items-center gap-2"><User className="w-5 h-5" /> खाते तपशील</CardTitle>
-              </CardHeader>
-              <CardContent className="p-6 space-y-4">
+            <Card className="rounded-[2rem] shadow-xl border-none bg-white p-6">
+              <h3 className="font-bold text-lg mb-4 flex items-center gap-2"><User className="w-5 h-5 text-primary" /> खाते तपशील</h3>
+              <div className="space-y-4">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 bg-slate-100 rounded-xl flex items-center justify-center text-slate-500"><Phone className="w-5 h-5" /></div>
                   <div>
@@ -180,14 +195,8 @@ export default function ProfilePage() {
                     <p className="font-bold">{displayDistrict || "नोंदणी नाही"}</p>
                   </div>
                 </div>
-              </CardContent>
+              </div>
             </Card>
-
-            <div className="bg-primary/5 p-8 rounded-[2rem] border border-primary/10">
-              <h3 className="font-bold text-primary mb-4">मदत हवी आहे?</h3>
-              <p className="text-sm text-slate-600 mb-6">तुम्हाला काही प्रश्न असल्यास किंवा तांत्रिक अडचण असल्यास आमच्याशी संपर्क साधा.</p>
-              <Button variant="outline" className="w-full rounded-xl border-primary text-primary hover:bg-primary/5">सपोर्ट टीमशी बोला</Button>
-            </div>
           </div>
         </div>
       </main>

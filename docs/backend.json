@@ -2,85 +2,77 @@
 {
   "entities": {
     "UserProfile": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "UserProfile",
       "type": "object",
-      "description": "Stores core user profile information including their role in the system.",
+      "description": "Stores core user profile information.",
       "properties": {
         "id": { "type": "string" },
         "name": { "type": "string" },
         "mobile": { "type": "string" },
-        "email": { "type": "string", "format": "email" },
-        "userType": {
-          "type": "string",
-          "enum": ["farmer", "buyer", "supplier", "transporter", "consultant", "expert"]
-        },
+        "email": { "type": "string" },
+        "userType": { "type": "string", "enum": ["farmer", "buyer", "supplier", "transporter", "consultant", "expert"] },
         "createdAt": { "type": "string", "format": "date-time" }
       },
       "required": ["id", "name", "mobile", "userType"]
     },
-    "FarmerProfile": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "FarmerProfile",
+    "TransporterProfile": {
+      "title": "TransporterProfile",
       "type": "object",
-      "description": "Detailed agricultural and family profile of a farmer.",
+      "description": "Logistics and vehicle details for transporters.",
       "properties": {
-        "name": { "type": "string" },
-        "contactNumber": { "type": "string" },
-        "district": { "type": "string" },
-        "taluka": { "type": "string" },
-        "village": { "type": "string" },
-        "landArea": { "type": "number" },
-        "totalMembers": { "type": "number" },
-        "updatedAt": { "type": "string", "format": "date-time" }
-      }
-    },
-    "BuyerProfile": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "BuyerProfile",
-      "type": "object",
-      "description": "Business and license information for buyers/traders.",
-      "properties": {
-        "orgName": { "type": "string" },
-        "contactName": { "type": "string" },
-        "contactNumber": { "type": "string" },
-        "category": { "type": "string" },
-        "district": { "type": "string" },
-        "licenseNumber": { "type": "string" },
-        "purchaseTypes": { "type": "array", "items": { "type": "string" } },
+        "vehicles": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "number": { "type": "string", "description": "Vehicle Number (e.g., MH-12-AB-1234)" },
+              "driverMobile": { "type": "string" },
+              "type": { "type": "string", "description": "Type of vehicle (e.g., Pickup, Truck)" }
+            }
+          }
+        },
         "updatedAt": { "type": "string", "format": "date-time" }
       }
     },
     "CropCycle": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "CropCycle",
       "type": "object",
-      "description": "Individual crop lifecycle data for farmers and marketplace visibility.",
+      "description": "Detailed crop record with sales status.",
       "properties": {
         "id": { "type": "string" },
         "farmerId": { "type": "string" },
         "name": { "type": "string" },
-        "variety": { "type": "string", "description": "The specific variety of the crop (e.g., Kesar, Hapus)." },
-        "category": { "type": "string", "enum": ["fruits", "vegetables", "grains", "spices", "flowers"] },
-        "startDate": { "type": "string", "format": "date" },
-        "expectedHarvestDate": { "type": "string", "format": "date" },
-        "area": { "type": "number" },
-        "estimatedYield": { "type": "number" },
-        "status": { "type": "string", "enum": ["growing", "ready", "harvested"] },
-        "farmerDistrict": { "type": "string" }
+        "variety": { "type": "string" },
+        "category": { "type": "string" },
+        "status": { "type": "string", "enum": ["growing", "ready", "sold"] },
+        "isReadyForSale": { "type": "boolean", "default": false },
+        "saleHarvestDate": { "type": "string" },
+        "saleEstimatedQuantity": { "type": "number" },
+        "remainingQuantity": { "type": "number" },
+        "salePhotoUrl": { "type": "string" },
+        "farmerDistrict": { "type": "string" },
+        "farmerName": { "type": "string" },
+        "farmerMobile": { "type": "string" }
       }
     },
-    "Question": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "Question",
+    "SaleTransaction": {
+      "title": "SaleTransaction",
       "type": "object",
-      "description": "Farmers' queries tracked for expert insights.",
+      "description": "Records individual purchases by buyers.",
       "properties": {
         "id": { "type": "string" },
-        "text": { "type": "string" },
-        "category": { "type": "string" },
-        "askCount": { "type": "number" },
-        "lastAskedAt": { "type": "string", "format": "date-time" }
+        "cropId": { "type": "string" },
+        "buyerId": { "type": "string" },
+        "buyerName": { "type": "string" },
+        "quantityBought": { "type": "number" },
+        "rate": { "type": "number" },
+        "totalAmount": { "type": "number" },
+        "packingType": { "type": "string", "enum": ["bag", "sack", "crate", "carton", "loose", "other"] },
+        "packingCount": { "type": "number" },
+        "packingWeight": { "type": "number" },
+        "transporterMobile": { "type": "string" },
+        "vehicleNumber": { "type": "string" },
+        "timestamp": { "type": "string", "format": "date-time" }
       }
     }
   },
@@ -88,47 +80,9 @@
     "providers": ["password"]
   },
   "firestore": {
-    "structure": [
-      {
-        "path": "/users/{userId}/profile/main",
-        "definition": {
-          "entityName": "UserProfile",
-          "schema": { "$ref": "#/backend/entities/UserProfile" },
-          "description": "Core authentication profile."
-        }
-      },
-      {
-        "path": "/users/{userId}/profile/farmerData",
-        "definition": {
-          "entityName": "FarmerProfile",
-          "schema": { "$ref": "#/backend/entities/FarmerProfile" },
-          "description": "Farmer-specific agricultural details."
-        }
-      },
-      {
-        "path": "/users/{userId}/profile/buyerData",
-        "definition": {
-          "entityName": "BuyerProfile",
-          "schema": { "$ref": "#/backend/entities/BuyerProfile" },
-          "description": "Buyer-specific business and license details."
-        }
-      },
-      {
-        "path": "/users/{userId}/cropCycles/{cropId}",
-        "definition": {
-          "entityName": "CropCycle",
-          "schema": { "$ref": "#/backend/entities/CropCycle" },
-          "description": "Individual crop records for a user."
-        }
-      },
-      {
-        "path": "/questions/{questionId}",
-        "definition": {
-          "entityName": "Question",
-          "schema": { "$ref": "#/backend/entities/Question" },
-          "description": "Global repository of trending questions."
-        }
-      }
-    ]
+    "/users/{userId}/profile/main": { "schema": "UserProfile", "description": "Main profile." },
+    "/users/{userId}/profile/transporterData": { "schema": "TransporterProfile", "description": "Vehicles." },
+    "/users/{userId}/cropCycles/{cropId}": { "schema": "CropCycle", "description": "Crop records." },
+    "/transactions/{txnId}": { "schema": "SaleTransaction", "description": "Sale records." }
   }
 }
