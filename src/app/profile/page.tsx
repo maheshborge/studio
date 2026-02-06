@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect } from "react";
@@ -84,6 +83,11 @@ export default function ProfilePage() {
   const handleProfileSave = async () => {
     if (!db || !user) return;
     
+    if (formData.contactNumber.length !== 10) {
+      toast({ variant: "destructive", title: "त्रुटी", description: "मोबाईल नंबर १० अंकी असणे आवश्यक आहे." });
+      return;
+    }
+
     const totalArea = formData.crops.reduce((acc, curr) => acc + (parseFloat(curr.area) || 0), 0);
     if (totalArea > parseFloat(formData.totalLandArea)) {
       toast({
@@ -178,6 +182,17 @@ export default function ProfilePage() {
                 <div className="space-y-2">
                   <Label>शेतकऱ्याचे नाव</Label>
                   <Input value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} className="rounded-xl" />
+                </div>
+                <div className="space-y-2">
+                  <Label>मोबाईल नंबर</Label>
+                  <Input 
+                    type="number"
+                    value={formData.contactNumber} 
+                    onChange={e => {
+                      if (e.target.value.length <= 10) setFormData({...formData, contactNumber: e.target.value})
+                    }} 
+                    className="rounded-xl" 
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label>एकूण जमीन क्षेत्र (एकर)</Label>

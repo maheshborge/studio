@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState } from "react";
@@ -56,6 +55,8 @@ export default function FarmerRegistrationPage() {
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { id, value } = e.target;
+    // Limit contact numbers to 10 digits
+    if ((id === "contactNumber" || id === "recommendationContact") && value.length > 10) return;
     setFormData(prev => ({ ...prev, [id]: value }));
   };
 
@@ -93,6 +94,12 @@ export default function FarmerRegistrationPage() {
   };
 
   const handleNext = () => {
+    if (currentStep === 1) {
+      if (formData.contactNumber.length !== 10) {
+        toast({ variant: "destructive", title: "त्रुटी", description: "मोबाईल नंबर १० अंकी असणे आवश्यक आहे." });
+        return;
+      }
+    }
     if (currentStep === 2) {
       const totalArea = calculateTotalCropArea();
       if (totalArea > parseFloat(formData.landArea)) {
@@ -111,6 +118,10 @@ export default function FarmerRegistrationPage() {
 
   const handleSubmit = async () => {
     if (!db) return;
+    if (formData.contactNumber.length !== 10) {
+      toast({ variant: "destructive", title: "त्रुटी", description: "मोबाईल नंबर १० अंकी असणे आवश्यक आहे." });
+      return;
+    }
     try {
       const farmerId = crypto.randomUUID();
       const userId = "demo-user"; 
@@ -165,7 +176,7 @@ export default function FarmerRegistrationPage() {
                 <div className="space-y-8 animate-in fade-in slide-in-from-right-4">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <Field id="name" label="शेतकऱ्याचे पूर्ण नाव" icon={User} value={formData.name} onChange={handleInputChange} />
-                    <Field id="contactNumber" label="संपर्क क्रमांक" icon={Phone} value={formData.contactNumber} onChange={handleInputChange} />
+                    <Field id="contactNumber" label="संपर्क क्रमांक" icon={Phone} type="number" value={formData.contactNumber} onChange={handleInputChange} />
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -213,7 +224,7 @@ export default function FarmerRegistrationPage() {
                     <Label className="text-slate-500 text-xs font-bold uppercase tracking-wider mb-4 block">शिफारस (कोणी सुचवले?)</Label>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <Field id="recommendationName" label="शिफारस करणाऱ्याचे नाव" icon={User} value={formData.recommendationName} onChange={handleInputChange} />
-                      <Field id="recommendationContact" label="मोबाईल नंबर" icon={Phone} value={formData.recommendationContact} onChange={handleInputChange} />
+                      <Field id="recommendationContact" label="मोबाईल नंबर" icon={Phone} type="number" value={formData.recommendationContact} onChange={handleInputChange} />
                     </div>
                   </div>
                 </div>

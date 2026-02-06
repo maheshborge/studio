@@ -33,11 +33,19 @@ export default function BuyerRegistrationPage() {
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { id, value } = e.target;
+    // Limit contact numbers to 10 digits
+    if ((id === "contactNumber" || id === "recommendationContact") && value.length > 10) return;
     setFormData(prev => ({ ...prev, [id]: value }));
   };
 
   const handleSubmit = async () => {
     if (!db) return;
+    
+    if (formData.contactNumber.length !== 10) {
+      toast({ variant: "destructive", title: "त्रुटी", description: "मोबाईल नंबर १० अंकी असणे आवश्यक आहे." });
+      return;
+    }
+
     try {
       const buyerId = crypto.randomUUID();
       const userId = "demo-user";
@@ -78,7 +86,7 @@ export default function BuyerRegistrationPage() {
             <CardContent className="p-8 md:p-12 space-y-8">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <Field id="name" label="खरेदीदाराचे/संस्थेचे नाव" icon={User} value={formData.name} onChange={handleInputChange} />
-                <Field id="contactNumber" label="संपर्क क्रमांक" icon={Phone} value={formData.contactNumber} onChange={handleInputChange} />
+                <Field id="contactNumber" label="संपर्क क्रमांक" icon={Phone} type="number" value={formData.contactNumber} onChange={handleInputChange} />
                 <div className="md:col-span-2">
                   <Field id="address" label="पत्ता" icon={MapPin} value={formData.address} onChange={handleInputChange} />
                 </div>
@@ -119,7 +127,7 @@ export default function BuyerRegistrationPage() {
                   <Label className="text-slate-500 text-xs font-bold uppercase tracking-wider mb-4 block">शिफारस (कोणी सुचवले?)</Label>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <Field id="recommendationName" label="शिफारस करणाऱ्याचे नाव" icon={User} value={formData.recommendationName} onChange={handleInputChange} />
-                    <Field id="recommendationContact" label="मोबाईल नंबर" icon={Phone} value={formData.recommendationContact} onChange={handleInputChange} />
+                    <Field id="recommendationContact" label="मोबाईल नंबर" icon={Phone} type="number" value={formData.recommendationContact} onChange={handleInputChange} />
                   </div>
                 </div>
               </div>
