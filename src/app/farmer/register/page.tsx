@@ -43,7 +43,7 @@ export default function FarmerRegistrationPage() {
     name: "", contactNumber: "", 
     recommendationName: "", recommendationContact: "",
     state: "Maharashtra", district: "", taluka: "", village: "", pincode: "",
-    landArea: "4", waterSource: "", 
+    landArea: "", waterSource: "", 
     crops: [{ name: "", area: "" }],
     totalMembers: "", womenCount: "", menCount: "", studentCount: "",
     migrationEducation: "", migrationJob: "", migrationMarriage: ""
@@ -55,7 +55,6 @@ export default function FarmerRegistrationPage() {
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { id, value } = e.target;
-    // Limit contact numbers to 10 digits
     if ((id === "contactNumber" || id === "recommendationContact") && value.length > 10) return;
     setFormData(prev => ({ ...prev, [id]: value }));
   };
@@ -69,7 +68,23 @@ export default function FarmerRegistrationPage() {
     });
   };
 
+  const calculateTotalCropArea = () => {
+    return formData.crops.reduce((acc, curr) => acc + (parseFloat(curr.area) || 0), 0);
+  };
+
   const addCropField = () => {
+    const totalArea = calculateTotalCropArea();
+    const limit = parseFloat(formData.landArea) || 0;
+
+    if (totalArea >= limit) {
+      toast({
+        variant: "destructive",
+        title: "जमीन शिल्लक नाही!",
+        description: "तुमच्या एकूण जमिनीपेक्षा जास्त क्षेत्र तुम्ही जोडू शकत नाही.",
+      });
+      return;
+    }
+
     setFormData(prev => ({
       ...prev,
       crops: [...prev.crops, { name: "", area: "" }]
@@ -86,11 +101,20 @@ export default function FarmerRegistrationPage() {
   const handleCropChange = (index: number, field: string, value: string) => {
     const newCrops = [...formData.crops];
     newCrops[index] = { ...newCrops[index], [field]: value };
-    setFormData(prev => ({ ...prev, crops: newCrops }));
-  };
+    
+    // Check if new total exceeds land area
+    const tempTotal = newCrops.reduce((acc, curr) => acc + (parseFloat(curr.area) || 0), 0);
+    const limit = parseFloat(formData.landArea) || 0;
 
-  const calculateTotalCropArea = () => {
-    return formData.crops.reduce((acc, curr) => acc + (parseFloat(curr.area) || 0), 0);
+    if (tempTotal > limit && field === "area") {
+      toast({
+        variant: "destructive",
+        title: "क्षेत्र मर्यादा ओलांडली!",
+        description: "पिकांचे क्षेत्र एकूण जमिनीपेक्षा जास्त होत आहे.",
+      });
+    }
+
+    setFormData(prev => ({ ...prev, crops: newCrops }));
   };
 
   const handleNext = () => {
@@ -101,6 +125,10 @@ export default function FarmerRegistrationPage() {
       }
     }
     if (currentStep === 2) {
+      if (!formData.landArea) {
+        toast({ variant: "destructive", title: "त्रुटी", description: "कृपया एकूण जमीन क्षेत्र भरा." });
+        return;
+      }
       const totalArea = calculateTotalCropArea();
       if (totalArea > parseFloat(formData.landArea)) {
         toast({
@@ -141,7 +169,8 @@ export default function FarmerRegistrationPage() {
   const districts = selectedStateData ? Object.keys(selectedStateData) : [];
   const talukas = (formData.district && selectedStateData) ? selectedStateData[formData.district] : [];
 
-  const StepIcon = steps[currentStep - 1].icon;
+  const activeStep = steps[currentStep - 1];
+  const StepIcon = activeStep.icon;
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -164,10 +193,12 @@ export default function FarmerRegistrationPage() {
             <div className="bg-primary p-8 text-white">
               <div className="flex justify-between items-center">
                 <div>
-                  <h2 className="text-3xl font-bold flex items-center gap-3">{steps[currentStep - 1].name}</h2>
+                  <h2 className="text-3xl font-bold flex items-center gap-3">{activeStep.name}</h2>
                   <p className="text-blue-100 mt-2">कृपया अचूक माहिती भरा.</p>
                 </div>
-                <StepIcon className="w-16 h-16 opacity-20" />
+                <div className="hidden md:block">
+                  <StepIcon className="w-16 h-16 opacity-20" />
+                </div>
               </div>
             </div>
             
@@ -233,7 +264,7 @@ export default function FarmerRegistrationPage() {
               {currentStep === 2 && (
                 <div className="space-y-8 animate-in fade-in slide-in-from-right-4">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <Field id="landArea" label="एकूण जमीन क्षेत्र (एकर)" icon={Sprout} value={formData.landArea} onChange={handleInputChange} readOnly />
+                    <Field id="landArea" label="एकूण जमीन क्षेत्र (एकर)" icon={Sprout} type="number" value={formData.landArea} onChange={handleInputChange} />
                     
                     <div className="space-y-2">
                       <Label className="font-bold">पाण्याची सोय</Label>
@@ -252,7 +283,7 @@ export default function FarmerRegistrationPage() {
                     <div className="flex items-center justify-between">
                       <Label className="font-bold text-lg">पीकनिहाय क्षेत्र माहिती</Label>
                       <div className="text-sm font-bold text-slate-500">
-                        शिल्लक क्षेत्र: {parseFloat(formData.landArea) - calculateTotalCropArea()} एकर
+                        शिल्लक क्षेत्र: {(parseFloat(formData.landArea) || 0) - calculateTotalCropArea()} एकर
                       </div>
                     </div>
                     

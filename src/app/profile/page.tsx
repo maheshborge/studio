@@ -66,7 +66,7 @@ export default function ProfilePage() {
 
   const [formData, setFormData] = useState({
     name: "", contactNumber: "", state: "Maharashtra", district: "", taluka: "", village: "", pincode: "",
-    totalLandArea: "4", waterSource: "", crops: [{ name: "", area: "" }]
+    totalLandArea: "", waterSource: "", crops: [{ name: "", area: "" }]
   });
 
   const [isSaving, setIsSaving] = useState(false);
@@ -80,6 +80,10 @@ export default function ProfilePage() {
   if (isUserLoading) return <div className="min-h-screen flex items-center justify-center"><Loader2 className="animate-spin text-primary w-12 h-12" /></div>;
   if (!user) { router.push("/login"); return null; }
 
+  const calculateTotalCropArea = () => {
+    return formData.crops.reduce((acc, curr) => acc + (parseFloat(curr.area) || 0), 0);
+  };
+
   const handleProfileSave = async () => {
     if (!db || !user) return;
     
@@ -88,12 +92,14 @@ export default function ProfilePage() {
       return;
     }
 
-    const totalArea = formData.crops.reduce((acc, curr) => acc + (parseFloat(curr.area) || 0), 0);
-    if (totalArea > parseFloat(formData.totalLandArea)) {
+    const totalArea = calculateTotalCropArea();
+    const limit = parseFloat(formData.totalLandArea) || 0;
+
+    if (totalArea > limit) {
       toast({
         variant: "destructive",
         title: "त्रुटी",
-        description: `पिकांचे एकूण क्षेत्र (${totalArea} एकर) तुमच्या जमिनीपेक्षा जास्त आहे.`
+        description: `पिकांचे एकूण क्षेत्र (${totalArea} एकर) तुमच्या जमिनीपेक्षा (${limit} एकर) जास्त आहे.`
       });
       return;
     }
@@ -113,10 +119,34 @@ export default function ProfilePage() {
   const handleCropChange = (index: number, field: string, value: string) => {
     const newCrops = [...formData.crops];
     newCrops[index] = { ...newCrops[index], [field]: value };
+    
+    const tempTotal = newCrops.reduce((acc, curr) => acc + (parseFloat(curr.area) || 0), 0);
+    const limit = parseFloat(formData.totalLandArea) || 0;
+
+    if (tempTotal > limit && field === "area") {
+      toast({
+        variant: "destructive",
+        title: "क्षेत्र मर्यादा ओलांडली!",
+        description: "पिकांचे क्षेत्र एकूण जमिनीपेक्षा जास्त होत आहे.",
+      });
+    }
+
     setFormData(prev => ({ ...prev, crops: newCrops }));
   };
 
   const addCropField = () => {
+    const totalArea = calculateTotalCropArea();
+    const limit = parseFloat(formData.totalLandArea) || 0;
+
+    if (totalArea >= limit) {
+      toast({
+        variant: "destructive",
+        title: "जमीन शिल्लक नाही!",
+        description: "तुमची जमीन पूर्ण झाली आहे, आता अधिक पिके जोडता येणार नाहीत.",
+      });
+      return;
+    }
+
     setFormData(prev => ({
       ...prev,
       crops: [...prev.crops, { name: "", area: "" }]
@@ -132,6 +162,21 @@ export default function ProfilePage() {
 
   const handleAddCropCycle = async () => {
     if (!db || !user || !newCrop.name) return;
+    
+    // Check if adding this crop cycle exceeds total land
+    const existingCropsTotal = cropCycles?.reduce((acc, curr) => acc + (parseFloat(curr.area) || 0), 0) || 0;
+    const newArea = parseFloat(newCrop.area) || 0;
+    const limit = parseFloat(formData.totalLandArea) || 0;
+
+    if (existingCropsTotal + newArea > limit) {
+      toast({
+        variant: "destructive",
+        title: "क्षेत्र मर्यादा ओलांडली!",
+        description: "हे पीक जोडल्यास तुमचे एकूण क्षेत्र जमिनीपेक्षा जास्त होईल.",
+      });
+      return;
+    }
+
     try {
       await addDoc(collection(db, "users", user.uid, "cropCycles"), {
         ...newCrop,
@@ -196,7 +241,12 @@ export default function ProfilePage() {
                 </div>
                 <div className="space-y-2">
                   <Label>एकूण जमीन क्षेत्र (एकर)</Label>
-                  <Input value={formData.totalLandArea} readOnly className="bg-slate-50 rounded-xl font-bold text-primary" />
+                  <Input 
+                    type="number" 
+                    value={formData.totalLandArea} 
+                    onChange={e => setFormData({...formData, totalLandArea: e.target.value})}
+                    className="rounded-xl font-bold text-primary" 
+                  />
                 </div>
                 
                 <div className="space-y-2">
@@ -214,6 +264,9 @@ export default function ProfilePage() {
                 <div className="space-y-4 pt-4 border-t">
                   <div className="flex items-center justify-between">
                     <Label className="font-bold">पीकनिहाय क्षेत्र</Label>
+                    <div className="text-[10px] font-bold text-slate-500">
+                      शिल्लक: {(parseFloat(formData.totalLandArea) || 0) - calculateTotalCropArea()}
+                    </div>
                     <Button variant="ghost" size="sm" onClick={addCropField} className="text-primary h-8 w-8 p-0">
                       <Plus className="w-5 h-5" />
                     </Button>
