@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, use } from "react";
@@ -15,60 +14,61 @@ import {
   ChevronLeft,
   Calendar,
   User,
-  ExternalLink
+  ExternalLink,
+  CheckCircle2,
+  Lightbulb
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { getAiSummary } from "@/app/actions";
+import { getExpertAdvice } from "@/app/actions";
 import { useToast } from "@/hooks/use-toast";
 
-// Mock data for the specific item
 const contentData = {
   "1": {
-    title: "The Resilience of Giriama Traditions in Modern Kenya",
+    title: "आंबा पिकावरील रोगांचे नियंत्रण कसे करावे?",
     fullContent: `
-      The Giriama community of coastal Kenya has long been celebrated for its deep-rooted cultural heritage, particularly its vibrant traditional dances and rich oral history. In recent years, as globalization spreads its influence into every corner of the country, there has been a significant push within the Mazisheti region to preserve these sacred traditions while finding new ways to integrate them into modern society.
+      या हंगामात आंब्यावर प्रामुख्याने करपा आणि भुरी या रोगांचा प्रादुर्भाव मोठ्या प्रमाणात दिसून येत आहे. वातावरणातील आर्द्रता आणि सतत ढगाळ हवामानामुळे हे रोग झपाट्याने पसरतात. 
 
-      Key cultural festivals like the Mazisheti Harvest Festival have seen a resurgence in youth participation. Local schools are now incorporating traditional folklore into their extracurricular activities, ensuring that the younger generation remains connected to their ancestors' wisdom. 
+      भुरी रोगाच्या नियंत्रणासाठी झाडावर गंधकाची फवारणी करणे अत्यंत महत्त्वाचे आहे. तसेच करपा रोगासाठी कॉपर ऑक्सीक्लोराईडचा वापर तज्ज्ञांनी सुचवला आहे. झाडाच्या फांद्यांची योग्य छाटणी केल्यास हवा खेळती राहते आणि रोगांचा प्रादुर्भाव कमी होतो.
 
-      "We cannot move forward if we forget where we came from," says Mzee Charo, a village elder. "Our stories are our maps for the future. By sharing them on platforms like Mazisheti.org, we ensure they never die out."
-
-      The role of technology in this preservation effort cannot be overstated. By digitizing traditional songs and archiving oral histories, the community is building a bridge across time. The challenges remain, however, as urbanization continues to draw young people away from rural ancestral lands. This article explores the balance between preserving the old and embracing the new.
+      शेतकऱ्यांनी बागेचे नियमित निरीक्षण करावे आणि सुरुवातीच्या काळातच लक्षणे दिसल्यास उपाययोजना कराव्यात. जमिनीतील ओलावा टिकवून ठेवण्यासाठी आच्छादनाचा वापर करावा. खतांचे योग्य व्यवस्थापन केल्यास झाडाची प्रतिकारशक्ती वाढते.
     `,
-    imageUrl: "https://picsum.photos/seed/mazi2/1200/600",
-    category: "Culture",
-    date: "May 12, 2024",
-    author: "Samuel Katana",
-    sourceUrl: "https://www.mazisheti.org/resilience-of-traditions"
+    imageUrl: "https://picsum.photos/seed/advice1/1200/600",
+    category: "शेती सल्ला",
+    date: "१५ मे २०२४",
+    author: "डॉ. विकास पाटील",
+    sourceUrl: "https://www.mazisheti.org/mango-care"
   }
 };
 
 export default function ContentDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const data = contentData[id as keyof typeof contentData] || contentData["1"];
-  const [isSummarizing, setIsSummarizing] = useState(false);
-  const [summary, setSummary] = useState<string | null>(null);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [adviceData, setAdviceData] = useState<{advice: string, keyPoints: string[]} | null>(null);
   const { toast } = useToast();
 
-  const handleSummarize = async () => {
-    setIsSummarizing(true);
-    const result = await getAiSummary(data.fullContent);
-    setIsSummarizing(false);
+  const handleConsultAI = async () => {
+    setIsAnalyzing(true);
+    const result = await getExpertAdvice(data.fullContent);
+    setIsAnalyzing(false);
 
     if (result.success) {
-      setSummary(result.summary!);
+      setAdviceData({ advice: result.advice!, keyPoints: result.keyPoints! });
       toast({
-        title: "Summary Generated",
-        description: "AI has successfully summarized this article for you.",
+        title: "AI सल्ला तयार आहे",
+        description: "आमच्या AI तज्ज्ञाने लेखाचे विश्लेषण करून खास तुमच्यासाठी कृती आराखडा तयार केला आहे.",
       });
     } else {
       toast({
         variant: "destructive",
-        title: "Error",
-        description: "Failed to generate summary. Please try again later.",
+        title: "त्रुटी",
+        description: "AI शी संपर्क होऊ शकला नाही. कृपया थोड्या वेळाने प्रयत्न करा.",
       });
     }
   };
+
+  const isAdvice = data.category === "शेती सल्ला";
 
   return (
     <div className="flex flex-col min-h-screen bg-white">
@@ -76,11 +76,10 @@ export default function ContentDetailPage({ params }: { params: Promise<{ id: st
       
       <main className="container mx-auto px-4 py-8">
         <Link href="/" className="inline-flex items-center text-sm font-medium text-primary hover:underline mb-8">
-          <ChevronLeft className="w-4 h-4 mr-1" /> Back to Feed
+          <ChevronLeft className="w-4 h-4 mr-1" /> मागे वळा
         </Link>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
-          {/* Main Article Content */}
           <article className="lg:col-span-8">
             <Badge className="bg-primary text-white mb-6 uppercase tracking-wider px-3 py-1">
               {data.category}
@@ -100,19 +99,11 @@ export default function ContentDetailPage({ params }: { params: Promise<{ id: st
               </div>
               <div className="flex items-center gap-2">
                 <Clock className="w-4 h-4" />
-                <span>4 min read</span>
-              </div>
-              <div className="flex items-center gap-4 ml-auto">
-                <Button variant="ghost" size="sm" className="h-8 gap-2">
-                  <Share2 className="w-4 h-4" /> Share
-                </Button>
-                <Button variant="ghost" size="sm" className="h-8 gap-2">
-                  <MessageSquare className="w-4 h-4" /> 12
-                </Button>
+                <span>३ मिनिटे वाचन</span>
               </div>
             </div>
 
-            <div className="relative aspect-video rounded-3xl overflow-hidden mb-10 shadow-lg">
+            <div className="relative aspect-video rounded-[2.5rem] overflow-hidden mb-10 shadow-lg">
               <Image
                 src={data.imageUrl}
                 alt={data.title}
@@ -122,7 +113,7 @@ export default function ContentDetailPage({ params }: { params: Promise<{ id: st
               />
             </div>
 
-            <div className="prose prose-lg max-w-none prose-headings:text-primary prose-p:leading-relaxed prose-p:text-slate-700">
+            <div className="prose prose-lg max-w-none prose-p:leading-relaxed prose-p:text-slate-700">
               {data.fullContent.split('\n\n').map((para, i) => (
                 <p key={i} className="mb-6 whitespace-pre-line">
                   {para.trim()}
@@ -130,90 +121,106 @@ export default function ContentDetailPage({ params }: { params: Promise<{ id: st
               ))}
             </div>
 
-            <div className="mt-12 p-8 bg-blue-50 rounded-3xl border border-blue-100 flex flex-col md:flex-row items-center gap-6">
+            <div className="mt-12 p-8 bg-blue-50 rounded-[2.5rem] border border-blue-100 flex flex-col md:flex-row items-center gap-6">
                <div className="flex-1">
-                 <h4 className="font-bold text-primary mb-2">Original Source</h4>
-                 <p className="text-sm text-slate-600 mb-4">This content was aggregated from mazisheti.org. You can read the original article there.</p>
+                 <h4 className="font-bold text-primary mb-2">मूळ स्रोत</h4>
+                 <p className="text-sm text-slate-600 mb-4">ही माहिती mazisheti.org वरून घेण्यात आली आहे.</p>
                  <Link href={data.sourceUrl} target="_blank">
-                    <Button variant="outline" className="gap-2 border-primary text-primary hover:bg-primary/5">
-                      Visit mazisheti.org <ExternalLink className="w-4 h-4" />
+                    <Button variant="outline" className="gap-2 border-primary text-primary hover:bg-primary/5 rounded-xl">
+                      mazisheti.org ला भेट द्या <ExternalLink className="w-4 h-4" />
                     </Button>
                  </Link>
                </div>
             </div>
           </article>
 
-          {/* Sidebar Tools */}
           <aside className="lg:col-span-4 space-y-8">
-            <Card className="p-6 border-none shadow-xl rounded-3xl bg-white overflow-hidden relative">
-              <div className="absolute top-0 right-0 w-24 h-24 bg-accent/10 rounded-full -mr-12 -mt-12" />
+            <Card className="p-8 border-none shadow-2xl rounded-[2.5rem] bg-white overflow-hidden relative">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-accent/5 rounded-full -mr-16 -mt-16" />
               <div className="relative z-10">
                 <div className="flex items-center gap-3 mb-6">
-                  <div className="w-10 h-10 bg-accent rounded-xl flex items-center justify-center text-white">
-                    <Sparkles className="w-6 h-6" />
+                  <div className="w-12 h-12 bg-accent rounded-2xl flex items-center justify-center text-white shadow-lg shadow-accent/20">
+                    <Sparkles className="w-7 h-7" />
                   </div>
-                  <h3 className="text-xl font-bold text-accent">AI Summary</h3>
+                  <h3 className="text-2xl font-bold text-accent">AI तज्ज्ञ सल्ला</h3>
                 </div>
                 
-                {!summary && !isSummarizing ? (
+                {!adviceData && !isAnalyzing ? (
                   <>
-                    <p className="text-muted-foreground mb-6 text-sm">
-                      Pressed for time? Use our AI tool to get a concise summary of this aggregated content instantly.
+                    <p className="text-muted-foreground mb-8 text-sm leading-relaxed">
+                      या लेखातील माहितीचे विश्लेषण करून, तुमच्या शेतीसाठी महत्त्वाचा कृती आराखडा मिळवण्यासाठी आमच्या AI तज्ज्ञाची मदत घ्या.
                     </p>
                     <Button 
-                      onClick={handleSummarize}
-                      className="w-full bg-accent hover:bg-accent/90 text-white font-bold h-12 rounded-xl"
+                      onClick={handleConsultAI}
+                      className="w-full bg-accent hover:bg-accent/90 text-white font-bold h-14 rounded-2xl shadow-lg shadow-accent/20"
                     >
-                      Summarize with AI
+                      AI सल्ला मिळवा
                     </Button>
                   </>
-                ) : isSummarizing ? (
-                  <div className="space-y-4">
+                ) : isAnalyzing ? (
+                  <div className="space-y-6">
                     <Skeleton className="h-4 w-full" />
                     <Skeleton className="h-4 w-[90%]" />
                     <Skeleton className="h-4 w-[95%]" />
                     <Skeleton className="h-4 w-[80%]" />
+                    <div className="pt-4 space-y-3">
+                       <Skeleton className="h-10 w-full rounded-xl" />
+                       <Skeleton className="h-10 w-full rounded-xl" />
+                    </div>
                     <p className="text-xs text-center text-muted-foreground animate-pulse mt-4">
-                      Analyzing content and generating summary...
+                      माहितीचे विश्लेषण चालू आहे...
                     </p>
                   </div>
                 ) : (
-                  <div className="animate-in fade-in slide-in-from-bottom-2 duration-500">
-                    <div className="p-4 bg-accent/5 rounded-2xl border border-accent/10 mb-6">
+                  <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+                    <div className="p-5 bg-accent/5 rounded-[2rem] border border-accent/10 mb-8">
                       <p className="text-slate-700 leading-relaxed text-sm italic">
-                        "{summary}"
+                        "{adviceData.advice}"
                       </p>
                     </div>
+
+                    <h4 className="font-bold text-slate-800 mb-4 flex items-center gap-2">
+                      <Lightbulb className="w-5 h-5 text-amber-500" /> महत्त्वाचे कृती मुद्दे:
+                    </h4>
+                    <ul className="space-y-4 mb-8">
+                      {adviceData.keyPoints.map((point, i) => (
+                        <li key={i} className="flex gap-3 text-sm text-slate-600">
+                          <CheckCircle2 className="w-5 h-5 text-green-500 shrink-0" />
+                          <span>{point}</span>
+                        </li>
+                      ))}
+                    </ul>
+
                     <Button 
                       variant="ghost" 
-                      onClick={() => setSummary(null)}
-                      className="w-full text-accent hover:bg-accent/5 text-xs h-8"
+                      onClick={() => setAdviceData(null)}
+                      className="w-full text-accent hover:bg-accent/5 text-xs h-10 rounded-xl"
                     >
-                      Clear Summary
+                      माहिती पुसून टाका
                     </Button>
                   </div>
                 )}
               </div>
             </Card>
 
-            <Card className="p-6 border-none shadow-lg rounded-3xl bg-primary text-white">
-               <h3 className="text-lg font-bold mb-4">Related Content</h3>
-               <div className="space-y-6">
+            <Card className="p-8 border-none shadow-xl rounded-[2.5rem] bg-primary text-white">
+               <h3 className="text-xl font-bold mb-6">संबंधित माहिती</h3>
+               <div className="space-y-8">
                   {[1, 2].map((i) => (
-                    <div key={i} className="flex gap-4 group cursor-pointer">
-                      <div className="relative w-20 h-20 rounded-xl overflow-hidden flex-shrink-0">
+                    <div key={i} className="flex gap-5 group cursor-pointer">
+                      <div className="relative w-24 h-24 rounded-2xl overflow-hidden flex-shrink-0 shadow-md">
                         <Image
-                          src={`https://picsum.photos/seed/rel${i}/150/150`}
+                          src={`https://picsum.photos/seed/rel${i}/200/200`}
                           alt="Thumbnail"
                           fill
-                          className="object-cover group-hover:scale-110 transition-transform"
+                          className="object-cover group-hover:scale-110 transition-transform duration-500"
                         />
                       </div>
-                      <div>
+                      <div className="flex flex-col justify-center">
                         <h4 className="text-sm font-bold line-clamp-2 group-hover:text-blue-200 transition-colors">
-                          {i === 1 ? "Mazisheti Water Project Update" : "Coastal Music Heritage Series"}
+                          {i === 1 ? "बाजारपेठेतील वाढते दर आणि नियोजन" : "शासकीय ठिबक सिंचन योजना अपडेट"}
                         </h4>
-                        <p className="text-[10px] text-blue-200 mt-1 uppercase tracking-wider">News</p>
+                        <p className="text-[10px] text-blue-200 mt-2 uppercase tracking-wider font-bold">बातमी</p>
                       </div>
                     </div>
                   ))}
