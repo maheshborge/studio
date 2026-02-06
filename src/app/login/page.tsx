@@ -56,7 +56,7 @@ export default function LoginPage() {
         return toast({ 
           variant: "destructive", 
           title: "त्रुटी", 
-          description: "कृपया वैध ईमेल पत्ता टाका. पासवर्ड लिंक तुमच्या ईमेलवर पाठवली जाईल." 
+          description: "कृपया तुमचा नोंदणीकृत ईमेल पत्ता टाका. पासवर्ड बदलण्याची लिंक त्याच ईमेलवर येईल." 
         });
       }
       setIsLoading(true);
@@ -64,14 +64,14 @@ export default function LoginPage() {
         await sendPasswordResetEmail(auth, email);
         toast({
           title: "ईमेल पाठवला आहे",
-          description: "पासवर्ड बदलण्यासाठीची लिंक तुमच्या ईमेलवर पाठवली आहे.",
+          description: "पासवर्ड बदलण्यासाठीची लिंक तुमच्या ईमेलवर पाठवली आहे. कृपया स्पॅम फोल्डरही तपासा.",
         });
         setIsForgot(false);
       } catch (error: any) {
         toast({
           variant: "destructive",
           title: "त्रुटी",
-          description: "ईमेल पाठवताना अडचण आली. कृपया तुमचा ईमेल सिस्टिममध्ये नोंदणीकृत आहे का ते तपासा.",
+          description: "हा ईमेल सिस्टिममध्ये सापडला नाही. कृपया तुम्ही योग्य ईमेल टाकला आहे का ते तपासा.",
         });
       } finally {
         setIsLoading(false);
@@ -94,7 +94,6 @@ export default function LoginPage() {
     
     try {
       if (isLogin) {
-        // Smart Identification: Check if input is a 10-digit mobile number
         const loginIdentifier = (email.length === 10 && /^\d+$/.test(email)) 
           ? `${email}@mazisheti.local` 
           : email;
@@ -103,12 +102,10 @@ export default function LoginPage() {
         toast({ title: "लॉगिन यशस्वी!" });
         router.push("/profile");
       } else {
-        // Create user with either real email or generated mobile email
         const finalEmail = email || `${mobile}@mazisheti.local`;
         const userCredential = await createUserWithEmailAndPassword(auth, finalEmail, password);
         const user = userCredential.user;
         
-        // If real email is provided, send verification/welcome
         if (email && email.includes("@")) {
           sendEmailVerification(user).catch(err => console.error("Email verification error", err));
         }
@@ -129,7 +126,6 @@ export default function LoginPage() {
       let errorMessage = "काहीतरी चुकले आहे.";
       if (error.code === "auth/email-already-in-use") errorMessage = "हा मोबाईल नंबर किंवा ईमेल आधीच नोंदणीकृत आहे.";
       if (error.code === "auth/invalid-credential") errorMessage = "चुकीचा पासवर्ड किंवा मोबाईल नंबर.";
-      if (error.code === "auth/user-not-found") errorMessage = "हे खाते सापडले नाही.";
       
       toast({
         variant: "destructive",
@@ -169,7 +165,7 @@ export default function LoginPage() {
             <Alert className="mb-6 bg-blue-50 border-blue-100 rounded-2xl">
               <Info className="h-4 w-4 text-blue-600" />
               <AlertDescription className="text-[11px] text-blue-700 leading-tight">
-                <strong>सूचना:</strong> पासवर्ड विसरल्यास तो रिकव्हर करण्यासाठी खरा ईमेल देणे आवश्यक आहे. ईमेल न दिल्यास पासवर्ड बदलता येणार नाही.
+                <strong>महत्त्वाचे:</strong> पासवर्ड विसरल्यास तो रिसेट करण्यासाठी खरा ईमेल पत्ता देणे आवश्यक आहे. ईमेलशिवाय पासवर्ड बदलता येणार नाही.
               </AlertDescription>
             </Alert>
           )}
@@ -262,7 +258,7 @@ export default function LoginPage() {
                     <Label htmlFor="password">{isLogin ? "पासवर्ड" : "पासवर्ड सेट करा"} <span className="text-red-500">*</span></Label>
                     {isLogin && (
                       <button onClick={() => setIsForgot(true)} className="text-xs text-primary font-bold hover:underline">
-                        विसरलात?
+                        पासवर्ड विसरलात?
                       </button>
                     )}
                   </div>
