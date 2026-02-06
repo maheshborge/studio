@@ -13,7 +13,8 @@ import { useAuth, useFirestore } from "@/firebase";
 import { 
   signInWithEmailAndPassword, 
   createUserWithEmailAndPassword, 
-  sendPasswordResetEmail 
+  sendPasswordResetEmail,
+  sendEmailVerification
 } from "firebase/auth";
 import { doc, setDoc } from "firebase/firestore";
 import { useToast } from "@/hooks/use-toast";
@@ -107,6 +108,11 @@ export default function LoginPage() {
         const userCredential = await createUserWithEmailAndPassword(auth, finalEmail, password);
         const user = userCredential.user;
         
+        // If real email is provided, send verification/welcome
+        if (email && email.includes("@")) {
+          sendEmailVerification(user).catch(err => console.error("Email verification error", err));
+        }
+
         await setDoc(doc(db, "users", user.uid, "profile", "main"), {
           id: user.uid,
           name,

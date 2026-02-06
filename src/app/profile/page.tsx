@@ -56,6 +56,13 @@ export default function ProfilePage() {
   const [isUpdating, setIsUpdating] = useState(false);
   const [editData, setEditData] = useState({ name: "", email: "" });
 
+  // Handle unauthorized access in a useEffect to avoid render-phase state updates
+  useEffect(() => {
+    if (!isUserLoading && !user) {
+      router.push("/login");
+    }
+  }, [user, isUserLoading, router]);
+
   const mainProfileRef = useMemoFirebase(() => {
     if (!db || !user) return null;
     return doc(db, "users", user.uid, "profile", "main");
@@ -124,8 +131,13 @@ export default function ProfilePage() {
     }
   };
 
-  if (isUserLoading) return <div className="min-h-screen flex items-center justify-center"><Loader2 className="animate-spin text-primary w-12 h-12" /></div>;
-  if (!user) { router.push("/login"); return null; }
+  if (isUserLoading || (!user && !isUserLoading)) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="animate-spin text-primary w-12 h-12" />
+      </div>
+    );
+  }
 
   const userType = mainProfile?.userType || "farmer";
   const isFarmer = userType === "farmer";
