@@ -204,7 +204,13 @@ export default function MarketplacePage() {
           {filteredCrops.map((crop) => (
             <Card key={crop.id} className="rounded-[2.5rem] border-none shadow-xl overflow-hidden bg-white hover:shadow-2xl transition-all">
               <div className="relative aspect-video">
-                <Image src={crop.salePhotoUrl || "https://picsum.photos/seed/market/600/400"} alt={crop.name} fill className="object-cover" />
+                <Image 
+                  src={crop.salePhotoUrl || "https://picsum.photos/seed/market/600/400"} 
+                  alt={crop.name} 
+                  fill 
+                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                  className="object-cover" 
+                />
                 <Badge className="absolute top-4 left-4 bg-green-600">काढणीस तयार</Badge>
               </div>
               <CardContent className="p-8 space-y-4">

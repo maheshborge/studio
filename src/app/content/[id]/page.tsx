@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, use } from "react";
@@ -170,6 +171,7 @@ export default function ContentDetailPage({ params }: { params: Promise<{ id: st
                 src={data.imageUrl}
                 alt={data.title}
                 fill
+                sizes="100vw"
                 className="object-cover"
                 priority
               />
@@ -290,6 +292,7 @@ export default function ContentDetailPage({ params }: { params: Promise<{ id: st
                           src={`https://picsum.photos/seed/rel${i}/200/200`}
                           alt="Thumbnail"
                           fill
+                          sizes="96px"
                           className="object-cover group-hover:scale-110 transition-transform duration-500"
                         />
                       </div>

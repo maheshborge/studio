@@ -80,7 +80,13 @@ export default function FarmerSalesForm({ params }: { params: Promise<{ id: stri
               <div className="space-y-4">
                 <Label className="font-bold">शेताचा / मालाचा फोटो</Label>
                 <div className="relative aspect-video rounded-2xl overflow-hidden bg-slate-100 border-2 border-dashed border-slate-300 flex items-center justify-center group cursor-pointer">
-                  <Image src={formData.salePhotoUrl} alt="Crop Photo" fill className="object-cover group-hover:opacity-75 transition-opacity" />
+                  <Image 
+                    src={formData.salePhotoUrl} 
+                    alt="Crop Photo" 
+                    fill 
+                    sizes="(max-width: 768px) 100vw, 640px"
+                    className="object-cover group-hover:opacity-75 transition-opacity" 
+                  />
                   <div className="absolute inset-0 flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transition-opacity bg-black/40">
                     <Camera className="w-10 h-10" />
                   </div>
