@@ -16,43 +16,38 @@ service cloud.firestore {
       allow write: if isOwner(userId);
     }
     
-    // Explicitly allow collectionGroup queries for 'profile' (for Dashboard)
+    // Allow collectionGroup queries for 'profile' (Admin & Dashboard)
     match /{path=**}/profile/{docId} {
       allow read: if isSignedIn();
     }
 
-    // Farmer Data Rules
-    match /users/{userId}/farmers/{farmerId} {
-      allow read: if isSignedIn();
-      allow write: if isOwner(userId);
-    }
-    match /{path=**}/farmers/{farmerId} {
-      allow read: if isSignedIn();
-    }
-
-    // Buyer Data Rules
-    match /users/{userId}/buyers/{buyerId} {
-      allow read, write: if isOwner(userId);
-    }
-
-    // Crop Cycles Rules (Marketplace & Dashboard)
+    // Crop Cycles Rules
     match /users/{userId}/cropCycles/{cropId} {
       allow read: if isSignedIn();
       allow write: if isOwner(userId);
     }
     
-    // Explicitly allow collectionGroup queries for 'cropCycles' (for Marketplace)
+    // Allow collectionGroup queries for 'cropCycles' (Marketplace & Dashboard)
     match /{path=**}/cropCycles/{cropId} {
       allow read: if isSignedIn();
     }
 
-    // Community Content (Advice, Schemes, News, etc.) - Public Read
-    match /communityContent/{id} {
+    // Questions / Community Content
+    match /questions/{questionId} {
       allow read: if true;
-      allow write: if isSignedIn(); // Admin or Expert can write
+      allow write: if isSignedIn();
     }
 
-    // Lookup collections
+    // Allow collectionGroup queries for 'questions' if needed
+    match /{path=**}/questions/{questionId} {
+      allow read: if true;
+    }
+
+    match /communityContent/{id} {
+      allow read: if true;
+      allow write: if isSignedIn();
+    }
+
     match /personalInfos/{id} { allow read: if isSignedIn(); }
     match /locations/{id} { allow read: if true; }
   }

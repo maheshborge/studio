@@ -3,6 +3,7 @@
 
 import { Navigation } from "@/components/navigation";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { 
   BarChart, 
   Bar, 
@@ -24,7 +25,7 @@ import {
   MessageSquare
 } from "lucide-react";
 import { useFirestore, useCollection, useMemoFirebase, useUser, useDoc } from "@/firebase";
-import { collectionGroup, doc } from "firebase/firestore";
+import { collectionGroup, doc, collection } from "firebase/firestore";
 import { useMemo } from "react";
 import { cn } from "@/lib/utils";
 
@@ -48,7 +49,7 @@ export default function DashboardPage() {
 
   const questionsQuery = useMemoFirebase(() => {
     if (!db) return null;
-    return collectionGroup(db, "questions"); // Mocked global questions
+    return collection(db, "questions"); // Corrected to use collection for top-level questions
   }, [db]);
   const { data: questions } = useCollection(questionsQuery);
 

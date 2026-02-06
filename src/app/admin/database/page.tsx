@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Navigation } from "@/components/navigation";
 import { 
   Table, 
@@ -20,12 +20,12 @@ import { Database, Users, Sprout, ShoppingBag, Loader2 } from "lucide-react";
 export default function DatabaseViewPage() {
   const db = useFirestore();
 
-  // Fetch all user profiles
+  // Fetch all profiles (main, farmerData, buyerData are documents in this collection)
   const profilesQuery = useMemoFirebase(() => {
     if (!db) return null;
     return collectionGroup(db, "profile");
   }, [db]);
-  const { data: profiles, isLoading: isProfilesLoading } = useCollection(profilesQuery);
+  const { data: allProfileDocs, isLoading: isProfilesLoading } = useCollection(profilesQuery);
 
   // Fetch all crop cycles
   const cropsQuery = useMemoFirebase(() => {
@@ -34,14 +34,16 @@ export default function DatabaseViewPage() {
   }, [db]);
   const { data: crops, isLoading: isCropsLoading } = useCollection(cropsQuery);
 
-  // Fetch all buyer data
-  const buyersQuery = useMemoFirebase(() => {
-    if (!db) return null;
-    return collectionGroup(db, "buyerData");
-  }, [db]);
-  const { data: buyers, isLoading: isBuyersLoading } = useCollection(buyersQuery);
+  // Process data to separate types
+  const userProfiles = useMemo(() => {
+    return allProfileDocs?.filter(doc => doc.id === "main") || [];
+  }, [allProfileDocs]);
 
-  if (isProfilesLoading || isCropsLoading || isBuyersLoading) {
+  const buyerDetails = useMemo(() => {
+    return allProfileDocs?.filter(doc => doc.id === "buyerData") || [];
+  }, [allProfileDocs]);
+
+  if (isProfilesLoading || isCropsLoading) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50 font-body">
         <Loader2 className="animate-spin text-primary w-12 h-12 mb-4" />
@@ -64,13 +66,13 @@ export default function DatabaseViewPage() {
         <Tabs defaultValue="users" className="space-y-8">
           <TabsList className="bg-white p-1 rounded-2xl h-14 border shadow-sm">
             <TabsTrigger value="users" className="rounded-xl px-8 h-full gap-2 data-[state=active]:bg-primary data-[state=active]:text-white">
-              <Users className="w-4 h-4" /> युजर्स ({profiles?.length || 0})
+              <Users className="w-4 h-4" /> युजर्स ({userProfiles.length})
             </TabsTrigger>
             <TabsTrigger value="crops" className="rounded-xl px-8 h-full gap-2 data-[state=active]:bg-primary data-[state=active]:text-white">
               <Sprout className="w-4 h-4" /> पिके ({crops?.length || 0})
             </TabsTrigger>
             <TabsTrigger value="buyers" className="rounded-xl px-8 h-full gap-2 data-[state=active]:bg-primary data-[state=active]:text-white">
-              <ShoppingBag className="w-4 h-4" /> खरेदीदार ({buyers?.length || 0})
+              <ShoppingBag className="w-4 h-4" /> खरेदीदार ({buyerDetails.length})
             </TabsTrigger>
           </TabsList>
 
@@ -90,8 +92,8 @@ export default function DatabaseViewPage() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {profiles?.filter(p => p.userType).map((profile) => (
-                      <TableRow key={profile.id}>
+                    {userProfiles.map((profile) => (
+                      <TableRow key={profile.id + profile.mobile}>
                         <TableCell className="font-medium">{profile.name}</TableCell>
                         <TableCell>{profile.mobile}</TableCell>
                         <TableCell className="capitalize">{profile.userType}</TableCell>
@@ -163,8 +165,8 @@ export default function DatabaseViewPage() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {buyers?.map((buyer) => (
-                      <TableRow key={buyer.id}>
+                    {buyerDetails.map((buyer) => (
+                      <TableRow key={buyer.id + buyer.orgName}>
                         <TableCell className="font-bold">{buyer.orgName}</TableCell>
                         <TableCell>{buyer.contactName}</TableCell>
                         <TableCell className="capitalize">{buyer.category}</TableCell>
