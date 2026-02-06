@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Navigation } from "@/components/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -18,12 +18,16 @@ import {
   FileText,
   Building2,
   ArrowRight,
-  Loader2
+  Loader2,
+  Building,
+  Flag,
+  Globe
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
 import { useFirestore, useUser, useDoc, useMemoFirebase } from "@/firebase";
 import { doc, setDoc } from "firebase/firestore";
+import { locationData } from "@/lib/locations";
 
 const BUYER_CATEGORIES = [
   { value: "trader", label: "व्यापारी (Trader)" },
@@ -61,6 +65,8 @@ export default function BuyerRegistrationPage() {
   const { toast } = useToast();
   const router = useRouter();
 
+  const [isOtherState, setIsOtherState] = useState(false);
+
   // Fetch logged-in user's profile to pre-fill contact info
   const profileRef = useMemoFirebase(() => {
     if (!db || !user) return null;
@@ -73,7 +79,16 @@ export default function BuyerRegistrationPage() {
     orgName: "",
     contactName: "",
     contactNumber: "",
-    address: "",
+    // Address fields
+    shopNo: "",
+    landmark: "",
+    locality: "",
+    state: "Maharashtra",
+    district: "",
+    taluka: "",
+    village: "",
+    pincode: "",
+    
     recommendationName: "",
     recommendationContact: "",
     category: "",
@@ -97,7 +112,24 @@ export default function BuyerRegistrationPage() {
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { id, value } = e.target;
-    if ((id === "contactNumber" || id === "recommendationContact") && value.length > 10) return;
+    // Special validation for mobile numbers
+    if ((id === "contactNumber" || id === "recommendationContact" || id === "pincode") && value.length > 10 && id !== "pincode") return;
+    if (id === "pincode" && value.length > 6) return;
+    
+    setFormData(prev => ({ ...prev, [id]: value }));
+  };
+
+  const handleSelectChange = (id: string, value: string) => {
+    if (id === "state") {
+      if (value === "Other") {
+        setIsOtherState(true);
+        setFormData(prev => ({ ...prev, state: "", district: "", taluka: "" }));
+      } else {
+        setIsOtherState(false);
+        setFormData(prev => ({ ...prev, state: value, district: "", taluka: "" }));
+      }
+      return;
+    }
     setFormData(prev => ({ ...prev, [id]: value }));
   };
 
@@ -139,6 +171,10 @@ export default function BuyerRegistrationPage() {
     }
   };
 
+  const selectedStateData = locationData["Maharashtra"];
+  const districts = selectedStateData ? Object.keys(selectedStateData) : [];
+  const talukas = (!isOtherState && formData.district) ? selectedStateData[formData.district] : [];
+
   if (isUserLoading || isProfileLoading) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50">
@@ -166,8 +202,8 @@ export default function BuyerRegistrationPage() {
               </div>
             </div>
             
-            <CardContent className="p-8 md:p-12 space-y-10">
-              {/* संस्था माहिती */}
+            <CardContent className="p-8 md:p-12 space-y-12">
+              {/* १. संस्था माहिती */}
               <div className="space-y-6">
                 <h3 className="text-xl font-bold text-primary flex items-center gap-2 border-b pb-2">
                   <Building2 className="w-5 h-5" /> संस्था / आस्थापना माहिती
@@ -184,7 +220,7 @@ export default function BuyerRegistrationPage() {
                 </div>
               </div>
 
-              {/* संपर्क व्यक्ती माहिती - Variable based on Login */}
+              {/* २. संपर्क व्यक्ती माहिती */}
               <div className="space-y-6">
                 <h3 className="text-xl font-bold text-primary flex items-center gap-2 border-b pb-2">
                   <User className="w-5 h-5" /> संपर्क व्यक्ती माहिती
@@ -208,20 +244,93 @@ export default function BuyerRegistrationPage() {
                     readOnly
                     helperText="खात्यातून घेतलेला नंबर"
                   />
-                  <div className="md:col-span-2">
-                    <Field 
-                      id="address" 
-                      label="पत्ता (पूर्ण पत्ता)" 
-                      icon={MapPin} 
-                      value={formData.address} 
-                      onChange={handleInputChange} 
-                      placeholder="उदा. मु. पो. ..., जिल्हा ..."
-                    />
-                  </div>
                 </div>
               </div>
 
-              {/* खरेदीदार कॅटेगरी */}
+              {/* ३. पत्ता (शहरी + शेतकरी फॉरमॅट) */}
+              <div className="space-y-6">
+                <h3 className="text-xl font-bold text-primary flex items-center gap-2 border-b pb-2">
+                  <MapPin className="w-5 h-5" /> पत्ता व लोकेशन
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <Field 
+                    id="shopNo" 
+                    label="गाला नं. / शॉप नं." 
+                    icon={Building} 
+                    value={formData.shopNo} 
+                    onChange={handleInputChange} 
+                    placeholder="उदा. शॉप नं. १०२"
+                  />
+                  <Field 
+                    id="locality" 
+                    label="लोकलिटी / विभाग" 
+                    icon={MapPin} 
+                    value={formData.locality} 
+                    onChange={handleInputChange} 
+                    placeholder="उदा. शुक्रवार पेठ"
+                  />
+                  <div className="md:col-span-2">
+                    <Field 
+                      id="landmark" 
+                      label="लॅंडमार्क (जवळची खूण)" 
+                      icon={Flag} 
+                      value={formData.landmark} 
+                      onChange={handleInputChange} 
+                      placeholder="उदा. बस स्टँड जवळ"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label className="font-bold">राज्य</Label>
+                    <Select value={isOtherState ? "Other" : "Maharashtra"} onValueChange={(val) => handleSelectChange("state", val)}>
+                      <SelectTrigger className="h-12 rounded-xl bg-slate-50">
+                        <SelectValue placeholder="निवडा" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Maharashtra">Maharashtra</SelectItem>
+                        <SelectItem value="Other">Other</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {isOtherState ? (
+                    <>
+                      <Field id="district" label="जिल्ह्याचे नाव" icon={Globe} value={formData.district} onChange={handleInputChange} />
+                      <Field id="taluka" label="तालुक्याचे नाव" icon={MapPin} value={formData.taluka} onChange={handleInputChange} />
+                    </>
+                  ) : (
+                    <>
+                      <div className="space-y-2">
+                        <Label className="font-bold">जिल्हा</Label>
+                        <Select value={formData.district} onValueChange={(val) => handleSelectChange("district", val)}>
+                          <SelectTrigger className="h-12 rounded-xl bg-slate-50">
+                            <SelectValue placeholder="निवडा" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {districts.map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="font-bold">तालुका</Label>
+                        <Select value={formData.taluka} disabled={!formData.district} onValueChange={(val) => handleSelectChange("taluka", val)}>
+                          <SelectTrigger className="h-12 rounded-xl bg-slate-50">
+                            <SelectValue placeholder="निवडा" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {talukas.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </>
+                  )}
+                  
+                  <Field id="village" label="गाव / शहर" icon={MapPin} value={formData.village} onChange={handleInputChange} placeholder="उदा. पुणे" />
+                  <Field id="pincode" label="पिनकोड" icon={MapPin} type="number" value={formData.pincode} onChange={handleInputChange} placeholder="उदा. ४११००२" />
+                </div>
+              </div>
+
+              {/* ४. खरेदीदार कॅटेगरी */}
               <div className="space-y-6">
                 <h3 className="text-xl font-bold text-primary flex items-center gap-2 border-b pb-2">
                   <ShoppingBag className="w-5 h-5" /> खरेदीदार कॅटेगरी व प्रकार
@@ -256,7 +365,7 @@ export default function BuyerRegistrationPage() {
                 </div>
               </div>
 
-              {/* परवाना नोंदणी */}
+              {/* ५. परवाना नोंदणी */}
               <div className="space-y-6">
                 <h3 className="text-xl font-bold text-primary flex items-center gap-2 border-b pb-2">
                   <FileText className="w-5 h-5" /> परवाना व ओळखपत्र नोंदणी
@@ -290,7 +399,7 @@ export default function BuyerRegistrationPage() {
                 </div>
               </div>
 
-              {/* शिफारस */}
+              {/* ६. शिफारस */}
               <div className="pt-6 border-t">
                 <Label className="text-slate-500 text-xs font-bold uppercase tracking-wider mb-6 block">शिफारस (कोणी सुचवले?)</Label>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
