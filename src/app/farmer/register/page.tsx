@@ -23,7 +23,8 @@ import {
   Calendar,
   Tag,
   Briefcase,
-  Building
+  Building,
+  Search
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useFirestore, useUser } from "@/firebase";
@@ -31,6 +32,7 @@ import { doc, setDoc, collection, addDoc } from "firebase/firestore";
 import { useRouter } from "next/navigation";
 import { locationData } from "@/lib/locations";
 import { addDays, format } from "date-fns";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 const steps = [
   { id: 1, name: "वैयक्तिक माहिती", icon: User },
@@ -45,6 +47,14 @@ const CROP_CATEGORIES = [
   { id: "grains", label: "धान्ये", days: 90 },
   { id: "spices", label: "मसाले", days: 70 },
   { id: "flowers", label: "फुले", days: 70 }
+];
+
+const MIGRATION_REASONS = [
+  { value: "शिक्षण", label: "शिक्षण (Education)" },
+  { value: "नोकरी", label: "नोकरी (Job)" },
+  { value: "व्यवसाय", label: "व्यवसाय (Business)" },
+  { value: "लग्न", label: "लग्न (Marriage)" },
+  { value: "इतर", label: "इतर (Other)" }
 ];
 
 export default function FarmerRegistrationPage() {
@@ -63,6 +73,18 @@ export default function FarmerRegistrationPage() {
     totalMembers: "", womenCount: "", menCount: "", studentCount: "",
     migrationEntries: [{ reason: "", city: "", count: "" }]
   });
+
+  // Flatten all districts and talukas for suggestions
+  const allLocations = useMemo(() => {
+    const maharashtra = locationData["Maharashtra"];
+    if (!maharashtra) return [];
+    const districts = Object.keys(maharashtra);
+    const talukas = Object.values(maharashtra).flat();
+    return Array.from(new Set([...districts, ...talukas])).sort();
+  }, []);
+
+  const [citySuggestions, setCitySuggestions] = useState<string[]>([]);
+  const [activeSuggestionIndex, setActiveSuggestionIndex] = useState<number | null>(null);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { id, value } = e.target;
@@ -83,6 +105,27 @@ export default function FarmerRegistrationPage() {
     const newEntries = [...formData.migrationEntries];
     newEntries[index] = { ...newEntries[index], [field]: value };
     setFormData(prev => ({ ...prev, migrationEntries: newEntries }));
+
+    if (field === "city") {
+      if (value.length > 1) {
+        const filtered = allLocations.filter(loc => 
+          loc.toLowerCase().includes(value.toLowerCase())
+        ).slice(0, 10);
+        setCitySuggestions(filtered);
+        setActiveSuggestionIndex(index);
+      } else {
+        setCitySuggestions([]);
+        setActiveSuggestionIndex(null);
+      }
+    }
+  };
+
+  const selectCitySuggestion = (index: number, city: string) => {
+    const newEntries = [...formData.migrationEntries];
+    newEntries[index].city = city;
+    setFormData(prev => ({ ...prev, migrationEntries: newEntries }));
+    setCitySuggestions([]);
+    setActiveSuggestionIndex(null);
   };
 
   const addMigrationEntry = () => {
@@ -103,13 +146,11 @@ export default function FarmerRegistrationPage() {
     if (!db || !user) return;
 
     try {
-      // 1. Save main farmer profile
       await setDoc(doc(db, "users", user.uid, "profile", "farmerData"), {
         ...formData,
         updatedAt: new Date().toISOString()
       }, { merge: true });
 
-      // 2. Save individual crop cycles
       for (const crop of formData.crops) {
         if (!crop.name) continue;
         const categoryData = CROP_CATEGORIES.find(c => c.id === crop.category);
@@ -123,7 +164,7 @@ export default function FarmerRegistrationPage() {
           area: parseFloat(crop.area) || 0,
           startDate: crop.startDate,
           expectedHarvestDate: format(expectedHarvest, "yyyy-MM-dd"),
-          estimatedYield: (parseFloat(crop.area) || 0) * 2.5, // Standard estimate multiplier
+          estimatedYield: (parseFloat(crop.area) || 0) * 2.5,
           status: "growing",
           farmerId: user.uid,
           farmerDistrict: formData.district,
@@ -252,30 +293,54 @@ export default function FarmerRegistrationPage() {
                   
                   <div className="grid grid-cols-1 gap-6">
                     {formData.migrationEntries.map((entry, index) => (
-                      <Card key={index} className="p-8 bg-slate-50 border-none rounded-[2rem] shadow-sm relative animate-in fade-in slide-in-from-bottom-2 duration-300">
+                      <Card key={index} className="p-8 bg-slate-50 border-none rounded-[2rem] shadow-sm relative animate-in fade-in slide-in-from-bottom-2 duration-300 overflow-visible">
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                           <div className="space-y-2">
                             <Label className="text-sm font-bold flex items-center gap-2">
                               <Briefcase className="w-4 h-4 text-primary" /> स्थलांतराचे कारण
                             </Label>
-                            <Input 
-                              placeholder="उदा. शिक्षण, नोकरी" 
-                              value={entry.reason} 
-                              onChange={(e) => handleMigrationChange(index, "reason", e.target.value)} 
-                              className="bg-white h-12 rounded-xl"
-                            />
+                            <Select value={entry.reason} onValueChange={(val) => handleMigrationChange(index, "reason", val)}>
+                              <SelectTrigger className="bg-white h-12 rounded-xl">
+                                <SelectValue placeholder="निवडा" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {MIGRATION_REASONS.map(r => <SelectItem key={r.value} value={r.value}>{r.label}</SelectItem>)}
+                              </SelectContent>
+                            </Select>
                           </div>
-                          <div className="space-y-2">
+                          
+                          <div className="space-y-2 relative">
                             <Label className="text-sm font-bold flex items-center gap-2">
                               <Building className="w-4 h-4 text-primary" /> गाव / शहर
                             </Label>
-                            <Input 
-                              placeholder="उदा. पुणे, मुंबई" 
-                              value={entry.city} 
-                              onChange={(e) => handleMigrationChange(index, "city", e.target.value)} 
-                              className="bg-white h-12 rounded-xl"
-                            />
+                            <div className="relative">
+                              <Input 
+                                placeholder="टाइप करा (उदा. पुणे)" 
+                                value={entry.city} 
+                                onChange={(e) => handleMigrationChange(index, "city", e.target.value)} 
+                                className="bg-white h-12 rounded-xl pr-10"
+                              />
+                              <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300" />
+                            </div>
+                            
+                            {/* Suggestions Dropdown */}
+                            {activeSuggestionIndex === index && citySuggestions.length > 0 && (
+                              <Card className="absolute z-50 w-full mt-1 border shadow-xl bg-white rounded-xl overflow-hidden">
+                                <ScrollArea className="h-48">
+                                  {citySuggestions.map((city, idx) => (
+                                    <button
+                                      key={idx}
+                                      onClick={() => selectCitySuggestion(index, city)}
+                                      className="w-full text-left px-4 py-2 hover:bg-slate-50 text-sm font-medium border-b last:border-none"
+                                    >
+                                      {city}
+                                    </button>
+                                  ))}
+                                </ScrollArea>
+                              </Card>
+                            )}
                           </div>
+
                           <div className="space-y-2">
                             <Label className="text-sm font-bold flex items-center gap-2">
                               <Users className="w-4 h-4 text-primary" /> सदस्य संख्या
@@ -308,15 +373,6 @@ export default function FarmerRegistrationPage() {
                     >
                       <Plus className="w-6 h-6" /> नवीन स्थलांतर माहिती जोडा
                     </Button>
-
-                    <div className="p-8 bg-blue-50/50 rounded-3xl border border-blue-100 flex items-start gap-4">
-                      <div className="bg-blue-100 p-3 rounded-xl text-blue-600">
-                        <GraduationCap className="w-6 h-6" />
-                      </div>
-                      <p className="text-sm text-blue-800 leading-relaxed font-medium">
-                        तुमच्या कुटुंबातील सदस्य कामासाठी किंवा शिक्षणासाठी बाहेर गावी जात असल्यास त्याची माहिती भरा. यामुळे आम्हाला तुमच्या कुटुंबाच्या गरजा अधिक चांगल्या प्रकारे समजतील.
-                      </p>
-                    </div>
                   </div>
                 </div>
               )}
@@ -348,3 +404,4 @@ function Field({ id, label, icon: Icon, value, onChange, type = "text" }: any) {
     </div>
   );
 }
+
