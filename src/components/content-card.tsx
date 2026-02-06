@@ -7,15 +7,14 @@ import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge";
 import { 
   Clock, 
-  MessageSquare, 
   Play, 
   ExternalLink, 
-  Share2, 
   Facebook, 
   Instagram, 
   Send 
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useToast } from "@/hooks/use-toast";
 
 interface ContentCardProps {
   id: string;
@@ -28,6 +27,7 @@ interface ContentCardProps {
 }
 
 export function ContentCard({ id, title, excerpt, imageUrl, category, date, type }: ContentCardProps) {
+  const { toast } = useToast();
   const currentUrl = typeof window !== "undefined" ? `${window.location.origin}/content/${id}` : "";
 
   const handleWhatsAppShare = (e: React.MouseEvent) => {
@@ -46,8 +46,6 @@ export function ContentCard({ id, title, excerpt, imageUrl, category, date, type
   const handleInstagramShare = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    // Instagram doesn't have a direct "share URL" link like FB/WA for web, 
-    // usually users just copy link, but we'll point to the app/web if possible.
     toast({
       title: "Link Copied",
       description: "Instagram साठी लिंक कॉपी केली आहे. तुम्ही तुमच्या स्टोरीमध्ये पेस्ट करू शकता.",
@@ -100,30 +98,30 @@ export function ContentCard({ id, title, excerpt, imageUrl, category, date, type
         <div className="flex items-center gap-3">
           <button 
             onClick={handleWhatsAppShare}
-            className="p-1.5 rounded-full hover:bg-green-50 text-slate-400 hover:text-green-600 transition-colors"
+            className="p-1.5 rounded-full hover:bg-green-50 text-slate-600 hover:text-green-600 transition-colors"
             title="WhatsApp वर शेअर करा"
           >
             <Send className="w-4 h-4" />
           </button>
           <button 
             onClick={handleFacebookShare}
-            className="p-1.5 rounded-full hover:bg-blue-50 text-slate-400 hover:text-blue-600 transition-colors"
+            className="p-1.5 rounded-full hover:bg-blue-50 text-slate-600 hover:text-blue-600 transition-colors"
             title="Facebook वर शेअर करा"
           >
             <Facebook className="w-4 h-4" />
           </button>
           <button 
             onClick={handleInstagramShare}
-            className="p-1.5 rounded-full hover:bg-pink-50 text-slate-400 hover:text-pink-600 transition-colors"
+            className="p-1.5 rounded-full hover:bg-pink-50 text-slate-600 hover:text-pink-600 transition-colors"
             title="Instagram वर शेअर करा"
           >
             <Instagram className="w-4 h-4" />
           </button>
-          <span className="text-[10px] font-bold text-slate-400 uppercase ml-1">शेअर</span>
+          <span className="text-xs font-black text-slate-950 uppercase ml-1">शेअर</span>
         </div>
         <Link 
           href={`/content/${id}`}
-          className="text-primary text-sm font-bold flex items-center gap-1 hover:underline"
+          className="text-primary text-sm font-black flex items-center gap-1 hover:underline decoration-4"
         >
           अधिक वाचा
           <ExternalLink className="w-3 h-3" />
