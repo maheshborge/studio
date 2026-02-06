@@ -74,7 +74,7 @@ export default function Home() {
         <div className="container mx-auto px-4 relative z-10">
           <div className="max-w-3xl">
             <h1 className="text-4xl md:text-6xl font-headline font-bold mb-6 leading-tight">
-              माझीशेती, <br /><span className="text-blue-200">प्रगत शेतीचा डिजिटल सोबती.</span>
+              मिडास, <br /><span className="text-blue-200">प्रगत शेतीचा डिजिटल सोबती.</span>
             </h1>
             <p className="text-xl text-blue-100 mb-8 max-w-xl">
               शेती सल्ला, शासकीय योजना आणि बाजारपेठेची सर्व माहिती आता एकाच ठिकाणी, लॉगिन न करता.
@@ -187,7 +187,7 @@ export default function Home() {
         <div className="container mx-auto px-4 text-center">
           <div className="flex items-center justify-center gap-2 mb-8">
             <Sprout className="w-8 h-8 text-primary" />
-            <span className="text-2xl font-bold text-white">MaziSheti</span>
+            <span className="text-2xl font-bold text-white">Midas</span>
           </div>
           <p className="max-w-md mx-auto mb-8">
             शेतकऱ्यांच्या उन्नतीसाठी बनवलेले एक प्रगत डिजिटल माध्यम.
@@ -197,7 +197,7 @@ export default function Home() {
             <Link href="#" className="hover:text-white transition-colors">संपर्क</Link>
             <Link href="#" className="hover:text-white transition-colors">अटी व शर्ती</Link>
           </div>
-          <p className="text-sm">© २०२४ MaziSheti. सर्व हक्क राखीव.</p>
+          <p className="text-sm">© २०२४ Midas. सर्व हक्क राखीव.</p>
         </div>
       </footer>
     </div>
