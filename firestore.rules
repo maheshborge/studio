@@ -1,12 +1,7 @@
+
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-
-    /**
-     * CORE PHILOSOPHY:
-     * User-Centric Ownership model. The primary boundary is the User ID ({userId}).
-     */
-
     function isSignedIn() {
       return request.auth != null;
     }
@@ -15,51 +10,28 @@ service cloud.firestore {
       return isSignedIn() && request.auth.uid == userId;
     }
 
-    function isExistingOwner(userId) {
-      return resource != null && isOwner(userId);
-    }
-
-    // Rules for User Profile Data
+    // Main user profile rules
     match /users/{userId}/profile/{docId} {
-      allow get, write: if isOwner(userId);
+      allow read, write: if isOwner(userId);
     }
 
-    // Rules for Crop Cycles
-    match /users/{userId}/cropCycles/{cropId} {
-      allow get, list, write: if isOwner(userId);
-    }
-
-    // Rules for Farmer profiles
+    // Farmer data rules
     match /users/{userId}/farmers/{farmerId} {
-      allow get, list: if isOwner(userId);
-      allow create: if isOwner(userId) && request.resource.data.id == farmerId;
-      allow update: if isExistingOwner(userId) && request.resource.data.id == resource.data.id;
-      allow delete: if isExistingOwner(userId);
+      allow read, write: if isOwner(userId);
     }
 
-    // Rules for Farmer Questions
-    match /users/{userId}/farmerQuestions/{farmerQuestionId} {
-      allow get, list: if isOwner(userId);
-      allow create: if isOwner(userId) && request.resource.data.id == farmerQuestionId;
-      allow update: if isExistingOwner(userId) && request.resource.data.id == resource.data.id;
-      allow delete: if isExistingOwner(userId);
+    // Crop Cycles
+    match /users/{userId}/cropCycles/{cropId} {
+      allow read, write: if isOwner(userId);
     }
 
-    // Rules for Buyer profiles
-    match /users/{userId}/buyers/{buyerId} {
-      allow get, list: if isOwner(userId);
-      allow create: if isOwner(userId) && request.resource.data.id == buyerId;
-      allow update: if isExistingOwner(userId) && request.resource.data.id == resource.data.id;
-      allow delete: if isExistingOwner(userId);
+    // Public marketplace (only buyers can see all listings, others see their own)
+    match /{path=**}/cropCycles/{cropId} {
+      allow read: if isSignedIn();
     }
 
-    // Shared lookup collections
+    // Lookup collections
     match /personalInfos/{id} { allow read: if isSignedIn(); }
-    match /farmingInfos/{id} { allow read: if isSignedIn(); }
-    match /familyInfos/{id} { allow read: if isSignedIn(); }
-    match /migrationInfos/{id} { allow read: if isSignedIn(); }
-    match /buyerCategories/{id} { allow read: if isSignedIn(); }
-    match /purchaseTypes/{id} { allow read: if isSignedIn(); }
-    match /reports/{id} { allow read: if isSignedIn(); }
+    match /locations/{id} { allow read: if true; }
   }
 }
