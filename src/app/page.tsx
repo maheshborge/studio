@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useMemo, useEffect } from "react";
@@ -10,7 +11,6 @@ import {
   Newspaper, 
   ShoppingBag,
   Search,
-  ArrowRight,
   ChevronRight,
   TrendingUp,
   LogIn,
@@ -24,6 +24,7 @@ import { Badge } from "@/components/ui/badge";
 import { ContentCard } from "@/components/content-card";
 import { cn } from "@/lib/utils";
 import { getLatestAgriNews } from "@/app/actions";
+import { Logo } from "@/components/logo";
 
 const KNOWLEDGE_CATEGORIES = [
   { id: "all", name: "सर्व", icon: Globe, color: "bg-slate-500", desc: "सर्व माहिती" },
@@ -187,11 +188,11 @@ export default function Home() {
       <footer className="bg-slate-900 text-slate-400 py-20 mt-10">
         <div className="container mx-auto px-4 text-center">
           <div className="flex items-center justify-center gap-3 mb-10">
-            <Sprout className="w-10 h-10 text-primary" />
-            <span className="text-3xl font-bold text-white tracking-tight">Midas</span>
+            <Logo size={60} className="text-primary" />
+            <span className="text-3xl font-bold text-white tracking-tight">MaziSheti</span>
           </div>
           <p className="max-w-lg mx-auto mb-10 text-lg leading-relaxed">
-            शेतकऱ्यांच्या उन्नतीसाठी और समृद्धीसाठी बनवलेले एक प्रगत डिजिटल माध्यम.
+            शेतकऱ्यांच्या उन्नतीसाठी आणि समृद्धीसाठी बनवलेले एक प्रगत डिजिटल माध्यम.
           </p>
           <div className="flex flex-wrap justify-center gap-8 mb-16 font-medium">
             <Link href="#" className="hover:text-white transition-colors">आमच्याबद्दल</Link>
@@ -200,7 +201,7 @@ export default function Home() {
             <Link href="#" className="hover:text-white transition-colors">गोपनीयता धोरण</Link>
           </div>
           <div className="border-t border-slate-800 pt-10">
-            <p className="text-sm">© २०२४ Midas. सर्व हक्क राखीव. प्रगत शेतीचा डिजिटल सोबती.</p>
+            <p className="text-sm">© २०२४ MaziSheti (MSP). सर्व हक्क राखीव. प्रगत शेतीचा डिजिटल सोबती.</p>
           </div>
         </div>
       </footer>

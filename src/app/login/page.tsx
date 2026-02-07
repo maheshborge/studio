@@ -3,7 +3,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Globe, ChevronRight, Mail, Lock, User as UserIcon, Loader2, Phone, ShieldCheck, ArrowLeft, Info, Eye, EyeOff } from "lucide-react";
+import { ChevronRight, Mail, Lock, User as UserIcon, Loader2, Phone, ShieldCheck, ArrowLeft, Info, Eye, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -20,6 +20,7 @@ import { doc, setDoc } from "firebase/firestore";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Logo } from "@/components/logo";
 
 const USER_TYPES = [
   { value: "farmer", label: "शेतकरी (Farmer)" },
@@ -94,7 +95,6 @@ export default function LoginPage() {
     
     try {
       if (isLogin) {
-        // Logic: if input is 10 digits, append our local domain
         const loginIdentifier = (email.length === 10 && /^\d+$/.test(email)) 
           ? `${email}@mazisheti.org` 
           : email;
@@ -103,12 +103,10 @@ export default function LoginPage() {
         toast({ title: "लॉगिन यशस्वी!" });
         router.push("/profile");
       } else {
-        // Registration Logic
         const finalEmail = email || `${mobile}@mazisheti.org`;
         const userCredential = await createUserWithEmailAndPassword(auth, finalEmail, password);
         const user = userCredential.user;
         
-        // Save profile
         await setDoc(doc(db, "users", user.uid, "profile", "main"), {
           id: user.uid,
           name,
@@ -144,9 +142,7 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-4">
       <Link href="/" className="flex items-center space-x-2 mb-10">
-        <div className="w-12 h-12 bg-primary rounded-2xl flex items-center justify-center text-white shadow-xl">
-          <Globe className="w-7 h-7" />
-        </div>
+        <Logo size={60} />
         <span className="font-headline font-bold text-3xl text-primary">MaziSheti</span>
       </Link>
 

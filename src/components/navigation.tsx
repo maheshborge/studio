@@ -14,12 +14,12 @@ import {
   LogIn,
   ShoppingBag,
   Sprout,
-  BookOpen,
   Database
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { useUser } from "@/firebase";
+import { Logo } from "@/components/logo";
 
 const navItems = [
   { name: "मुख्य पृष्ठ", href: "/", icon: Globe },
@@ -39,11 +39,9 @@ export function Navigation() {
       <div className="container mx-auto px-4 flex h-16 items-center justify-between">
         <div className="flex items-center gap-2">
           <Link href="/" className="flex items-center space-x-2">
-            <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center text-white shadow-lg shadow-primary/20">
-              <Sprout className="w-6 h-6" />
-            </div>
+            <Logo size={42} />
             <span className="font-headline font-bold text-xl text-primary hidden sm:inline-block">
-              Midas
+              MaziSheti
             </span>
           </Link>
         </div>
