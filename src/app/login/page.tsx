@@ -3,7 +3,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Globe, ChevronRight, Mail, Lock, User as UserIcon, Loader2, Phone, ShieldCheck, ArrowLeft, Info } from "lucide-react";
+import { Globe, ChevronRight, Mail, Lock, User as UserIcon, Loader2, Phone, ShieldCheck, ArrowLeft, Info, Eye, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -35,6 +35,7 @@ export default function LoginPage() {
   const [isLogin, setIsLogin] = useState(true);
   const [isForgot, setIsForgot] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -50,7 +51,6 @@ export default function LoginPage() {
   const handleAuth = async () => {
     if (!auth || !db) return;
     
-    // Forgot Password Flow
     if (isForgot) {
       if (!email || !email.includes("@")) {
         return toast({ 
@@ -79,7 +79,6 @@ export default function LoginPage() {
       return;
     }
 
-    // Validation for Sign Up
     if (!isLogin) {
       if (!name) return toast({ variant: "destructive", title: "त्रुटी", description: "कृपया पूर्ण नाव टाका." });
       if (mobile.length !== 10) return toast({ variant: "destructive", title: "त्रुटी", description: "मोबाईल नंबर १० अंकी असावा." });
@@ -266,12 +265,19 @@ export default function LoginPage() {
                     <Lock className="absolute left-4 top-3.5 h-5 w-5 text-slate-400" />
                     <Input 
                       id="password" 
-                      type="password" 
+                      type={showPassword ? "text" : "password"} 
                       placeholder="किमान ६ अंकी" 
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
-                      className="pl-12 h-12 rounded-xl border-slate-200" 
+                      className="pl-12 pr-12 h-12 rounded-xl border-slate-200" 
                     />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-4 top-3.5 text-slate-400 hover:text-primary transition-colors"
+                    >
+                      {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                    </button>
                   </div>
                 </div>
               </>
@@ -298,7 +304,10 @@ export default function LoginPage() {
                   {isLogin ? "खाते नाहीये?" : "आधीच खाते आहे?"}
                 </span>{" "}
                 <button 
-                  onClick={() => setIsLogin(!isLogin)}
+                  onClick={() => {
+                    setIsLogin(!isLogin);
+                    setShowPassword(false); // Reset visibility when switching
+                  }}
                   className="text-primary font-bold hover:underline ml-1"
                 >
                   {isLogin ? "येथे नोंदणी करा" : "येथे लॉगिन करा"}
