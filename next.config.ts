@@ -1,3 +1,4 @@
+
 import type {NextConfig} from 'next';
 
 const nextConfig: NextConfig = {
@@ -29,6 +30,9 @@ const nextConfig: NextConfig = {
         pathname: '/**',
       },
     ],
+  },
+  devIndicators: {
+    appIsrStatus: false, // हे 'N' चिन्हाला नियंत्रित करते
   },
 };
 

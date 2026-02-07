@@ -99,21 +99,21 @@ export function ContentCard({ id, title, excerpt, imageUrl, category, date, type
         <div className="flex items-center gap-3">
           <button 
             onClick={handleWhatsAppShare}
-            className="p-1.5 rounded-full hover:bg-green-50 text-slate-600 hover:text-green-600 transition-colors"
+            className="p-1.5 rounded-full hover:bg-green-50 text-slate-800 hover:text-green-600 transition-colors"
             title="WhatsApp वर शेअर करा"
           >
             <Send className="w-4 h-4" />
           </button>
           <button 
             onClick={handleFacebookShare}
-            className="p-1.5 rounded-full hover:bg-blue-50 text-slate-600 hover:text-blue-600 transition-colors"
+            className="p-1.5 rounded-full hover:bg-blue-50 text-slate-800 hover:text-blue-600 transition-colors"
             title="Facebook वर शेअर करा"
           >
             <Facebook className="w-4 h-4" />
           </button>
           <button 
             onClick={handleInstagramShare}
-            className="p-1.5 rounded-full hover:bg-pink-50 text-slate-600 hover:text-pink-600 transition-colors"
+            className="p-1.5 rounded-full hover:bg-pink-50 text-slate-800 hover:text-pink-600 transition-colors"
             title="Instagram वर शेअर करा"
           >
             <Instagram className="w-4 h-4" />
@@ -122,7 +122,7 @@ export function ContentCard({ id, title, excerpt, imageUrl, category, date, type
         </div>
         <Link 
           href={`/content/${id}`}
-          className="text-primary text-sm font-black flex items-center gap-1 hover:underline decoration-4"
+          className="text-slate-950 text-sm font-black flex items-center gap-1 hover:underline decoration-4"
         >
           अधिक वाचा
           <ExternalLink className="w-3 h-3" />

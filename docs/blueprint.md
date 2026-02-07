@@ -1,4 +1,4 @@
-# **App Name**: MaziLink
+# **App Name**: MIDAS by Mazisheti
 
 ## Core Features:
 
