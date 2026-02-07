@@ -1,58 +1,49 @@
-<svg
-  width="100"
-  height="100"
-  viewBox="0 0 100 100"
-  fill="none"
-  xmlns="http://www.w3.org/2000/svg"
->
-  <path
-    d="M25 78C15 68 12 53 15 38M75 78C85 68 88 53 85 38"
-    stroke="#2563eb"
-    stroke-width="3"
-    stroke-linecap="round"
-  />
-  <path d="M12 73L18 67M10 61L17 58M10 48L17 48M12 35L18 41" stroke="#2563eb" stroke-width="2.5" />
-  <path d="M88 73L82 67M90 61L83 58M90 48L83 48M88 35L82 41" stroke="#2563eb" stroke-width="2.5" />
-  <circle cx="50" cy="45" r="34" fill="#2563eb" />
-  <path
-    d="M32 38C38 33 58 33 68 38C72 48 62 60 50 63C38 60 28 48 32 38Z"
-    fill="white"
-    fill-opacity="0.25"
-  />
-  <path d="M28 45Q40 40 50 50Q60 60 72 55" stroke="white" stroke-width="0.8" stroke-opacity="0.4" />
-  <path
-    d="M50 64V46"
-    stroke="white"
-    stroke-width="6"
-    stroke-linecap="round"
-  />
-  <path
-    d="M50 50C44 42 32 40 25 45C30 40 40 38 50 46"
-    fill="white"
-  />
-  <path
-    d="M50 55C44 50 32 50 25 55C30 50 40 48 50 53"
-    fill="white"
-  />
-  <path
-    d="M50 50C56 42 68 40 75 45C70 40 60 38 50 46"
-    fill="white"
-  />
-   <path
-    d="M50 55C56 50 68 50 75 55C70 50 60 48 50 53"
-    fill="white"
-  />
-  <circle cx="50" cy="38" r="6" fill="white" />
-  <text
-    x="50"
-    y="96"
-    text-anchor="middle"
-    fill="#2563eb"
-    font-size="24"
-    font-weight="900"
-    font-family="sans-serif"
-    letter-spacing="1"
-  >
-    MSP
-  </text>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1100">
+  <!-- Outer Wreath (Left) -->
+  <path d="M220,850 C150,750 100,600 100,450 C100,350 120,250 150,150 L160,180 C130,280 120,380 120,450 C120,580 160,700 220,800 Z" fill="black"/>
+  <path d="M120,500 L80,420 C100,450 110,480 120,500 Z" fill="black"/>
+  <path d="M115,400 L70,320 C95,350 105,380 115,400 Z" fill="black"/>
+  <path d="M125,300 L90,220 C110,250 120,280 125,300 Z" fill="black"/>
+  <path d="M145,200 L120,120 C135,150 140,180 145,200 Z" fill="black"/>
+  <path d="M175,120 L160,50 C170,80 175,100 175,120 Z" fill="black"/>
+  
+  <path d="M160,600 L110,550 C140,580 150,590 160,600 Z" fill="black"/>
+  <path d="M180,700 L130,650 C160,680 170,690 180,700 Z" fill="black"/>
+  <path d="M210,800 L160,750 C190,780 200,790 210,800 Z" fill="black"/>
+
+  <!-- Outer Wreath (Right) -->
+  <path d="M780,850 C850,750 900,600 900,450 C900,350 880,250 850,150 L840,180 C870,280 880,380 880,450 C880,580 840,700 780,800 Z" fill="black"/>
+  <path d="M880,500 L920,420 C900,450 890,480 880,500 Z" fill="black"/>
+  <path d="M885,400 L930,320 C905,350 895,380 885,400 Z" fill="black"/>
+  <path d="M875,300 L910,220 C890,250 880,280 875,300 Z" fill="black"/>
+  <path d="M855,200 L880,120 C865,150 860,180 855,200 Z" fill="black"/>
+  <path d="M825,120 L840,50 C830,80 825,100 825,120 Z" fill="black"/>
+  
+  <path d="M840,600 L890,550 C860,580 850,590 840,600 Z" fill="black"/>
+  <path d="M820,700 L870,650 C840,680 830,690 820,700 Z" fill="black"/>
+  <path d="M790,800 L840,750 C810,780 800,790 790,800 Z" fill="black"/>
+
+  <!-- Globe Background (Simplified map shape) -->
+  <circle cx="500" cy="450" r="350" fill="white" stroke="black" stroke-width="2"/>
+  <path d="M500,100 L500,800 M150,450 L850,450" stroke="black" stroke-width="1" opacity="0.3"/>
+  <path d="M250,250 Q500,150 750,250 M250,650 Q500,750 750,650" fill="none" stroke="black" stroke-width="1" opacity="0.3"/>
+  
+  <path d="M350,150 C300,200 250,300 280,400 C300,500 200,600 250,700 C300,800 500,750 600,700 C700,650 750,500 700,350 C650,200 450,100 350,150 Z" fill="black"/>
+
+  <!-- Central Human/Plant Figure -->
+  <path d="M500,800 C480,800 460,700 460,600 L460,450 C460,400 480,380 500,380 C520,380 540,400 540,450 L540,600 C540,700 520,800 500,800 Z" fill="white"/>
+  <circle cx="500" cy="370" r="25" fill="white"/>
+  
+  <!-- Leaves (Arms) -->
+  <path d="M465,450 C400,420 350,350 350,300 C350,270 380,250 420,280 C450,310 460,350 465,450 Z" fill="white"/>
+  <path d="M465,480 C380,480 320,430 320,380 C320,350 350,330 390,360 C430,390 460,430 465,480 Z" fill="white"/>
+  
+  <path d="M535,450 C600,420 650,350 650,300 C650,270 620,250 580,280 C550,310 540,350 535,450 Z" fill="white"/>
+  <path d="M535,480 C620,480 680,430 680,380 C680,350 650,330 610,360 C570,390 540,430 535,480 Z" fill="white"/>
+
+  <!-- MSP Text -->
+  <text x="500" y="1050" font-family="Arial, sans-serif" font-weight="bold" font-size="120" text-anchor="middle" fill="black">MSP</text>
+  
+  <!-- Connector for text base -->
+  <path d="M350,850 C350,950 400,1000 500,1000 C600,1000 650,950 650,850" fill="none" stroke="black" stroke-width="4"/>
 </svg>
