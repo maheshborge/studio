@@ -1,4 +1,3 @@
-
 "use client";
 
 import Link from "next/link";
@@ -19,7 +18,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { useUser } from "@/firebase";
-import { Logo } from "@/components/logo";
 
 const navItems = [
   { name: "मुख्य पृष्ठ", href: "/", icon: Globe },
@@ -39,7 +37,7 @@ export function Navigation() {
       <div className="container mx-auto px-4 flex h-20 items-center justify-between">
         <div className="flex items-center gap-2">
           <Link href="/" className="flex items-center space-x-2">
-            <Logo size={56} />
+            <img src="/logo.svg" alt="MaziSheti Logo" width={56} height={56} className="object-contain" />
             <span className="font-headline font-black text-2xl text-primary hidden sm:inline-block tracking-tight">
               MaziSheti
             </span>

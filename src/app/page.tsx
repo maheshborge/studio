@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useMemo, useEffect } from "react";
@@ -24,7 +23,6 @@ import { Badge } from "@/components/ui/badge";
 import { ContentCard } from "@/components/content-card";
 import { cn } from "@/lib/utils";
 import { getLatestAgriNews } from "@/app/actions";
-import { Logo } from "@/components/logo";
 
 const KNOWLEDGE_CATEGORIES = [
   { id: "all", name: "सर्व", icon: Globe, color: "bg-slate-500", desc: "सर्व माहिती" },
@@ -188,7 +186,7 @@ export default function Home() {
       <footer className="bg-slate-900 text-slate-400 py-20 mt-10">
         <div className="container mx-auto px-4 text-center">
           <div className="flex items-center justify-center gap-3 mb-10">
-            <Logo size={60} className="text-primary" />
+            <img src="/logo.svg" alt="MaziSheti Logo" width={60} height={60} className="object-contain" />
             <span className="text-3xl font-bold text-white tracking-tight">MaziSheti</span>
           </div>
           <p className="max-w-lg mx-auto mb-10 text-lg leading-relaxed">

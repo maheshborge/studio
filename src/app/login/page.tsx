@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState } from "react";
@@ -20,7 +19,6 @@ import { doc, setDoc } from "firebase/firestore";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Logo } from "@/components/logo";
 
 const USER_TYPES = [
   { value: "farmer", label: "शेतकरी (Farmer)" },
@@ -141,8 +139,8 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-4">
-      <Link href="/" className="flex items-center space-x-2 mb-10">
-        <Logo size={60} />
+      <Link href="/" className="flex flex-col items-center space-y-2 mb-10">
+        <img src="/logo.svg" alt="MaziSheti Logo" width={80} height={80} className="object-contain" />
         <span className="font-headline font-bold text-3xl text-primary">MaziSheti</span>
       </Link>
 
