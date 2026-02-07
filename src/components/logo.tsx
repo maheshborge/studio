@@ -19,17 +19,17 @@ export function Logo({ className, size = 40 }: LogoProps) {
         {/* Outer Laurel/Wheat Wreath - Blue */}
         <path
           d="M25 78C15 68 12 53 15 38M75 78C85 68 88 53 85 38"
-          stroke="#0056D2"
+          stroke="currentColor"
           strokeWidth="3"
           strokeLinecap="round"
         />
-        <path d="M12 73L18 67M10 61L17 58M10 48L17 48M12 35L18 41" stroke="#0056D2" strokeWidth="2.5" />
-        <path d="M88 73L82 67M90 61L83 58M90 48L83 48M88 35L82 41" stroke="#0056D2" strokeWidth="2.5" />
+        <path d="M12 73L18 67M10 61L17 58M10 48L17 48M12 35L18 41" stroke="currentColor" strokeWidth="2.5" />
+        <path d="M88 73L82 67M90 61L83 58M90 48L83 48M88 35L82 41" stroke="currentColor" strokeWidth="2.5" />
 
-        {/* Globe Base - Deep Blue */}
-        <circle cx="50" cy="45" r="34" fill="#0056D2" />
+        {/* Globe Base */}
+        <circle cx="50" cy="45" r="34" fill="currentColor" />
         
-        {/* Map/Continents Representation (White/Transparent) */}
+        {/* Map/Continents Representation */}
         <path
           d="M32 38C38 33 58 33 68 38C72 48 62 60 50 63C38 60 28 48 32 38Z"
           fill="white"
@@ -37,7 +37,7 @@ export function Logo({ className, size = 40 }: LogoProps) {
         />
         <path d="M28 45Q40 40 50 50Q60 60 72 55" stroke="white" strokeWidth="0.8" strokeOpacity="0.4" />
 
-        {/* Central Human-Sprout Figure - White */}
+        {/* Central Human-Sprout Figure */}
         <path
           d="M50 64V46"
           stroke="white"
@@ -64,12 +64,12 @@ export function Logo({ className, size = 40 }: LogoProps) {
         {/* Head of the figure */}
         <circle cx="50" cy="38" r="6" fill="white" />
 
-        {/* MSP Text at Bottom - Bold Blue */}
+        {/* MSP Text at Bottom */}
         <text
           x="50"
           y="96"
           textAnchor="middle"
-          fill="#0056D2"
+          fill="currentColor"
           fontSize="24"
           fontWeight="900"
           fontFamily="sans-serif"
