@@ -71,7 +71,7 @@ export default function LoginPage() {
         toast({
           variant: "destructive",
           title: "त्रुटी",
-          description: "हा ईमेल सिस्टिममध्ये सापडला नाही. कृपया तुम्ही योग्य ईमेल टाकला आहे का ते तपासा.",
+          description: "हा ईमेल सिस्टिममध्ये सापडल नाही. कृपया तुम्ही योग्य ईमेल टाकला आहे का ते तपासा.",
         });
       } finally {
         setIsLoading(false);
@@ -96,7 +96,7 @@ export default function LoginPage() {
       if (isLogin) {
         // Logic: if input is 10 digits, append our local domain
         const loginIdentifier = (email.length === 10 && /^\d+$/.test(email)) 
-          ? `${email}@mazisheti.local` 
+          ? `${email}@mazisheti.org` 
           : email;
           
         await signInWithEmailAndPassword(auth, loginIdentifier, password);
@@ -104,7 +104,7 @@ export default function LoginPage() {
         router.push("/profile");
       } else {
         // Registration Logic
-        const finalEmail = email || `${mobile}@mazisheti.local`;
+        const finalEmail = email || `${mobile}@mazisheti.org`;
         const userCredential = await createUserWithEmailAndPassword(auth, finalEmail, password);
         const user = userCredential.user;
         
