@@ -1,49 +1,24 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1100">
-  <!-- Outer Wreath (Left) -->
-  <path d="M220,850 C150,750 100,600 100,450 C100,350 120,250 150,150 L160,180 C130,280 120,380 120,450 C120,580 160,700 220,800 Z" fill="black"/>
-  <path d="M120,500 L80,420 C100,450 110,480 120,500 Z" fill="black"/>
-  <path d="M115,400 L70,320 C95,350 105,380 115,400 Z" fill="black"/>
-  <path d="M125,300 L90,220 C110,250 120,280 125,300 Z" fill="black"/>
-  <path d="M145,200 L120,120 C135,150 140,180 145,200 Z" fill="black"/>
-  <path d="M175,120 L160,50 C170,80 175,100 175,120 Z" fill="black"/>
+<svg width="500" height="500" viewBox="0 0 500 500" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Global Wreath (Blue) -->
+  <path d="M120 420C70 370 50 280 50 210C50 140 70 50 120 0" stroke="#0066FF" stroke-width="18" stroke-linecap="round" fill="none"/>
+  <path d="M380 420C430 370 450 280 450 210C450 140 430 50 380 0" stroke="#0066FF" stroke-width="18" stroke-linecap="round" fill="none"/>
   
-  <path d="M160,600 L110,550 C140,580 150,590 160,600 Z" fill="black"/>
-  <path d="M180,700 L130,650 C160,680 170,690 180,700 Z" fill="black"/>
-  <path d="M210,800 L160,750 C190,780 200,790 210,800 Z" fill="black"/>
-
-  <!-- Outer Wreath (Right) -->
-  <path d="M780,850 C850,750 900,600 900,450 C900,350 880,250 850,150 L840,180 C870,280 880,380 880,450 C880,580 840,700 780,800 Z" fill="black"/>
-  <path d="M880,500 L920,420 C900,450 890,480 880,500 Z" fill="black"/>
-  <path d="M885,400 L930,320 C905,350 895,380 885,400 Z" fill="black"/>
-  <path d="M875,300 L910,220 C890,250 880,280 875,300 Z" fill="black"/>
-  <path d="M855,200 L880,120 C865,150 860,180 855,200 Z" fill="black"/>
-  <path d="M825,120 L840,50 C830,80 825,100 825,120 Z" fill="black"/>
+  <!-- Central Globe (Blue) -->
+  <circle cx="250" cy="200" r="160" fill="#0066FF"/>
   
-  <path d="M840,600 L890,550 C860,580 850,590 840,600 Z" fill="black"/>
-  <path d="M820,700 L870,650 C840,680 830,690 820,700 Z" fill="black"/>
-  <path d="M790,800 L840,750 C810,780 800,790 790,800 Z" fill="black"/>
-
-  <!-- Globe Background (Simplified map shape) -->
-  <circle cx="500" cy="450" r="350" fill="white" stroke="black" stroke-width="2"/>
-  <path d="M500,100 L500,800 M150,450 L850,450" stroke="black" stroke-width="1" opacity="0.3"/>
-  <path d="M250,250 Q500,150 750,250 M250,650 Q500,750 750,650" fill="none" stroke="black" stroke-width="1" opacity="0.3"/>
+  <!-- Map Details (White) - Simplified stylized map -->
+  <path d="M150 150C180 120 220 110 260 110C300 110 330 120 350 150" stroke="white" stroke-width="2" fill="none" opacity="0.5"/>
+  <path d="M120 200C160 180 200 175 250 175C300 175 340 180 380 200" stroke="white" stroke-width="2" fill="none" opacity="0.5"/>
+  <path d="M150 250C180 280 220 290 260 290C300 290 330 280 350 250" stroke="white" stroke-width="2" fill="none" opacity="0.5"/>
   
-  <path d="M350,150 C300,200 250,300 280,400 C300,500 200,600 250,700 C300,800 500,750 600,700 C700,650 750,500 700,350 C650,200 450,100 350,150 Z" fill="black"/>
-
-  <!-- Central Human/Plant Figure -->
-  <path d="M500,800 C480,800 460,700 460,600 L460,450 C460,400 480,380 500,380 C520,380 540,400 540,450 L540,600 C540,700 520,800 500,800 Z" fill="white"/>
-  <circle cx="500" cy="370" r="25" fill="white"/>
+  <!-- Human Figure / Leaves (White) -->
+  <circle cx="250" cy="155" r="15" fill="white"/>
+  <path d="M250 170V310" stroke="white" stroke-width="22" stroke-linecap="round"/>
+  <!-- Left Leaf/Arm -->
+  <path d="M250 200C250 200 210 175 180 145C150 115 180 85 210 115C230 135 250 170 250 200Z" fill="white"/>
+  <!-- Right Leaf/Arm -->
+  <path d="M250 200C250 200 290 175 320 145C350 115 320 85 290 115C270 135 250 170 250 200Z" fill="white"/>
   
-  <!-- Leaves (Arms) -->
-  <path d="M465,450 C400,420 350,350 350,300 C350,270 380,250 420,280 C450,310 460,350 465,450 Z" fill="white"/>
-  <path d="M465,480 C380,480 320,430 320,380 C320,350 350,330 390,360 C430,390 460,430 465,480 Z" fill="white"/>
-  
-  <path d="M535,450 C600,420 650,350 650,300 C650,270 620,250 580,280 C550,310 540,350 535,450 Z" fill="white"/>
-  <path d="M535,480 C620,480 680,430 680,380 C680,350 650,330 610,360 C570,390 540,430 535,480 Z" fill="white"/>
-
-  <!-- MSP Text -->
-  <text x="500" y="1050" font-family="Arial, sans-serif" font-weight="bold" font-size="120" text-anchor="middle" fill="black">MSP</text>
-  
-  <!-- Connector for text base -->
-  <path d="M350,850 C350,950 400,1000 500,1000 C600,1000 650,950 650,850" fill="none" stroke="black" stroke-width="4"/>
+  <!-- MSP Text (Blue) -->
+  <text x="250" y="470" text-anchor="middle" fill="#0066FF" font-family="Arial, sans-serif" font-weight="900" font-size="80">MSP</text>
 </svg>
