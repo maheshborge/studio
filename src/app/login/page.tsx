@@ -79,6 +79,7 @@ export default function LoginPage() {
       return;
     }
 
+    // Validation for Signup
     if (!isLogin) {
       if (!name) return toast({ variant: "destructive", title: "त्रुटी", description: "कृपया पूर्ण नाव टाका." });
       if (mobile.length !== 10) return toast({ variant: "destructive", title: "त्रुटी", description: "मोबाईल नंबर १० अंकी असावा." });
@@ -93,6 +94,7 @@ export default function LoginPage() {
     
     try {
       if (isLogin) {
+        // Logic: if input is 10 digits, append our local domain
         const loginIdentifier = (email.length === 10 && /^\d+$/.test(email)) 
           ? `${email}@mazisheti.local` 
           : email;
@@ -101,14 +103,12 @@ export default function LoginPage() {
         toast({ title: "लॉगिन यशस्वी!" });
         router.push("/profile");
       } else {
+        // Registration Logic
         const finalEmail = email || `${mobile}@mazisheti.local`;
         const userCredential = await createUserWithEmailAndPassword(auth, finalEmail, password);
         const user = userCredential.user;
         
-        if (email && email.includes("@")) {
-          sendEmailVerification(user).catch(err => console.error("Email verification error", err));
-        }
-
+        // Save profile
         await setDoc(doc(db, "users", user.uid, "profile", "main"), {
           id: user.uid,
           name,
@@ -118,6 +118,10 @@ export default function LoginPage() {
           createdAt: new Date().toISOString()
         });
 
+        if (email && email.includes("@")) {
+          sendEmailVerification(user).catch(err => console.error("Email verification error", err));
+        }
+
         toast({ title: "नोंदणी यशस्वी!", description: "MaziSheti मध्ये तुमचे स्वागत आहे." });
         router.push("/profile");
       }
@@ -125,6 +129,7 @@ export default function LoginPage() {
       let errorMessage = "काहीतरी चुकले आहे.";
       if (error.code === "auth/email-already-in-use") errorMessage = "हा मोबाईल नंबर किंवा ईमेल आधीच नोंदणीकृत आहे.";
       if (error.code === "auth/invalid-credential") errorMessage = "चुकीचा पासवर्ड किंवा मोबाईल नंबर.";
+      if (error.code === "auth/user-not-found") errorMessage = "हा युजर सापडला नाही. कृपया नोंदणी करा.";
       
       toast({
         variant: "destructive",
@@ -156,7 +161,7 @@ export default function LoginPage() {
             {isForgot 
               ? "तुमचा ईमेल टाका, आम्ही पासवर्ड बदलण्याची लिंक पाठवू." 
               : isLogin 
-                ? "तुमच्या खात्यात प्रवेश करण्यासाठी लॉगिन करा." 
+                ? "मोबाईल नंबर किंवा ईमेल वापरून लॉगिन करा." 
                 : "MaziSheti समुदायात सामील होण्यासाठी माहिती भरा."}
           </p>
 
@@ -164,7 +169,7 @@ export default function LoginPage() {
             <Alert className="mb-6 bg-blue-50 border-blue-100 rounded-2xl">
               <Info className="h-4 w-4 text-blue-600" />
               <AlertDescription className="text-[11px] text-blue-700 leading-tight">
-                <strong>महत्त्वाचे:</strong> पासवर्ड विसरल्यास तो रिसेट करण्यासाठी खरा ईमेल पत्ता देणे आवश्यक आहे. ईमेलशिवाय पासवर्ड बदलता येणार नाही.
+                <strong>टीप:</strong> ईमेल नसेल तरी चालेल, फक्त मोबाईल नंबर पुरेसा आहे. पण पासवर्ड लक्षात ठेवावा लागेल.
               </AlertDescription>
             </Alert>
           )}
@@ -227,7 +232,7 @@ export default function LoginPage() {
                     {isLogin ? <UserIcon className="absolute left-4 top-3.5 h-5 w-5 text-slate-400" /> : <Phone className="absolute left-4 top-3.5 h-5 w-5 text-slate-400" />}
                     <Input 
                       id="login-id" 
-                      placeholder={isLogin ? "मोबाईल किंवा ईमेल टाका" : "१० अंकी मोबाईल नंबर"} 
+                      placeholder={isLogin ? "९८७६५४३२१०" : "१० अंकी मोबाईल नंबर"} 
                       value={isLogin ? email : mobile}
                       onChange={(e) => isLogin ? setEmail(e.target.value) : setMobile(e.target.value)}
                       className="pl-12 h-12 rounded-xl border-slate-200" 
@@ -237,7 +242,7 @@ export default function LoginPage() {
 
                 {!isLogin && (
                   <div className="space-y-2">
-                    <Label htmlFor="reg-email" className="font-bold text-slate-500 italic">ईमेल (पासवर्ड विसरल्यास उपयोगाचा)</Label>
+                    <Label htmlFor="reg-email" className="font-bold text-slate-500 italic">ईमेल (असल्यास टाका, नसेल तर सोडून द्या)</Label>
                     <div className="relative">
                       <Mail className="absolute left-4 top-3.5 h-5 w-5 text-slate-300" />
                       <Input 
@@ -306,7 +311,7 @@ export default function LoginPage() {
                 <button 
                   onClick={() => {
                     setIsLogin(!isLogin);
-                    setShowPassword(false); // Reset visibility when switching
+                    setShowPassword(false);
                   }}
                   className="text-primary font-bold hover:underline ml-1"
                 >
