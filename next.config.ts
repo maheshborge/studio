@@ -32,7 +32,7 @@ const nextConfig: NextConfig = {
     ],
   },
   devIndicators: {
-    appIsrStatus: false, // हे 'N' चिन्हाला नियंत्रित करते
+    appIsrStatus: false, // This hides the 'N' icon in development/production
   },
 };
 
