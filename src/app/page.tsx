@@ -10,11 +10,11 @@ import {
   Newspaper, 
   ShoppingBag,
   Search,
-  ChevronRight,
   TrendingUp,
   LogIn,
   Globe,
-  Loader2
+  Loader2,
+  ArrowUpRight
 } from "lucide-react";
 import Link from "next/link";
 import { Card } from "@/components/ui/card";
@@ -24,12 +24,12 @@ import { cn } from "@/lib/utils";
 import { getLatestAgriNews } from "@/app/actions";
 
 const KNOWLEDGE_CATEGORIES = [
-  { id: "all", name: "सर्व", icon: Globe, color: "bg-slate-500", desc: "सर्व माहिती" },
-  { id: "advice", name: "शेती सल्ला", icon: Sprout, color: "bg-green-500", desc: "तज्ज्ञांचे मार्गदर्शन" },
-  { id: "schemes", name: "शासकीय योजना", icon: FileText, color: "bg-blue-500", desc: "अनुदान व लाभ" },
+  { id: "all", name: "सर्व", icon: Globe, color: "bg-slate-600", desc: "सर्व माहिती" },
+  { id: "advice", name: "शेती सल्ला", icon: Sprout, color: "bg-emerald-600", desc: "तज्ज्ञांचे मार्गदर्शन" },
+  { id: "schemes", name: "शासकीय योजना", icon: FileText, color: "bg-indigo-600", desc: "अनुदान व लाभ" },
   { id: "weather", name: "हवामान अंदाज", icon: CloudSun, color: "bg-orange-500", desc: "पाऊस व तापमान" },
-  { id: "news", name: "बातम्या", icon: Newspaper, color: "bg-purple-500", desc: "ताज्या घडामोडी" },
-  { id: "market", name: "बाजारपेठ", icon: ShoppingBag, color: "bg-amber-500", desc: "खरेदी व विक्री" },
+  { id: "news", name: "बातम्या", icon: Newspaper, color: "bg-violet-600", desc: "ताज्या घडामोडी" },
+  { id: "market", name: "बाजारपेठ", icon: ShoppingBag, color: "bg-amber-600", desc: "खरेदी व विक्री" },
 ];
 
 export default function Home() {
@@ -60,30 +60,31 @@ export default function Home() {
   }, [selectedCategory, searchTerm, newsFeed]);
 
   return (
-    <div className="flex flex-col min-h-screen bg-slate-50 font-body">
+    <div className="flex flex-col min-h-screen bg-[#F8FAFC] font-body">
       <Navigation />
       
-      {/* Hero Section */}
-      <section className="bg-primary pt-16 pb-28 text-white relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-80 h-80 bg-white/10 rounded-full -mr-40 -mt-40 blur-3xl animate-pulse" />
-        <div className="container mx-auto px-4 relative z-10 text-center md:text-left">
+      <section className="bg-primary pt-20 pb-32 text-white relative overflow-hidden">
+        <div className="absolute top-[-10%] right-[-10%] w-[500px] h-[500px] bg-white/10 rounded-full blur-[120px] animate-pulse" />
+        <div className="absolute bottom-[-5%] left-[-5%] w-[300px] h-[300px] bg-accent/20 rounded-full blur-[100px]" />
+        
+        <div className="container mx-auto px-4 relative z-10">
           <div className="max-w-4xl">
-            <h1 className="text-5xl md:text-7xl font-headline font-bold mb-8 leading-tight">
-              मिडास, <br /><span className="text-blue-200">प्रगत शेतीचा डिजिटल सोबती.</span>
+            <h1 className="text-5xl md:text-8xl font-headline font-black mb-8 leading-[1.1] tracking-tight">
+              मिडास, <br /><span className="text-blue-300">प्रगत शेतीचा <br />डिजिटल सोबती.</span>
             </h1>
-            <p className="text-xl md:text-2xl text-blue-100 mb-10 max-w-2xl font-medium">
-              ताज्या बातम्या, शेती सल्ला आणि शासकीय योजनांची माहिती आता थेट गुगल न्यूज फीड स्वरूपात.
+            <p className="text-xl md:text-2xl text-blue-100/90 mb-12 max-w-2xl font-medium leading-relaxed">
+              ताज्या बातम्या, शेती सल्ला आणि शासकीय योजनांची माहिती आता एका क्लिकवर. आधुनिक शेतीसाठी आधुनिक तंत्रज्ञान.
             </p>
             
-            <div className="flex flex-col sm:flex-row gap-5 justify-center md:justify-start">
+            <div className="flex flex-col sm:flex-row gap-6">
               <Link href="/login">
-                <Button size="lg" className="bg-white text-primary hover:bg-blue-50 font-bold rounded-2xl h-16 px-10 text-xl w-full sm:w-auto shadow-2xl transition-all hover:scale-105">
+                <Button size="lg" className="bg-white text-primary hover:bg-blue-50 font-bold rounded-[1.25rem] h-16 px-10 text-xl w-full sm:w-auto shadow-2xl shadow-black/20 transition-all hover:scale-105 active:scale-95">
                   सुरू करा / नोंदणी <LogIn className="ml-2 w-6 h-6" />
                 </Button>
               </Link>
               <Link href="/marketplace">
-                <Button size="lg" variant="outline" className="border-white text-white hover:bg-white/10 font-bold rounded-2xl h-16 px-10 text-xl shadow-xl">
-                  बाजारपेठ पहा <TrendingUp className="ml-2 w-6 h-6" />
+                <Button size="lg" variant="outline" className="border-white/30 text-white hover:bg-white/10 backdrop-blur-sm font-bold rounded-[1.25rem] h-16 px-10 text-xl shadow-xl transition-all hover:border-white">
+                  बाजारपेठ पहा <ArrowUpRight className="ml-2 w-6 h-6" />
                 </Button>
               </Link>
             </div>
@@ -91,92 +92,118 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Search & Categories */}
-      <div className="container mx-auto px-4 -mt-14 relative z-20">
-        <Card className="rounded-[3rem] border-none shadow-2xl p-6 md:p-10 bg-white">
-          <div className="relative mb-10">
-            <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 w-7 h-7" />
+      <div className="container mx-auto px-4 -mt-16 relative z-20">
+        <Card className="rounded-[3.5rem] border-none shadow-[0_32px_64px_-12px_rgba(0,0,0,0.14)] p-8 md:p-12 bg-white">
+          <div className="relative mb-12 max-w-2xl mx-auto">
+            <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-400 w-6 h-6" />
             <Input 
               placeholder="ताज्या बातम्या किंवा योजना शोधा..." 
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="h-16 pl-16 pr-8 rounded-2xl border-slate-100 bg-slate-50 text-xl focus:ring-primary shadow-inner"
+              className="h-16 pl-16 pr-8 rounded-full border-slate-100 bg-slate-50 text-lg focus:ring-2 focus:ring-primary/20 shadow-inner"
             />
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-6">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-8">
             {KNOWLEDGE_CATEGORIES.map((cat) => (
               <button 
                 key={cat.id}
                 onClick={() => setSelectedCategory(cat.id)}
                 className={cn(
-                  "flex flex-col items-center gap-4 p-5 rounded-3xl transition-all group border border-transparent",
-                  selectedCategory === cat.id ? "bg-primary/5 border-primary/20" : "hover:bg-slate-50 hover:border-slate-100"
+                  "flex flex-col items-center gap-5 p-6 rounded-[2.5rem] transition-all group relative",
+                  selectedCategory === cat.id ? "bg-primary/5 shadow-sm" : "hover:bg-slate-50"
                 )}
               >
                 <div className={cn(
                   cat.color, 
-                  "w-16 h-16 rounded-2xl flex items-center justify-center text-white shadow-xl transition-transform duration-300",
-                  selectedCategory === cat.id ? "scale-110 shadow-primary/20" : "group-hover:scale-110"
+                  "w-16 h-16 rounded-2xl flex items-center justify-center text-white shadow-lg transition-all duration-500",
+                  selectedCategory === cat.id ? "scale-110 rotate-3 shadow-primary/30" : "group-hover:scale-110 group-hover:-rotate-3"
                 )}>
-                  <cat.icon className="w-9 h-9" />
+                  <cat.icon className="w-8 h-8" />
                 </div>
                 <div className="text-center">
-                  <p className={cn("font-bold text-base", selectedCategory === cat.id ? "text-primary" : "text-slate-800")}>
+                  <p className={cn("font-bold text-base", selectedCategory === cat.id ? "text-primary" : "text-slate-700")}>
                     {cat.name}
                   </p>
-                  <p className="text-[11px] text-slate-400 uppercase font-bold tracking-tight">{cat.desc}</p>
+                  <p className="text-[10px] text-slate-400 uppercase font-black tracking-widest mt-1">{cat.desc.split(' ')[0]}</p>
                 </div>
+                {selectedCategory === cat.id && (
+                  <div className="absolute bottom-2 w-1.5 h-1.5 bg-primary rounded-full" />
+                )}
               </button>
             ))}
           </div>
         </Card>
       </div>
 
-      <main className="container mx-auto px-4 py-20">
-        <div className="flex flex-col md:flex-row justify-between items-end mb-12 gap-6">
-          <div>
-            <h2 className="text-4xl font-headline font-bold text-primary flex items-center gap-3">
-              <Newspaper className="w-8 h-8" />
+      <main className="container mx-auto px-4 py-24">
+        <div className="flex flex-col md:flex-row justify-between items-end mb-16 gap-6">
+          <div className="max-w-2xl">
+            <h2 className="text-4xl md:text-5xl font-headline font-black text-slate-900 flex items-center gap-4">
+              <span className="w-12 h-1 bg-primary rounded-full hidden md:block" />
               {selectedCategory === "all" ? "शेती विश्वातील घडामोडी" : KNOWLEDGE_CATEGORIES.find(c => c.id === selectedCategory)?.name}
             </h2>
-            <p className="text-lg text-slate-500 mt-2">तुमच्या शेतीसाठी आजच्या महत्त्वाच्या बातम्या.</p>
+            <p className="text-xl text-slate-500 mt-4 leading-relaxed">शेतकऱ्यांच्या प्रगतीसाठी निवडक आणि महत्त्वपूर्ण माहिती.</p>
           </div>
         </div>
 
         {isLoading ? (
-          <div className="flex flex-col items-center justify-center py-20">
-            <Loader2 className="w-12 h-12 text-primary animate-spin mb-4" />
-            <p className="text-slate-500 font-bold">ताज्या बातम्या शोधत आहोत...</p>
+          <div className="flex flex-col items-center justify-center py-32 bg-white rounded-[4rem] shadow-sm">
+            <Loader2 className="w-16 h-16 text-primary animate-spin mb-6" />
+            <p className="text-slate-400 font-bold text-lg">ताज्या घडामोडी लोड होत आहेत...</p>
           </div>
         ) : filteredFeed.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12">
             {filteredFeed.map((item) => (
               <ContentCard key={item.id} {...item} />
             ))}
           </div>
         ) : (
-          <div className="text-center py-20 bg-white rounded-[3rem] shadow-sm">
-            <Search className="w-10 h-10 text-slate-400 mx-auto mb-6" />
-            <h3 className="text-2xl font-bold text-slate-800">माहिती सापडली नाही</h3>
-            <Button variant="ghost" className="mt-6 text-primary" onClick={() => setSelectedCategory("all")}>सर्व बातम्या पहा</Button>
+          <div className="text-center py-32 bg-white rounded-[4rem] shadow-sm border-2 border-dashed border-slate-100">
+            <div className="w-24 h-24 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-8">
+              <Search className="w-10 h-10 text-slate-300" />
+            </div>
+            <h3 className="text-3xl font-black text-slate-800">काहीही सापडले नाही</h3>
+            <p className="text-slate-500 mt-2 mb-10">तुमच्या शोध संज्ञेसाठी कोणतीही बातमी उपलब्ध नाही.</p>
+            <Button 
+              variant="outline" 
+              className="rounded-2xl h-14 px-8 border-primary text-primary font-bold hover:bg-primary/5" 
+              onClick={() => setSelectedCategory("all")}
+            >
+              सर्व बातम्या पहा
+            </Button>
           </div>
         )}
       </main>
 
-      <footer className="bg-slate-900 text-slate-400 py-20 mt-10">
-        <div className="container mx-auto px-4 text-center">
-          <div className="flex items-center justify-center gap-3 mb-10">
-            <img src="/logo.svg" alt="MaziSheti Logo" width={60} height={60} className="object-contain" />
-            <span className="text-3xl font-bold text-white tracking-tight">MaziSheti</span>
+      <footer className="bg-slate-950 text-slate-400 py-24 mt-20 relative overflow-hidden">
+        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary via-accent to-primary opacity-20" />
+        <div className="container mx-auto px-4 relative z-10">
+          <div className="flex flex-col items-center mb-16">
+            <div className="bg-white/5 p-4 rounded-[2rem] mb-6 backdrop-blur-md border border-white/10">
+              <img src="/logo.svg" alt="MaziSheti Logo" width={80} height={80} className="object-contain" />
+            </div>
+            <span className="text-4xl font-black text-white tracking-tighter mb-2">MaziSheti</span>
+            <p className="text-slate-500 font-medium">प्रगत शेतीचा डिजिटल सोबती.</p>
           </div>
-          <div className="flex flex-wrap justify-center gap-8 mb-16 font-medium">
-            <Link href="#" className="hover:text-white transition-colors">आमच्याबद्दल</Link>
-            <Link href="#" className="hover:text-white transition-colors">संपर्क</Link>
-            <Link href="#" className="hover:text-white transition-colors">अटी व शर्ती</Link>
+          
+          <div className="flex flex-wrap justify-center gap-12 mb-20">
+            <Link href="#" className="text-lg font-bold hover:text-white transition-all hover:translate-y-[-2px]">आमच्याबद्दल</Link>
+            <Link href="#" className="text-lg font-bold hover:text-white transition-all hover:translate-y-[-2px]">संपर्क</Link>
+            <Link href="#" className="text-lg font-bold hover:text-white transition-all hover:translate-y-[-2px]">अटी व शर्ती</Link>
+            <Link href="/dashboard" className="text-lg font-bold hover:text-white transition-all hover:translate-y-[-2px]">डॅशबोर्ड</Link>
           </div>
-          <div className="border-t border-slate-800 pt-10">
-            <p className="text-sm">© २०२४ MaziSheti (MSP). प्रगत शेतीचा डिजिटल सोबती.</p>
+          
+          <div className="max-w-4xl mx-auto border-t border-white/5 pt-12 flex flex-col md:flex-row justify-between items-center gap-6">
+            <p className="text-sm font-medium tracking-wide text-slate-600">© २०२४ MaziSheti Platform. All rights reserved.</p>
+            <div className="flex items-center gap-4">
+              <div className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center hover:bg-primary/20 transition-colors cursor-pointer">
+                <Globe className="w-5 h-5" />
+              </div>
+              <div className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center hover:bg-primary/20 transition-colors cursor-pointer">
+                <TrendingUp className="w-5 h-5" />
+              </div>
+            </div>
           </div>
         </div>
       </footer>
