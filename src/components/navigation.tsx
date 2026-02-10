@@ -43,7 +43,6 @@ export function Navigation() {
           </Link>
         </div>
 
-        {/* Desktop Nav */}
         <nav className="hidden lg:flex items-center space-x-8">
           {navItems.map((item) => (
             <Link
@@ -81,7 +80,6 @@ export function Navigation() {
         </div>
       </div>
 
-      {/* Mobile Nav */}
       {isMobileMenuOpen && (
         <div className="lg:hidden border-b bg-white p-4 space-y-2 animate-in slide-in-from-top-4 shadow-xl">
           {navItems.map((item) => (
