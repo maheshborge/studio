@@ -1,5 +1,10 @@
 'use server';
 
+/**
+ * @fileOverview This file contains Server Actions that bridge the frontend logic 
+ * with our AI flows and data retrieval services.
+ */
+
 import { summarizeAggregatedContent } from '@/ai/flows/summarize-aggregated-content';
 import { getAgriculturalAdvice } from '@/ai/flows/agricultural-advice-flow';
 
@@ -58,7 +63,7 @@ const AGRI_NEWS_DATABASE = [
   {
     id: "news-3",
     title: "नवीन नमो शेतकरी सन्मान निधी हप्ता लवकरच जमा होणार",
-    excerpt: "राज्य शासनाकडून नमो शेतकरी योजनेचा पुढील हप्ता वितरीत करण्याची प्रक्रिया सुरू झाली असून, लवकरच खात्यावर पैसे जमा होतील...",
+    excerpt: "राज्य शासकडून नमो शेतकरी योजनेचा पुढील हप्ता वितरीत करण्याची प्रक्रिया सुरू झाली असून, लवकरच खात्यावर पैसे जमा होतील...",
     fullContent: `महाराष्ट्र राज्य शासनाची महत्त्वाकांक्षी योजना 'नमो शेतकरी महासन्मान निधी' चा चौथा हप्ता लवकरच शेतकऱ्यांच्या बँक खात्यावर थेट जमा केला जाणार आहे. यासाठी कृषी विभागाने लाभार्थ्यांची यादी अंतिम केली आहे.
 
     ज्या शेतकऱ्यांचे ई-केवायसी (e-KYC) अपूर्ण आहे, त्यांनी ते तातडीने पूर्ण करावे. आधार लिंक असलेल्या बँक खात्यावरच हे पैसे जमा होतील. या हप्त्यामुळे राज्यातील लाखो शेतकऱ्यांना खते आणि बियाणे खरेदीसाठी मदत होणार आहे.`,
@@ -88,7 +93,7 @@ const AGRI_NEWS_DATABASE = [
 ];
 
 export async function getLatestAgriNews() {
-  // Simulating a dynamic fetch
+  // Simulating a dynamic fetch for agricultural news updates.
   return { success: true, news: AGRI_NEWS_DATABASE };
 }
 
