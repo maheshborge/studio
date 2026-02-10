@@ -55,7 +55,7 @@ export default function LoginPage() {
         return toast({ 
           variant: "destructive", 
           title: "त्रुटी", 
-          description: "कृपया तुमचा नोंदणीकृत ईमेल पत्ता टाका. पासवर्ड बदलण्याची लिंक त्याच ईमेलवर येईल." 
+          description: "कृपया तुमचा नोंदणीकृत ईमेल पत्ता टाका." 
         });
       }
       setIsLoading(true);
@@ -63,14 +63,14 @@ export default function LoginPage() {
         await sendPasswordResetEmail(auth, email);
         toast({
           title: "ईमेल पाठवला आहे",
-          description: "पासवर्ड बदलण्यासाठीची लिंक तुमच्या ईमेलवर पाठवली आहे. कृपया स्पॅम फोल्डरही तपासा.",
+          description: "पासवर्ड बदलण्याची लिंक तुमच्या ईमेलवर पाठवली आहे.",
         });
         setIsForgot(false);
       } catch (error: any) {
         toast({
           variant: "destructive",
           title: "त्रुटी",
-          description: "हा ईमेल सिस्टिममध्ये सापडल नाही. कृपया तुम्ही योग्य ईमेल टाकला आहे का ते तपासा.",
+          description: "ईमेल सापडला नाही.",
         });
       } finally {
         setIsLoading(false);
@@ -78,11 +78,10 @@ export default function LoginPage() {
       return;
     }
 
-    // Validation for Signup
     if (!isLogin) {
       if (!name) return toast({ variant: "destructive", title: "त्रुटी", description: "कृपया पूर्ण नाव टाका." });
       if (mobile.length !== 10) return toast({ variant: "destructive", title: "त्रुटी", description: "मोबाईल नंबर १० अंकी असावा." });
-      if (!userType) return toast({ variant: "destructive", title: "त्रुटी", description: "कृपया तुमचा प्रकार निवडा." });
+      if (!userType) return toast({ variant: "destructive", title: "त्रुटी", description: "तुमचा प्रकार निवडा." });
     }
 
     if (password.length < 6) {
@@ -123,9 +122,8 @@ export default function LoginPage() {
       }
     } catch (error: any) {
       let errorMessage = "काहीतरी चुकले आहे.";
-      if (error.code === "auth/email-already-in-use") errorMessage = "हा मोबाईल नंबर किंवा ईमेल आधीच नोंदणीकृत आहे.";
-      if (error.code === "auth/invalid-credential") errorMessage = "चुकीचा पासवर्ड किंवा मोबाईल नंबर.";
-      if (error.code === "auth/user-not-found") errorMessage = "हा युजर सापडला नाही. कृपया नोंदणी करा.";
+      if (error.code === "auth/email-already-in-use") errorMessage = "हा मोबाईल किंवा ईमेल आधीच नोंदणीकृत आहे.";
+      if (error.code === "auth/invalid-credential") errorMessage = "चुकीचा पासवर्ड किंवा मोबाईल.";
       
       toast({
         variant: "destructive",
@@ -153,17 +151,17 @@ export default function LoginPage() {
           </h2>
           <p className="text-muted-foreground text-center mb-10 text-sm">
             {isForgot 
-              ? "तुमचा ईमेल टाका, आम्ही पासवर्ड बदलण्याची लिंक पाठवू." 
+              ? "तुमचा ईमेल टाका, पासवर्ड रिसेट लिंक पाठवली जाईल." 
               : isLogin 
                 ? "मोबाईल नंबर किंवा ईमेल वापरून लॉगिन करा." 
-                : "MaziSheti समुदायात सामील होण्यासाठी माहिती भरा."}
+                : "MaziSheti समुदायात सामील व्हा."}
           </p>
 
           {!isLogin && !isForgot && (
             <Alert className="mb-6 bg-blue-50 border-blue-100 rounded-2xl">
               <Info className="h-4 w-4 text-blue-600" />
-              <AlertDescription className="text-[11px] text-blue-700 leading-tight">
-                <strong>टीप:</strong> ईमेल नसेल तरी चालेल, फक्त मोबाईल नंबर पुरेसा आहे. पण पासवर्ड लक्षात ठेवावा लागेल.
+              <AlertDescription className="text-[11px] text-blue-700">
+                <strong>टीप:</strong> ईमेल नसेल तरी चालेल, फक्त मोबाईल नंबर पुरेसा आहे.
               </AlertDescription>
             </Alert>
           )}
@@ -180,7 +178,7 @@ export default function LoginPage() {
                     placeholder="example@email.com" 
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="pl-12 h-12 rounded-xl border-slate-200" 
+                    className="pl-12 h-12 rounded-xl" 
                   />
                 </div>
               </div>
@@ -189,7 +187,7 @@ export default function LoginPage() {
             {!isForgot && !isLogin && (
               <>
                 <div className="space-y-2">
-                  <Label htmlFor="name" className="font-bold">पूर्ण नाव <span className="text-red-500">*</span></Label>
+                  <Label htmlFor="name" className="font-bold">पूर्ण नाव *</Label>
                   <div className="relative">
                     <UserIcon className="absolute left-4 top-3.5 h-5 w-5 text-slate-400" />
                     <Input 
@@ -197,15 +195,15 @@ export default function LoginPage() {
                       placeholder="उदा. राहुल पाटील" 
                       value={name}
                       onChange={(e) => setName(e.target.value)}
-                      className="pl-12 h-12 rounded-xl border-slate-200" 
+                      className="pl-12 h-12 rounded-xl" 
                     />
                   </div>
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="userType" className="font-bold">तुम्ही कोण आहात? <span className="text-red-500">*</span></Label>
+                  <Label htmlFor="userType" className="font-bold">तुम्ही कोण आहात? *</Label>
                   <Select onValueChange={setUserType}>
-                    <SelectTrigger className="h-12 rounded-xl border-slate-200">
+                    <SelectTrigger className="h-12 rounded-xl">
                       <SelectValue placeholder="निवडा" />
                     </SelectTrigger>
                     <SelectContent>
@@ -226,34 +224,17 @@ export default function LoginPage() {
                     {isLogin ? <UserIcon className="absolute left-4 top-3.5 h-5 w-5 text-slate-400" /> : <Phone className="absolute left-4 top-3.5 h-5 w-5 text-slate-400" />}
                     <Input 
                       id="login-id" 
-                      placeholder={isLogin ? "९८७६५४३२१०" : "१० अंकी मोबाईल नंबर"} 
+                      placeholder={isLogin ? "९८७६५४३२१०" : "१० अंकी नंबर"} 
                       value={isLogin ? email : mobile}
                       onChange={(e) => isLogin ? setEmail(e.target.value) : setMobile(e.target.value)}
-                      className="pl-12 h-12 rounded-xl border-slate-200" 
+                      className="pl-12 h-12 rounded-xl" 
                     />
                   </div>
                 </div>
 
-                {!isLogin && (
-                  <div className="space-y-2">
-                    <Label htmlFor="reg-email" className="font-bold text-slate-500 italic">ईमेल (असल्यास टाका, नसेल तर सोडून द्या)</Label>
-                    <div className="relative">
-                      <Mail className="absolute left-4 top-3.5 h-5 w-5 text-slate-300" />
-                      <Input 
-                        id="reg-email" 
-                        type="email" 
-                        placeholder="email@example.com" 
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        className="pl-12 h-12 rounded-xl border-slate-100" 
-                      />
-                    </div>
-                  </div>
-                )}
-
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
-                    <Label htmlFor="password">{isLogin ? "पासवर्ड" : "पासवर्ड सेट करा"} <span className="text-red-500">*</span></Label>
+                    <Label htmlFor="password">{isLogin ? "पासवर्ड" : "पासवर्ड सेट करा"} *</Label>
                     {isLogin && (
                       <button onClick={() => setIsForgot(true)} className="text-xs text-primary font-bold hover:underline">
                         पासवर्ड विसरलात?
@@ -268,7 +249,7 @@ export default function LoginPage() {
                       placeholder="किमान ६ अंकी" 
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
-                      className="pl-12 pr-12 h-12 rounded-xl border-slate-200" 
+                      className="pl-12 pr-12 h-12 rounded-xl" 
                     />
                     <button
                       type="button"
@@ -285,7 +266,7 @@ export default function LoginPage() {
             <Button 
               onClick={handleAuth}
               disabled={isLoading}
-              className="w-full h-14 bg-primary hover:bg-primary/90 text-white rounded-xl font-bold text-lg mt-4 shadow-lg shadow-primary/20"
+              className="w-full h-14 bg-primary hover:bg-primary/90 text-white rounded-xl font-bold text-lg mt-4 shadow-lg"
             >
               {isLoading ? <Loader2 className="animate-spin" /> : isForgot ? "लिंक पाठवा" : isLogin ? "लॉगिन करा" : "नोंदणी करा"}
               {!isLoading && <ChevronRight className="ml-2 w-5 h-5" />}
@@ -293,26 +274,16 @@ export default function LoginPage() {
           </div>
 
           <div className="mt-8 text-center text-sm">
-            {isForgot ? (
-              <button onClick={() => setIsForgot(false)} className="text-primary font-bold hover:underline flex items-center justify-center gap-2 mx-auto">
-                <ArrowLeft className="w-4 h-4" /> लॉगिनकडे वळा
-              </button>
-            ) : (
-              <div className="p-4 bg-slate-50 rounded-2xl border border-dashed border-slate-200">
-                <span className="text-slate-500">
-                  {isLogin ? "खाते नाहीये?" : "आधीच खाते आहे?"}
-                </span>{" "}
-                <button 
-                  onClick={() => {
-                    setIsLogin(!isLogin);
-                    setShowPassword(false);
-                  }}
-                  className="text-primary font-bold hover:underline ml-1"
-                >
-                  {isLogin ? "येथे नोंदणी करा" : "येथे लॉगिन करा"}
-                </button>
-              </div>
-            )}
+            <button 
+              onClick={() => {
+                setIsLogin(!isLogin);
+                setIsForgot(false);
+                setShowPassword(false);
+              }}
+              className="text-primary font-bold hover:underline"
+            >
+              {isForgot ? "लॉगिनकडे वळा" : isLogin ? "नवीन खाते तयार करा" : "आधीच खाते आहे? लॉगिन करा"}
+            </button>
           </div>
         </div>
       </Card>

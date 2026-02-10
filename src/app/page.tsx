@@ -143,15 +143,6 @@ export default function Home() {
             </h2>
             <p className="text-lg text-slate-500 mt-2">तुमच्या शेतीसाठी आजच्या महत्त्वाच्या बातम्या.</p>
           </div>
-          <div className="flex gap-3">
-            <Badge 
-              variant={selectedCategory === "all" ? "default" : "outline"} 
-              className="px-5 py-2 rounded-full cursor-pointer transition-all font-bold"
-              onClick={() => setSelectedCategory("all")}
-            >
-              सर्व बातम्या
-            </Badge>
-          </div>
         </div>
 
         {isLoading ? (
@@ -167,20 +158,11 @@ export default function Home() {
           </div>
         ) : (
           <div className="text-center py-20 bg-white rounded-[3rem] shadow-sm">
-            <div className="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-6">
-              <Search className="w-10 h-10 text-slate-400" />
-            </div>
+            <Search className="w-10 h-10 text-slate-400 mx-auto mb-6" />
             <h3 className="text-2xl font-bold text-slate-800">माहिती सापडली नाही</h3>
-            <p className="text-slate-500 mt-2">निवडलेल्या कॅटेगरीमध्ये सध्या कोणतीही माहिती उपलब्ध नाही.</p>
             <Button variant="ghost" className="mt-6 text-primary" onClick={() => setSelectedCategory("all")}>सर्व बातम्या पहा</Button>
           </div>
         )}
-
-        <div className="mt-20 text-center">
-          <Button variant="outline" className="rounded-2xl border-primary text-primary px-12 h-16 font-bold text-xl hover:bg-primary/5 shadow-md">
-            आणखी बातम्या पहा <ChevronRight className="ml-2 w-6 h-6" />
-          </Button>
-        </div>
       </main>
 
       <footer className="bg-slate-900 text-slate-400 py-20 mt-10">
@@ -189,17 +171,13 @@ export default function Home() {
             <img src="/logo.svg" alt="MaziSheti Logo" width={60} height={60} className="object-contain" />
             <span className="text-3xl font-bold text-white tracking-tight">MaziSheti</span>
           </div>
-          <p className="max-w-lg mx-auto mb-10 text-lg leading-relaxed">
-            शेतकऱ्यांच्या उन्नतीसाठी आणि समृद्धीसाठी बनवलेले एक प्रगत डिजिटल माध्यम.
-          </p>
           <div className="flex flex-wrap justify-center gap-8 mb-16 font-medium">
             <Link href="#" className="hover:text-white transition-colors">आमच्याबद्दल</Link>
             <Link href="#" className="hover:text-white transition-colors">संपर्क</Link>
             <Link href="#" className="hover:text-white transition-colors">अटी व शर्ती</Link>
-            <Link href="#" className="hover:text-white transition-colors">गोपनीयता धोरण</Link>
           </div>
           <div className="border-t border-slate-800 pt-10">
-            <p className="text-sm">© २०२४ MaziSheti (MSP). सर्व हक्क राखीव. प्रगत शेतीचा डिजिटल सोबती.</p>
+            <p className="text-sm">© २०२४ MaziSheti (MSP). प्रगत शेतीचा डिजिटल सोबती.</p>
           </div>
         </div>
       </footer>

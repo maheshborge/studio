@@ -6,14 +6,13 @@ import { cn } from "@/lib/utils";
 import { 
   Globe, 
   User, 
-  LayoutDashboard, 
-  BarChart3,
   Menu,
   X,
   LogIn,
   ShoppingBag,
   Sprout,
-  Database
+  Database,
+  BarChart3
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
