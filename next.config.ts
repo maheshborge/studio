@@ -1,4 +1,3 @@
-
 import type {NextConfig} from 'next';
 
 const nextConfig: NextConfig = {
@@ -32,7 +31,7 @@ const nextConfig: NextConfig = {
     ],
   },
   devIndicators: {
-    appIsrStatus: false, // This hides the 'N' icon in development/production
+    appIsrStatus: false,
   },
 };
 
