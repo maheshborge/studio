@@ -19,7 +19,6 @@ import {
 import Link from "next/link";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
 import { ContentCard } from "@/components/content-card";
 import { cn } from "@/lib/utils";
 import { getLatestAgriNews } from "@/app/actions";
