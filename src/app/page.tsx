@@ -40,12 +40,17 @@ export default function Home() {
 
   useEffect(() => {
     async function fetchNews() {
-      setIsLoading(true);
-      const result = await getLatestAgriNews();
-      if (result.success) {
-        setNewsFeed(result.news);
+      try {
+        setIsLoading(true);
+        const result = await getLatestAgriNews();
+        if (result.success) {
+          setNewsFeed(result.news || []);
+        }
+      } catch (error) {
+        console.error("Error fetching news:", error);
+      } finally {
+        setIsLoading(false);
       }
-      setIsLoading(false);
     }
     fetchNews();
   }, []);
@@ -63,6 +68,7 @@ export default function Home() {
     <div className="flex flex-col min-h-screen bg-[#F8FAFC] font-body">
       <Navigation />
       
+      {/* Hero Section */}
       <section className="bg-primary pt-20 pb-32 text-white relative overflow-hidden">
         <div className="absolute top-[-10%] right-[-10%] w-[500px] h-[500px] bg-white/10 rounded-full blur-[120px] animate-pulse" />
         <div className="absolute bottom-[-5%] left-[-5%] w-[300px] h-[300px] bg-accent/20 rounded-full blur-[100px]" />
@@ -92,6 +98,7 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Categories / Search Bar Card */}
       <div className="container mx-auto px-4 -mt-16 relative z-20">
         <Card className="rounded-[3.5rem] border-none shadow-[0_32px_64px_-12px_rgba(0,0,0,0.14)] p-8 md:p-12 bg-white">
           <div className="relative mb-12 max-w-2xl mx-auto">
@@ -136,6 +143,7 @@ export default function Home() {
         </Card>
       </div>
 
+      {/* Main Content Feed */}
       <main className="container mx-auto px-4 py-24">
         <div className="flex flex-col md:flex-row justify-between items-end mb-16 gap-6">
           <div className="max-w-2xl">
@@ -176,6 +184,7 @@ export default function Home() {
         )}
       </main>
 
+      {/* Footer */}
       <footer className="bg-slate-950 text-slate-400 py-24 mt-20 relative overflow-hidden">
         <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary via-accent to-primary opacity-20" />
         <div className="container mx-auto px-4 relative z-10">

@@ -4,8 +4,8 @@ import { Toaster } from "@/components/ui/toaster";
 import { FirebaseClientProvider } from "@/firebase";
 
 export const metadata: Metadata = {
-  title: 'MaziSheti - Connecting the Mazisheti Community',
-  description: 'Aggregated content and community features from Mazisheti.org',
+  title: 'MaziSheti - MIDAS Platform',
+  description: 'प्रगत शेतीचा डिजिटल सोबती - Aggregated content and community features from Mazisheti.org',
 };
 
 export default function RootLayout({
@@ -14,15 +14,17 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="mr">
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+        <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
       </head>
-      <body className="font-body antialiased min-h-screen bg-background text-foreground">
+      <body className="font-body antialiased min-h-screen bg-background text-foreground selection:bg-primary selection:text-white">
         <FirebaseClientProvider>
-          {children}
+          <div className="relative flex min-h-screen flex-col">
+            {children}
+          </div>
           <Toaster />
         </FirebaseClientProvider>
       </body>
