@@ -1,27 +1,22 @@
+
 'use server';
 
 /**
- * @fileOverview A specialized AI agent for providing expert agricultural advice.
- *
- * - getAgriculturalAdvice - A function that analyzes agricultural content and provides actionable tips.
- * - AgriculturalAdviceInput - The input type for the flow.
- * - AgriculturalAdviceOutput - The structured advice output.
+ * @fileOverview Expert AI agent for providing actionable agricultural advice.
  */
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 
 const AgriculturalAdviceInputSchema = z.object({
-  content: z
-    .string()
-    .describe('The agricultural article content or user question to analyze.'),
+  content: z.string().describe('Agricultural content to analyze.'),
 });
 export type AgriculturalAdviceInput = z.infer<typeof AgriculturalAdviceInputSchema>;
 
 const AgriculturalAdviceOutputSchema = z.object({
-  advice: z.string().describe('A professional summary of the advice.'),
-  keyPoints: z.array(z.string()).describe('List of clear, actionable steps for the farmer.'),
-  language: z.string().describe('The primary language of the response (e.g., Marathi or English).'),
+  advice: z.string().describe('Professional summary of advice.'),
+  keyPoints: z.array(z.string()).describe('Actionable steps for the farmer.'),
+  language: z.string().describe('Language of the response.'),
 });
 export type AgriculturalAdviceOutput = z.infer<typeof AgriculturalAdviceOutputSchema>;
 
@@ -33,16 +28,14 @@ const agriculturalAdvicePrompt = ai.definePrompt({
   name: 'agriculturalAdvicePrompt',
   input: {schema: AgriculturalAdviceInputSchema},
   output: {schema: AgriculturalAdviceOutputSchema},
-  prompt: `You are an expert Agricultural Consultant (Krushi Sallaagar) for the MaziSheti platform.
+  prompt: `You are an expert Agricultural Consultant (Krushi Sallaagar) for MIDAS by MaziSheti.
   
-  Your task is to analyze the provided content and provide professional, actionable advice to a farmer.
-  - If the content is in Marathi, respond primarily in Marathi.
-  - Provide a clear summary of the core advice.
-  - List 3-5 very specific, actionable steps the farmer should take.
-  - Keep the tone encouraging, expert, and practical.
+  Analyze the content and provide professional, actionable advice.
+  - If content is in Marathi, respond in Marathi.
+  - Provide a clear summary and 3-5 specific steps.
+  - Keep tone encouraging and practical.
 
-  Article Content: 
-  {{{content}}}`,
+  Content: {{{content}}}`,
 });
 
 const agriculturalAdviceFlow = ai.defineFlow(

@@ -8,13 +8,12 @@ service cloud.firestore {
     }
 
     // Rule for Admin access (Master access)
-    // We check the profile doc for userType == 'admin'
     function isAdmin() {
       return isSignedIn() && 
         get(/databases/$(database)/documents/users/$(request.auth.uid)/profile/main).data.userType == 'admin';
     }
 
-    // Allow reading of any document for logged in users to avoid UI crashes on Dashboard/Marketplace
+    // Allow reading of any document for logged in users
     match /{document=**} {
       allow read, list: if isSignedIn();
     }
