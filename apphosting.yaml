@@ -8,5 +8,4 @@ env:
   - variable: NEXT_PUBLIC_FIREBASE_PROJECT_ID
     value: firebase-midas
 
-# Explicitly define build settings if needed, 
-# though App Hosting usually auto-detects Next.js.
+# Next.js optimization for App Hosting
