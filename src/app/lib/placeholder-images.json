@@ -2,40 +2,10 @@
 {
   "placeholderImages": [
     {
-      "id": "advice-mango",
-      "description": "Mango crop disease care",
-      "imageUrl": "https://picsum.photos/seed/advice1/600/400",
-      "imageHint": "Mango tree agriculture"
-    },
-    {
-      "id": "scheme-tractor",
-      "description": "Government tractor subsidy",
-      "imageUrl": "https://picsum.photos/seed/scheme1/600/400",
-      "imageHint": "Tractor farming"
-    },
-    {
-      "id": "weather-rain",
-      "description": "Rain forecast for coastal region",
-      "imageUrl": "https://picsum.photos/seed/weather1/600/400",
-      "imageHint": "Rainy weather field"
-    },
-    {
-      "id": "market-cotton",
-      "description": "Cotton market price update",
-      "imageUrl": "https://picsum.photos/seed/market1/600/400",
-      "imageHint": "Cotton harvest"
-    },
-    {
-      "id": "scheme-drip",
-      "description": "Drip irrigation subsidy",
-      "imageUrl": "https://picsum.photos/seed/scheme2/600/400",
-      "imageHint": "Drip irrigation system"
-    },
-    {
-      "id": "advice-soil",
-      "description": "Soil testing importance",
-      "imageUrl": "https://picsum.photos/seed/advice2/600/400",
-      "imageHint": "Soil testing lab"
+      "id": "cotton",
+      "description": "Cotton field",
+      "imageUrl": "https://picsum.photos/seed/cotton/800/400",
+      "imageHint": "Cotton agriculture"
     }
   ]
 }

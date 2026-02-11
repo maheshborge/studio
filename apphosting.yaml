@@ -1,4 +1,4 @@
-# Firebase App Hosting configuration
+
 runConfig:
   maxInstances: 2
   minInstances: 0
@@ -7,5 +7,3 @@ runConfig:
 env:
   - variable: NEXT_PUBLIC_FIREBASE_PROJECT_ID
     value: firebase-midas
-
-# Next.js optimization for App Hosting
