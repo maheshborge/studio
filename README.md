@@ -2,20 +2,19 @@
 
 हे **MIDAS by MaziSheti** प्लॅटफॉर्मचे अधिकृत वेब अ‍ॅप आहे.
 
-## मॅन्युअल अपलोड (GitHub Manual Upload) सूचना:
+## महत्त्वाच्या सूचना (Deployment Instructions):
 
-जर तुम्ही फाईल्स मॅन्युअली GitHub वर अपलोड करत असाल, तर खालील नियम पाळा:
+१. **index.html टाकू नका:** तुमच्या प्रोजेक्टच्या मुख्य (Root) फोल्डरमध्ये `index.html` फाईल **असू नये**. ती डिलीट करा. Next.js मध्ये `src/app/layout.tsx` ही फाईल मुख्य स्ट्रक्चर सांभाळते.
+२. **GitHub वर कोड कसा पाठवायचा? (For PC users):**
+   - तुमच्या प्रोजेक्ट फोल्डरमध्ये टर्मिनल उघडा.
+   - `git add .`
+   - `git commit -m "Cleanup and production fix"`
+   - `git push origin main`
 
-१. **index.html टाकू नका:** तुमच्या रूट फोल्डरमध्ये `index.html` फाईल असू नये. ती डिलीट करा.
-२. **फोल्डर स्ट्रक्चर:** `src` फोल्डर आणि त्यातील सर्व फाईल्स जशाच्या तशा अपलोड करा.
-३. **कॉन्फिग फाईल्स:** `package.json`, `apphosting.yaml`, `next.config.ts`, `tailwind.config.ts`, `postcss.config.mjs`, `tsconfig.json` या फाईल्स रूट फोल्डरमध्ये (बाहेर) असाव्यात.
-
-## कमांड लाईनवरून पुश करण्यासाठी:
-```bash
-git add .
-git commit -m "Clean production setup for Firebase"
-git push origin main
-```
+## मॅन्युअल अपलोड (Manual GitHub Upload) करत असाल तर:
+जर तुम्ही GitHub च्या वेबसाईटवरून फाईल्स अपलोड करत असाल, तर:
+- फक्त `src`, `public` फोल्डर्स आणि `package.json`, `apphosting.yaml`, `next.config.ts`, `tailwind.config.ts`, `tsconfig.json` या फाईल्स निवडा.
+- **index.html अपलोड करू नका.**
 
 ## संपर्क
 कोणत्याही मदतीसाठी MaziSheti टीमशी संपर्क साधा.
