@@ -7,27 +7,22 @@
 तुमचा कोड **maheshborge/firebase-midas** रिपॉजिटरीमध्ये पुश करण्यासाठी खालील कमांड्स वापरा:
 
 ```bash
-# १. Git इनिशियलाइज करा (पहिल्यांदाच करत असाल तर)
-git init
-
-# २. तुमची रिपॉजिटरी लिंक करा
-git remote add origin https://github.com/maheshborge/firebase-midas.git
-
-# ३. सर्व बदल अ‍ॅड करा
+# १. सर्व बदल अ‍ॅड करा
 git add .
 
-# ४. कमिट मेसेज द्या
+# २. कमिट मेसेज द्या
 git commit -m "Production deployment with layout cleanup"
 
-# ५. कोड पुश करा
-git push -u origin main
+# ३. कोड पुश करा
+git push origin main
 ```
 
-## Firebase App Hosting सेटअप (अंतिम टप्पा)
+## Dashboard मध्ये दोन बॅकएंड का दिसतात?
+- **Studio:** हे Firebase Studio चे अंतर्गत प्रीव्ह्यू बॅकएंड आहे.
+- **firebase-midas:** हे तुमचे अधिकृत प्रोडक्शन अ‍ॅप आहे जे तुमच्या GitHub रिपॉजिटरीशी जोडलेले आहे.
 
-१. **Deployment Status:** तुम्ही आता Firebase Console मध्ये 'Release in progress' पाहत आहात. हे पूर्ण होईपर्यंत वाट पहा.
-२. **Success:** एकदा स्टेटस हिरवा (Green Checkmark) झाला की, तिथे दिलेल्या `...hosted.app` लिंकवर क्लिक करून तुमचे अ‍ॅप लाईव्ह पाहू शकता.
-३. **Environment Variables:** 'App Hosting' सेटिंग्समध्ये `GOOGLE_GENAI_API_KEY` जोडल्याची खात्री करा, जेणेकरून AI फीचर्स चालतील.
+## त्रुटी कशी सुधारायची?
+जर 'firebase-midas' मध्ये लाल रंगाची त्रुटी दिसत असेल, तर वरील कमांड्स वापरून कोड पुन्हा पुश करा. Next.js मध्ये `index.html` ची गरज नसते, त्यामुळे ती फाईल काढून आपण बदल पुश केले आहेत.
 
 ## संपर्क
 कोणत्याही मदतीसाठी MaziSheti टीमशी संपर्क साधा.
