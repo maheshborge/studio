@@ -32,8 +32,9 @@ git push -u origin main
 ५. **Deployment Settings:**
    - **Live branch:** `main` निवडा.
    - **App root directory:** `/` राहू द्या.
-६. **Environment Variables:** 'Deployment Settings' मध्ये `GOOGLE_GENAI_API_KEY` जोडा.
-७. **Finish:** सेटअप पूर्ण झाल्यावर तुमचे अ‍ॅप काही मिनिटांत लाईव्ह होईल!
+६. **Associate Web App:** इथे **'Select an existing Firebase web app'** निवडा आणि तुमचे `firebase-midas` अ‍ॅप निवडा.
+७. **Environment Variables:** 'Deployment Settings' मध्ये `GOOGLE_GENAI_API_KEY` जोडा.
+८. **Finish:** सेटअप पूर्ण झाल्यावर तुमचे अ‍ॅप काही मिनिटांत लाईव्ह होईल!
 
 ## संपर्क
 कोणत्याही मदतीसाठी MaziSheti टीमशी संपर्क साधा.
