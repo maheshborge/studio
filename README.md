@@ -29,7 +29,7 @@ git push -u origin main
 
 १. **Create Backend** बटणावर क्लिक करा.
 २. **GitHub कनेक्ट करा:** तुमचे खाते निवडा आणि `maheshborge/firebase-midas` रिपॉजिटरी सिलेक्ट करा.
-३. **Region निवड:** 'Primary Region' म्हणून **asia-south1 (Mumbai)** निवडा. यामुळे महाराष्ट्रातील युजर्ससाठी अ‍ॅप वेगाने चालेल.
+३. **Region निवड:** 'Primary Region' म्हणून **asia-southeast1 (Singapore)** किंवा उपलब्ध असल्यास **asia-south1 (Mumbai)** निवडा. यामुळे महाराष्ट्रातील युजर्ससाठी अ‍ॅप वेगाने चालेल.
 ४. **Environment Variables:** 'Deployment Settings' मध्ये `GOOGLE_GENAI_API_KEY` जोडा जेणेकरून AI फीचर्स काम करतील.
 ५. **Finish:** एकदा सेटअप पूर्ण झाला की, तुमचे अ‍ॅप काही मिनिटांत लाईव्ह होईल!
 
