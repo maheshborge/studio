@@ -7,7 +7,7 @@
 तुमचा कोड **maheshborge/firebase-midas** रिपॉजिटरीमध्ये पुश करण्यासाठी खालील कमांड्स वापरा:
 
 ```bash
-# १. Git इनिशियलाइज करा
+# १. Git इनिशियलाइज करा (पहिल्यांदाच करत असाल तर)
 git init
 
 # २. तुमची रिपॉजिटरी लिंक करा
@@ -17,24 +17,17 @@ git remote add origin https://github.com/maheshborge/firebase-midas.git
 git add .
 
 # ४. कमिट मेसेज द्या
-git commit -m "Production ready deployment"
+git commit -m "Production deployment with layout cleanup"
 
 # ५. कोड पुश करा
 git push -u origin main
 ```
 
-## Firebase App Hosting सेटअप (महत्त्वाचे)
+## Firebase App Hosting सेटअप (अंतिम टप्पा)
 
-१. **Create Backend:** Firebase Console मध्ये 'Create Backend' वर क्लिक करा.
-२. **GitHub Connection:** 'Reuse existing installation' निवडा आणि `maheshborge` खाते कन्फर्म करा.
-३. **Select Repo:** `firebase-midas` रिपॉजिटरी निवडा.
-४. **Region निवड:** 'Primary Region' म्हणून **asia-southeast1 (Singapore)** निवडा.
-५. **Deployment Settings:**
-   - **Live branch:** `main` निवडा.
-   - **App root directory:** `/` राहू द्या.
-६. **Associate Web App:** इथे **'Select an existing Firebase web app'** निवडा. जर यादीत फक्त **'firebase app'** दिसत असेल, तर तेच निवडा. हे तुमचे मुख्य अ‍ॅप आहे.
-७. **Environment Variables:** सेटअप पूर्ण झाल्यावर 'App Hosting' सेटिंग्समध्ये `GOOGLE_GENAI_API_KEY` जोडा.
-८. **Finish:** सेटअप पूर्ण झाल्यावर तुमचे अ‍ॅप काही मिनिटांत लाईव्ह होईल!
+१. **Deployment Status:** तुम्ही आता Firebase Console मध्ये 'Release in progress' पाहत आहात. हे पूर्ण होईपर्यंत वाट पहा.
+२. **Success:** एकदा स्टेटस हिरवा (Green Checkmark) झाला की, तिथे दिलेल्या `...hosted.app` लिंकवर क्लिक करून तुमचे अ‍ॅप लाईव्ह पाहू शकता.
+३. **Environment Variables:** 'App Hosting' सेटिंग्समध्ये `GOOGLE_GENAI_API_KEY` जोडल्याची खात्री करा, जेणेकरून AI फीचर्स चालतील.
 
 ## संपर्क
 कोणत्याही मदतीसाठी MaziSheti टीमशी संपर्क साधा.
