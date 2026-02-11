@@ -17,20 +17,23 @@ git remote add origin https://github.com/maheshborge/firebase-midas.git
 git add .
 
 # ४. कमिट मेसेज द्या
-git commit -m "Deploying to Firebase App Hosting"
+git commit -m "Production ready deployment"
 
 # ५. कोड पुश करा
 git push -u origin main
 ```
 
-## Firebase App Hosting सेटअप
+## Firebase App Hosting सेटअप (महत्त्वाचे)
+
+GitHub ला Firebase शी कनेक्ट करण्यासाठी या पायऱ्या फॉलो करा:
 
 १. [Firebase Console](https://console.firebase.google.com/) वर जा.
 २. **firebase-midas** प्रोजेक्ट निवडा.
-३. **App Hosting** वर क्लिक करा.
-४. GitHub कनेक्ट करा आणि तुमची `maheshborge/firebase-midas` रिपॉजिटरी निवडा.
-५. `Environment Variables` मध्ये तुमची `GOOGLE_GENAI_API_KEY` अ‍ॅड करा.
-६. 'Finish' करा. तुमचे अ‍ॅप काही मिनिटांत लाईव्ह होईल!
+३. डाव्या बाजूला **App Hosting** वर क्लिक करा.
+४. 'Get Started' बटण दाबा.
+५. 'Connect to GitHub' निवडा आणि तुमची `maheshborge/firebase-midas` रिपॉजिटरी सिलेक्ट करा.
+६. 'Deployment Settings' मध्ये `Environment Variables` मध्ये `GOOGLE_GENAI_API_KEY` जोडा.
+७. 'Finish' करा. इथून पुढे तुम्ही जेव्हा GitHub वर कोड पुश कराल, तेव्हा अ‍ॅप आपोआप अपडेट होईल!
 
 ## संपर्क
 कोणत्याही मदतीसाठी MaziSheti टीमशी संपर्क साधा.
