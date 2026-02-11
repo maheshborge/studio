@@ -7,6 +7,3 @@ runConfig:
 env:
   - variable: NEXT_PUBLIC_FIREBASE_PROJECT_ID
     value: firebase-midas
-
-# Explicitly define the build environment
-# This helps avoid 'Git Source' fetch errors during build
