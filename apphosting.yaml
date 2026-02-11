@@ -5,7 +5,11 @@ runConfig:
   maxInstances: 2
   minInstances: 0
   memory: 512Mi
+  # टीप: रिजन निवडताना 'asia-south1' (Mumbai) निवडा.
 
 env:
   - variable: NEXT_PUBLIC_FIREBASE_PROJECT_ID
     value: firebase-midas
+  # खालील व्हेरिएबल तुम्ही Firebase Console मध्ये 'App Hosting' सेटिंग्समध्ये जोडा:
+  # - variable: GOOGLE_GENAI_API_KEY
+  #   secret: GEMINI_API_KEY
