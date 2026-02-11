@@ -29,8 +29,11 @@ git push -u origin main
 २. **GitHub Connection:** 'Reuse existing installation' निवडा आणि `maheshborge` खाते कन्फर्म करा.
 ३. **Select Repo:** `firebase-midas` रिपॉजिटरी निवडा.
 ४. **Region निवड:** 'Primary Region' म्हणून **asia-southeast1 (Singapore)** निवडा.
-५. **Environment Variables:** 'Deployment Settings' मध्ये `GOOGLE_GENAI_API_KEY` जोडा.
-६. **Finish:** सेटअप पूर्ण झाल्यावर तुमचे अ‍ॅप काही मिनिटांत लाईव्ह होईल!
+५. **Deployment Settings:**
+   - **Live branch:** `main` निवडा.
+   - **App root directory:** `/` राहू द्या.
+६. **Environment Variables:** 'Deployment Settings' मध्ये `GOOGLE_GENAI_API_KEY` जोडा.
+७. **Finish:** सेटअप पूर्ण झाल्यावर तुमचे अ‍ॅप काही मिनिटांत लाईव्ह होईल!
 
 ## संपर्क
 कोणत्याही मदतीसाठी MaziSheti टीमशी संपर्क साधा.
