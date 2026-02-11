@@ -2,20 +2,20 @@
 
 हे **MIDAS by MaziSheti** प्लॅटफॉर्मचे अधिकृत वेब अ‍ॅप आहे.
 
-## महत्त्वाच्या सूचना (Manual Upload / Deployment)
+## मॅन्युअल अपलोड (GitHub Manual Upload) सूचना:
 
-१. **index.html नका टाकू:** तुमच्या GitHub रिपॉजिटरीमध्ये `index.html` ही फाईल **असू नये**. ती डिलीट करा.
-२. **प्रोजेक्ट प्रकार:** हे एक Next.js अ‍ॅप आहे. सर्व कोड `src` फोल्डरमध्ये आहे.
-३. **कसे अपलोड करावे:**
-   - जर तुम्ही GitHub डेस्कटॉप किंवा वेब वापरत असाल, तर सर्व फाईल्स निवडा (फक्त `index.html` सोडून) आणि अपलोड करा.
-   - जर टर्मिनल वापरत असाल:
-   ```bash
-   git add .
-   git commit -m "Fix build detection and cleanup"
-   git push origin main
-   ```
+जर तुम्ही फाईल्स मॅन्युअली GitHub वर अपलोड करत असाल, तर खालील नियम पाळा:
 
-४. **Firebase Console:** कोड अपलोड केल्यावर Firebase Console मधील 'Release' कडे लक्ष द्या. आता ते यशस्वी होईल.
+१. **index.html टाकू नका:** तुमच्या रूट फोल्डरमध्ये `index.html` फाईल असू नये. ती डिलीट करा.
+२. **फोल्डर स्ट्रक्चर:** `src` फोल्डर आणि त्यातील सर्व फाईल्स जशाच्या तशा अपलोड करा.
+३. **कॉन्फिग फाईल्स:** `package.json`, `apphosting.yaml`, `next.config.ts`, `tailwind.config.ts`, `postcss.config.mjs`, `tsconfig.json` या फाईल्स रूट फोल्डरमध्ये (बाहेर) असाव्यात.
+
+## कमांड लाईनवरून पुश करण्यासाठी:
+```bash
+git add .
+git commit -m "Clean production setup for Firebase"
+git push origin main
+```
 
 ## संपर्क
 कोणत्याही मदतीसाठी MaziSheti टीमशी संपर्क साधा.

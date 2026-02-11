@@ -1,40 +1,29 @@
-
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Helper function for Auth
     function isSignedIn() {
       return request.auth != null;
     }
 
-    // Rule for Admin access (Master access)
     function isAdmin() {
       return isSignedIn() && 
         get(/databases/$(database)/documents/users/$(request.auth.uid)/profile/main).data.userType == 'admin';
     }
 
-    // Allow reading of any document for logged in users
     match /{document=**} {
       allow read, list: if isSignedIn();
     }
 
-    // Admin can write anything
-    match /{document=**} {
-      allow write: if isAdmin();
-    }
-
-    // Ownership rules for writes
     match /users/{userId}/{allSubPaths=**} {
       allow write: if isSignedIn() && request.auth.uid == userId;
     }
 
-    // Transactions and other market flow writes for any signed-in user
     match /transactions/{txnId} {
       allow write: if isSignedIn();
     }
 
-    match /questions/{questionId} {
-      allow write: if isSignedIn();
+    match /{document=**} {
+      allow write: if isAdmin();
     }
   }
 }
