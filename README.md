@@ -1,34 +1,24 @@
-# MaziSheti - MIDAS Platform
+# MaziSheti - MIDAS Platform (Troubleshooting Guide)
 
-हे **MIDAS by MaziSheti** प्लॅटफॉर्मचे अधिकृत वेब अ‍ॅप आहे.
+जर तुमचे अ‍ॅप "Rollout" होत नसेल किंवा "fatal: couldn't find remote ref" असा एरर येत असेल, तर खालील स्टेप्स फॉलो करा:
 
-## टर्मिनल कुठे आहे? (Where is the Terminal?)
-तुमच्या स्क्रीनच्या **सर्वात खालच्या बाजूला (Bottom Bar)** पहा. तिथे तुम्हाला **"Terminal"** लिहिलेले दिसेल किंवा **`>_`** असा आयकॉन असेल. त्यावर क्लिक केल्यावर कमांड टाईप करण्यासाठी जागा मिळेल.
+## १. टर्मिनलवरून नवीन अपडेट पुश करा (सर्वात महत्त्वाचे)
+टर्मिनलमध्ये खालील कमांड्स एकामागून एक टाईप करा:
+- `git add .`
+- `git commit -m "Fix: Build configuration update"`
+- `git push origin main`
 
-## GitHub शी कोड सिंक कसा करायचा? (How to Sync with GitHub)
+## २. मॅन्युअल अपलोड करत असाल तर:
+जर तुम्ही GitHub वर फाईल्स ड्रॅग-अँड-ड्रॉप (Drag & Drop) करून अपलोड करत असाल, तर:
+- **`index.html` फाईल कधीही अपलोड करू नका.**
+- खात्री करा की `package.json` आणि `apphosting.yaml` या फाईल्स मुख्य (Root) फोल्डरमध्ये आहेत.
 
-१. स्क्रीनच्या खालच्या बाजूला असलेल्या **Terminal** वर क्लिक करा.
-२. खालील कमांड्स एकेक करून तिथे टाईप करा आणि प्रत्येक कमांड नंतर 'Enter' दाबा:
-   - `git add .`
-   - `git commit -m "Fix: Trigger new build for Cloud Build error"`
-   - `git push origin main`
+## ३. फायरबेस कन्सोलवर जाऊन 'Retry' करा
+- [Firebase Console](https://console.firebase.google.com/) वर जा.
+- तुमच्या प्रोजेक्टमधील **'App Hosting'** विभाग उघडा.
+- तिथे तुमच्या बॅकएंडवर क्लिक करा आणि **'Start Rollout'** किंवा **'Retry'** बटण दाबा.
 
-यानंतर फायरबेस आपोआप नवीन 'Build' सुरू करेल.
+## ४. पीसीवर कोड घेण्यासाठी:
+- `git clone https://github.com/maheshborge/firebase-midas.git`
 
-## "Git Source Fetch" एरर येत असल्यास काय करावे? (Troubleshooting Build Errors)
-जर तुम्हाला `fatal: couldn't find remote ref` असा एरर येत असेल, तर:
-- वरील तीन कमांड्स (add, commit, push) पुन्हा चालवा. यामुळे नवीन 'Commit ID' तयार होतो आणि फायरबेस त्याला ओळखू शकतो.
-- तुमच्या GitHub वर **'main'** नावाची ब्रांच अस्तित्वात असल्याची खात्री करा.
-
-## तुमच्या PC वर कोड कसा घ्यायचा? (How to get code on your PC)
-
-१. तुमच्या पीसीवर नवीन फोल्डर बनवा.
-२. तिथे कमांड प्रॉम्ट (CMD) उघडा आणि खालील कमांड टाका:
-   - `git clone https://github.com/maheshborge/firebase-midas.git`
-
-## मॅन्युअल अपलोड करताना महत्त्वाची सूचना:
-जर तुम्ही GitHub वेबसाईटवरून फाईल्स 'Upload' करणार असाल, तर:
-- **`index.html` फाईल अपलोड करू नका.** यामुळे बिल्ड एरर येतो. Next.js मध्ये याची गरज नसते.
-
-## संपर्क
-कोणत्याही मदतीसाठी MaziSheti टीमशी संपर्क साधा.
+कोणत्याही मदतीसाठी संपर्क साधा.

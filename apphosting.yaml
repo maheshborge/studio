@@ -1,4 +1,4 @@
-# Settings to manage and configure a Firebase App Hosting backend.
+# Firebase App Hosting configuration
 runConfig:
   maxInstances: 2
   minInstances: 0
@@ -7,3 +7,6 @@ runConfig:
 env:
   - variable: NEXT_PUBLIC_FIREBASE_PROJECT_ID
     value: firebase-midas
+
+# Explicitly define build settings if needed, 
+# though App Hosting usually auto-detects Next.js.
