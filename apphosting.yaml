@@ -5,7 +5,7 @@ runConfig:
   maxInstances: 2
   minInstances: 0
   memory: 512Mi
-  # टीप: रिजन निवडताना 'asia-southeast1' (Singapore) किंवा 'asia-south1' (Mumbai) निवडा.
+  # टीप: आपण Firebase Console मध्ये 'asia-southeast1' (Singapore) रिजन निवडला आहे.
 
 env:
   - variable: NEXT_PUBLIC_FIREBASE_PROJECT_ID

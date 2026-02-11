@@ -25,13 +25,12 @@ git push -u origin main
 
 ## Firebase App Hosting सेटअप (महत्त्वाचे)
 
-तुम्हाला Firebase Console मध्ये 'Create Backend' बटण दिसत असेल, तर या पायऱ्या फॉलो करा:
-
-१. **Create Backend** बटणावर क्लिक करा.
-२. **GitHub कनेक्ट करा:** तुमचे खाते निवडा आणि `maheshborge/firebase-midas` रिपॉजिटरी सिलेक्ट करा.
-३. **Region निवड:** 'Primary Region' म्हणून **asia-southeast1 (Singapore)** किंवा उपलब्ध असल्यास **asia-south1 (Mumbai)** निवडा. यामुळे महाराष्ट्रातील युजर्ससाठी अ‍ॅप वेगाने चालेल.
-४. **Environment Variables:** 'Deployment Settings' मध्ये `GOOGLE_GENAI_API_KEY` जोडा जेणेकरून AI फीचर्स काम करतील.
-५. **Finish:** एकदा सेटअप पूर्ण झाला की, तुमचे अ‍ॅप काही मिनिटांत लाईव्ह होईल!
+१. **Create Backend:** Firebase Console मध्ये 'Create Backend' वर क्लिक करा.
+२. **GitHub Connection:** 'Reuse existing installation' निवडा आणि `maheshborge` खाते कन्फर्म करा.
+३. **Select Repo:** `firebase-midas` रिपॉजिटरी निवडा.
+४. **Region निवड:** 'Primary Region' म्हणून **asia-southeast1 (Singapore)** निवडा.
+५. **Environment Variables:** 'Deployment Settings' मध्ये `GOOGLE_GENAI_API_KEY` जोडा.
+६. **Finish:** सेटअप पूर्ण झाल्यावर तुमचे अ‍ॅप काही मिनिटांत लाईव्ह होईल!
 
 ## संपर्क
 कोणत्याही मदतीसाठी MaziSheti टीमशी संपर्क साधा.
