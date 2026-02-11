@@ -1,27 +1,23 @@
 
 import type { Metadata } from 'next';
 import './globals.css';
-import { Toaster } from "@/components/ui/toaster";
 import { FirebaseClientProvider } from "@/firebase";
 
 export const metadata: Metadata = {
-  title: 'MaziSheti - MIDAS Platform',
-  description: 'प्रगत शेतीचा डिजिटल सोबती - MIDAS Platform by Mazisheti.org',
+  title: 'MaziSheti - MIDAS',
+  description: 'प्रगत शेतीचा डिजिटल सोबती',
 };
 
 export default function RootLayout({
   children,
-}: Readonly<{
+}: {
   children: React.ReactNode;
-}>) {
+}) {
   return (
     <html lang="mr">
-      <body className="font-body antialiased min-h-screen bg-background text-foreground">
+      <body className="antialiased min-h-screen bg-slate-50 text-slate-900">
         <FirebaseClientProvider>
-          <div className="relative flex min-h-screen flex-col">
-            {children}
-          </div>
-          <Toaster />
+          {children}
         </FirebaseClientProvider>
       </body>
     </html>
