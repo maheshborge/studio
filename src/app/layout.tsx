@@ -1,7 +1,6 @@
 
 import type { Metadata } from 'next';
 import './globals.css';
-import { FirebaseClientProvider } from "@/firebase";
 
 export const metadata: Metadata = {
   title: 'MaziSheti - MIDAS',
@@ -15,10 +14,8 @@ export default function RootLayout({
 }) {
   return (
     <html lang="mr">
-      <body className="antialiased min-h-screen bg-slate-50 text-slate-900">
-        <FirebaseClientProvider>
-          {children}
-        </FirebaseClientProvider>
+      <body className="antialiased min-h-screen bg-slate-50">
+        {children}
       </body>
     </html>
   );
