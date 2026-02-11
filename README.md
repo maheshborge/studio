@@ -2,29 +2,21 @@
 
 हे **MIDAS by MaziSheti** प्लॅटफॉर्मचे अधिकृत वेब अ‍ॅप आहे.
 
-## टर्मिनल कुठे आहे? (Where is the Terminal?)
-तुमच्या स्क्रीनच्या **खालच्या बाजूला (Bottom Bar)** पहा. तिथे तुम्हाला **"Terminal"** लिहिलेले दिसेल किंवा **`>_`** असा आयकॉन असेल. त्यावर क्लिक केल्यावर कमांड टाईप करण्यासाठी जागा मिळेल.
+## सिंक एरर (Fatal Error) कसा सोडवायचा?
 
-## GitHub शी कोड सिंक कसा करायचा? (How to Sync with GitHub)
+जर तुम्हाला **"fatal: couldn't find remote ref"** असा एरर आला, तर खालील स्टेप्स फॉलो करा:
 
 १. स्क्रीनच्या खालच्या बाजूला असलेल्या **Terminal** वर क्लिक करा.
-२. खालील कमांड्स एकेक करून तिथे टाईप करा आणि प्रत्येक कमांड नंतर 'Enter' दाबा:
+२. खालील कमांड्स क्रमाने टाका:
    - `git add .`
-   - `git commit -m "Update from Firebase Studio"`
-   - `git push origin main`
+   - `git commit -m "Fix build and sync code"`
+   - `git push origin main --force` (यामुळे तुमचा कोड रिफ्रेश होऊन पुन्हा पुश होईल)
 
-यानंतर तुमचा सर्व कोड तुमच्या GitHub रिपॉजिटरीमध्ये जमा होईल.
-
-## तुमच्या PC वर कोड कसा घ्यायचा? (How to get code on your PC)
-
-१. तुमच्या पीसीवर नवीन फोल्डर बनवा.
-२. तिथे कमांड प्रॉम्ट (CMD) उघडा आणि खालील कमांड टाका:
-   - `git clone https://github.com/maheshborge/firebase-midas.git`
+३. यानंतर तुमच्या **Firebase Console** वर जा आणि तिथे **"Retry build"** वर क्लिक करा.
 
 ## मॅन्युअल अपलोड करताना महत्त्वाची सूचना:
-जर तुम्ही GitHub वेबसाईटवरून फाईल्स 'Upload' करणार असाल, तर:
-- **`index.html` फाईल अपलोड करू नका.** यामुळे बिल्ड एरर येतो.
-- फक्त `src`, `public`, `package.json`, `apphosting.yaml` आणि इतर कॉन्फिग फाईल्स निवडा.
+- **`index.html` फाईल अपलोड करू नका.** यामुळे बिल्ड फेल होतो.
+- फक्त `src`, `public`, `package.json`, `apphosting.yaml` आणि `.gitignore` अपलोड करा.
 
 ## संपर्क
 कोणत्याही मदतीसाठी MaziSheti टीमशी संपर्क साधा.
