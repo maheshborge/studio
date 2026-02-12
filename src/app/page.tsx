@@ -1,6 +1,6 @@
 "use client";
 
-import { Phone, Sprout } from "lucide-react";
+import { Phone, Sprout, ShieldCheck } from "lucide-react";
 
 export default function LandingPage() {
   return (
@@ -10,7 +10,7 @@ export default function LandingPage() {
           <Sprout className="w-10 h-10" />
         </div>
         
-        <h1 className="text-3xl md:text-4xl font-bold text-slate-900 mb-6 leading-tight">
+        <h1 className="text-3xl md:text-4xl font-bold text-slate-900 mb-6 leading-tight font-headline">
           आम्ही लवकरच तुमच्या सेवेत रुजू होतोय.
         </h1>
         
@@ -27,6 +27,10 @@ export default function LandingPage() {
           <Phone className="w-6 h-6" />
           9975740444
         </a>
+
+        <div className="mt-12 flex items-center gap-2 text-xs text-slate-400">
+          <ShieldCheck className="w-4 h-4" /> तुमची माहिती सुरक्षित आहे.
+        </div>
       </div>
       
       <footer className="mt-12 text-slate-400 text-sm font-bold uppercase tracking-widest">
