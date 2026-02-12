@@ -1,4 +1,3 @@
-
 "use client";
 
 import { Phone, Sprout } from "lucide-react";
